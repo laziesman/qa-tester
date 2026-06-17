@@ -53,7 +53,7 @@
     topbar.appendChild(btn);
   }
 
-  const BLOCKED_FNS = ['resetAll','resetTask','addTc','deleteTc','setStatus','saveActual','sendToBoard','exportBugJSON'];
+  const BLOCKED_FNS = ['resetAll','resetTask','addTc','addTcDynamic','deleteTc','deleteTcDynamic','setStatus','saveActual','sendToBoard','exportBugJSON'];
 
   // Capture-phase click blocker — fires before any onclick handler
   document.addEventListener('click', function (e) {
