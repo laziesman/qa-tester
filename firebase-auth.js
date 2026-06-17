@@ -42,14 +42,64 @@
   };
 
   function _injectLogout(email) {
+    const onLogout = () => auth.signOut().then(() => { location.href = '/login.html'; });
+    const name = email.split('@')[0];
+    const roleLabel = window.AUTH.role === 'readonly' ? 'ดูอย่างเดียว' : 'Admin';
+
+    // dark topbar (task pages)
     const topbar = document.querySelector('.topbar');
-    if (!topbar) return;
-    const btn = document.createElement('button');
-    btn.textContent = email.split('@')[0] + ' ↩';
-    btn.title = 'Logout';
-    btn.style.cssText = 'font-size:11px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.3);cursor:pointer;white-space:nowrap;flex-shrink:0';
-    btn.onclick = () => auth.signOut().then(() => { location.href = '/login.html'; });
-    topbar.appendChild(btn);
+    if (topbar) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto';
+
+      const chip = document.createElement('span');
+      chip.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:999px;padding:3px 10px;white-space:nowrap;display:flex;align-items:center;gap:5px';
+      chip.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${window.AUTH.role==='readonly'?'#eab308':'#22c55e'};display:inline-block"></span>${name} · ${roleLabel}`;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'ออกจากระบบ';
+      btn.style.cssText = 'font-size:11px;padding:3px 10px;border-radius:999px;border:0.5px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.35);cursor:pointer;white-space:nowrap;transition:color .12s,border-color .12s';
+      btn.onmouseenter = () => { btn.style.color='#fff'; btn.style.borderColor='rgba(255,255,255,0.35)'; };
+      btn.onmouseleave = () => { btn.style.color='rgba(255,255,255,0.35)'; btn.style.borderColor='rgba(255,255,255,0.12)'; };
+      btn.onclick = onLogout;
+
+      wrap.appendChild(chip);
+      wrap.appendChild(btn);
+      topbar.appendChild(wrap);
+      return;
+    }
+
+    // light sidebar (index.html — inject below .sb-brand)
+    const brand = document.querySelector('.sb-brand');
+    if (brand) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding:8px 12px 2px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line)';
+
+      const dot = document.createElement('span');
+      dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${window.AUTH.role==='readonly'?'#eab308':'#22c55e'};flex-shrink:0`;
+
+      const info = document.createElement('span');
+      info.style.cssText = 'font-size:12px;font-weight:500;color:var(--dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      info.textContent = name;
+
+      const roleTag = document.createElement('span');
+      roleTag.style.cssText = `font-size:10px;font-weight:700;letter-spacing:0.3px;padding:1px 7px;border-radius:999px;white-space:nowrap;${window.AUTH.role==='readonly'?'background:#fef9c3;color:#92400e':'background:#dcfce7;color:#15803d'}`;
+      roleTag.textContent = roleLabel;
+
+      const btn = document.createElement('button');
+      btn.title = 'Logout';
+      btn.innerHTML = '↩';
+      btn.style.cssText = 'width:24px;height:24px;border-radius:6px;border:1px solid var(--line2);background:var(--bg);color:var(--faint);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s';
+      btn.onmouseenter = () => { btn.style.background='var(--fail-soft)'; btn.style.color='var(--fail)'; btn.style.borderColor='var(--fail)'; };
+      btn.onmouseleave = () => { btn.style.background='var(--bg)'; btn.style.color='var(--faint)'; btn.style.borderColor='var(--line2)'; };
+      btn.onclick = onLogout;
+
+      wrap.appendChild(dot);
+      wrap.appendChild(info);
+      wrap.appendChild(roleTag);
+      wrap.appendChild(btn);
+      brand.insertAdjacentElement('afterend', wrap);
+    }
   }
 
   const BLOCKED_FNS = ['resetAll','resetTask','addTc','addTcDynamic','deleteTc','deleteTcDynamic','setStatus','saveActual','sendToBoard','exportBugJSON'];
