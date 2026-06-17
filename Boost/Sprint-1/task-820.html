@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#820 เพิ่ม Logic การตัด quantity_on_hand (ตัด Stock)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;font-size:15px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 32px rgba(0,0,0,0.35),0 0 0 0.5px rgba(255,255,255,0.08)}
+.topbar{background:#1E293B;padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:14px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap}
+.task-link{font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;background:transparent;white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+.stats-bar{background:#162032;border-bottom:0.5px solid rgba(255,255,255,0.05);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.2);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.2);color:#c9a040}
+.pl-pend{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+.body{background:#0F172A;padding:14px 18px 20px}
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.del-btn{color:rgba(226,75,74,0.45);border-color:rgba(226,75,74,0.12)}
+.del-btn:hover{background:rgba(226,75,74,0.15);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.6)}
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+.add-tc-btn{display:block;width:100%;padding:10px;border:1px dashed rgba(255,255,255,0.12);border-radius:7px;background:transparent;color:rgba(248,250,252,0.3);cursor:pointer;font-size:13px;margin-top:6px;transition:all 0.15s}
+.add-tc-btn:hover{border-color:rgba(248,250,252,0.3);color:rgba(248,250,252,0.65);background:rgba(255,255,255,0.04)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:0.25}
+.empty-text{font-size:13px;color:rgba(248,250,252,0.28);margin-bottom:20px;line-height:1.7}
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:#1E293B;border-top:0.5px solid rgba(255,255,255,0.06)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer;transition:background 0.1s}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+.abtn.send{background:#0369a1;color:#fff;border-color:#1F3864}
+.abtn.send:hover{background:#0284c7}
+.bug-out{display:none;padding:0 18px 20px;background:#0F172A}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px;padding-top:4px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+.bug-actual-content{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:#1a1a1a;color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.6}
+.send-progress-title{font-weight:500;margin-bottom:6px}
+.send-step{color:rgba(248,250,252,0.35);font-size:12px}
+.send-step.done{color:#7ec87e}
+.send-step.active{color:#fff}
+.send-step.err{color:#f09595}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="topbar-title">#820 เพิ่ม Logic การตัด quantity_on_hand (ตัด Stock)</div>
+    <div class="topbar-meta">Boost · Sprint 1</div>
+    <a class="task-link" href="https://boards.intelligent-bytes.com/project/boostfitness/task/820" target="_blank">เปิด Taiga ↗</a>
+  </div>
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+  <div class="body"><div id="tc-list"></div></div>
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+<script>
+const STORAGE_KEY='qa_task_820',TCS_KEY=STORAGE_KEY+'_tcs',TASK_URL='https://boards.intelligent-bytes.com/project/boostfitness/task/820',TASK_NUMBER='820',TASK_NAME='เพิ่ม Logic การตัด quantity_on_hand (ตัด Stock)'
+let customTcs=[];const state={}
+function loadCustomTcs(){try{const s=localStorage.getItem(TCS_KEY);if(s)customTcs=JSON.parse(s)}catch(e){}customTcs.forEach(tc=>{if(!state[tc.id])state[tc.id]={status:null,note:''}})}
+function saveCustomTcs(){localStorage.setItem(TCS_KEY,JSON.stringify(customTcs))}
+function nextId(){const n=customTcs.map(tc=>parseInt(tc.id.replace('TC-',''),10)).filter(n=>!isNaN(n));const x=n.length?Math.max(...n)+1:1;return'TC-'+String(x).padStart(3,'0')}
+function addTc(){const id=nextId();customTcs.push({id,name:id,precondition:'',steps:'',expected:''});state[id]={status:null,note:''};saveCustomTcs();render();applyStateToUI();updateStats()}
+function deleteTc(id){if(!confirm('ลบ '+id+'?'))return;customTcs=customTcs.filter(tc=>tc.id!==id);delete state[id];saveCustomTcs();saveState();render();applyStateToUI();updateStats()}
+function saveState(){const d={};Object.keys(state).forEach(id=>{d[id]={status:state[id].status,note:state[id].note}});localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
+function loadState(){try{const s=localStorage.getItem(STORAGE_KEY);if(!s)return;const d=JSON.parse(s);Object.keys(d).forEach(id=>{if(state[id]){state[id].status=d[id].status;state[id].note=d[id].note||''}})}catch(e){}}
+function updateStats(){let p=0,f=0,s=0,n=0;Object.values(state).forEach(v=>{if(v.status==='pass')p++;else if(v.status==='fail')f++;else if(v.status==='skip')s++;else n++});document.getElementById('sp').textContent='Pass '+p;document.getElementById('sf').textContent='Fail '+f;document.getElementById('ss').textContent='Skip '+s;document.getElementById('sn').textContent='Pending '+n;document.getElementById('st').textContent='Total '+Object.keys(state).length+' TC'}
+function setStatus(id,st){state[id].status=state[id].status===st?null:st;const row=document.getElementById('row-'+id);row.className='tc-row'+(state[id].status?' s-'+state[id].status:'');['p','f','s'].forEach(k=>{const map={p:'pass',f:'fail',s:'skip'};const btn=document.getElementById(k+'-'+id);btn.className='tbtn'+(state[id].status===map[k]?' a'+k:'')});updateStats();saveState()}
+function toggleDetail(id,el){const d=document.getElementById('detail-'+id);const open=d.classList.toggle('open');el.textContent=open?'▾ ซ่อน':'▸ ดูรายละเอียด'}
+function setupEditor(id){const editor=document.getElementById('actual-'+id);if(!editor)return;editor.addEventListener('paste',(e)=>{const items=Array.from(e.clipboardData?.items||[]);const img=items.find(i=>i.type.startsWith('image/'));if(!img)return;e.preventDefault();const r=new FileReader();r.onload=(ev)=>{const i=document.createElement('img');i.src=ev.target.result;i.onclick=()=>openLightbox(i.src);insertAtCursor(i);showToast('📋 วางรูปแล้ว')};r.readAsDataURL(img.getAsFile())});editor.addEventListener('dragover',(e)=>e.preventDefault());editor.addEventListener('drop',(e)=>{e.preventDefault();const file=Array.from(e.dataTransfer.files).find(f=>f.type.startsWith('image/'));if(!file)return;const r=new FileReader();r.onload=(ev)=>{const i=document.createElement('img');i.src=ev.target.result;i.onclick=()=>openLightbox(i.src);editor.focus();insertAtCursor(i);showToast('📎 วางรูปแล้ว')};r.readAsDataURL(file)})}
+function insertAtCursor(node){const sel=window.getSelection();if(!sel||!sel.rangeCount)return;const range=sel.getRangeAt(0);range.deleteContents();range.insertNode(node);range.setStartAfter(node);range.collapse(true);sel.removeAllRanges();sel.addRange(range)}
+function saveActual(id){const editor=document.getElementById('actual-'+id);state[id].note=editor?editor.innerHTML:'';saveState();showToast('💾 บันทึกแล้ว')}
+function openLightbox(src){const overlay=document.createElement('div');overlay.className='lb-overlay';const img=document.createElement('img');img.src=src;const close=document.createElement('button');close.className='lb-close';close.textContent='✕';overlay.appendChild(img);overlay.appendChild(close);document.body.appendChild(overlay);const rm=()=>overlay.remove();close.onclick=(e)=>{e.stopPropagation();rm()};overlay.onclick=rm;img.onclick=(e)=>e.stopPropagation();document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){rm();document.removeEventListener('keydown',esc)}})}
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;';document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+function resetAll(){if(!confirm('รีเซ็ตสถานะทั้งหมด? (Test Case ที่เพิ่มไว้จะยังอยู่)'))return;localStorage.removeItem(STORAGE_KEY);Object.keys(state).forEach(id=>{state[id]={status:null,note:''}});document.getElementById('bug-out').classList.remove('open');render();applyStateToUI();updateStats()}
+function showBugReport(){const fails=[];let num=1;customTcs.forEach(tc=>{if(state[tc.id]?.status==='fail'){const editor=document.getElementById('actual-'+tc.id);fails.push({...tc,actual:editor?editor.innerText.trim():'',actualHtml:editor?editor.innerHTML.trim():'',num:num++})}});const out=document.getElementById('bug-out');const list=document.getElementById('bug-list');const title=document.getElementById('bug-title');out.classList.add('open');document.getElementById('export-btn').style.display=fails.length?'block':'none';document.getElementById('send-btn').style.display=fails.length?'block':'none';if(!fails.length){title.textContent='';list.innerHTML='<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>';out.scrollIntoView({behavior:'smooth',block:'start'});return}title.textContent='พบ '+fails.length+' รายการที่ Fail';list.innerHTML=fails.map(f=>`<div class="bug-item"><div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div><div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>${f.precondition?`<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>`:''}<div class="bug-line"><b>Steps:</b> ${f.steps?f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'):'—'}</div><div class="bug-line"><b>Expected:</b> ${f.expected||'—'}</div><div class="bug-line"><b>Actual result:</b></div><div class="bug-actual-content">${f.actualHtml||'<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div></div>`).join('');out.scrollIntoView({behavior:'smooth',block:'start'})}
+document.getElementById('bug-list').addEventListener('click',e=>{if(e.target.tagName==='IMG')openLightbox(e.target.src)})
+function render(){const container=document.getElementById('tc-list');if(customTcs.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มี Test Case<br>กด + เพื่อเพิ่มได้เลย</div><button class="add-tc-btn" style="max-width:220px" onclick="addTc()">+ เพิ่ม Test Case</button></div>`;return}container.innerHTML=customTcs.map(tc=>`<div class="tc-row" id="row-${tc.id}"><div class="tc-top"><div class="tc-id">${tc.id}</div><div class="tc-name">${tc.name}</div><div class="tc-btns"><button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button><button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button><button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button><button class="tbtn del-btn" onclick="deleteTc('${tc.id}')" title="ลบ TC นี้">✕</button></div></div><span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span><div class="tc-detail" id="detail-${tc.id}">${tc.precondition?`<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>`:''}<div class="detail-label">Steps</div><div class="detail-val">${tc.steps?tc.steps.replace(/\n/g,'<br>'):'<span style="color:rgba(248,250,252,0.25)">—</span>'}</div><div class="detail-label">Expected</div><div class="detail-val">${tc.expected||'<span style="color:rgba(248,250,252,0.25)">—</span>'}</div><div class="detail-label" style="margin-top:10px">Actual result</div><div class="actual-editor" id="actual-${tc.id}" contenteditable="true" data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div><div class="save-row"><button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button></div></div></div>`).join('')+`<button class="add-tc-btn" onclick="addTc()">+ เพิ่ม Test Case</button>`;customTcs.forEach(tc=>setupEditor(tc.id))}
+function applyStateToUI(){customTcs.forEach(tc=>{const s=state[tc.id];if(!s)return;if(s.status){const row=document.getElementById('row-'+tc.id);if(row)row.className='tc-row s-'+s.status;const map={pass:'p',fail:'f',skip:'s'};const btn=document.getElementById(map[s.status]+'-'+tc.id);if(btn)btn.className='tbtn a'+map[s.status][0]}if(s.note){const editor=document.getElementById('actual-'+tc.id);if(editor)editor.innerHTML=s.note}})}
+loadCustomTcs();render();loadState();applyStateToUI();updateStats()
+const PROXY_URL='http://localhost:8765'
+function exportBugJSON(){const payload=buildPayload();if(!payload)return;const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bug-report-'+TASK_NUMBER+'.json';a.click();showToast('📥 ดาวน์โหลด bug-report-'+TASK_NUMBER+'.json แล้วครับ')}
+function buildPayload(){const fails=[];customTcs.forEach(tc=>{if(state[tc.id]?.status==='fail'){const editor=document.getElementById('actual-'+tc.id);const images=[];if(editor)editor.querySelectorAll('img').forEach(img=>images.push(img.src));fails.push({tc_id:tc.id,name:tc.name,section:'',precondition:tc.precondition||'',steps:tc.steps||'',expected:tc.expected||'',actual:editor?editor.innerText.trim():'ยังไม่ได้ระบุ',images})}});if(!fails.length){showToast('ไม่มี Fail ที่จะส่ง');return null}return{task_url:TASK_URL,task_number:TASK_NUMBER,task_name:TASK_NAME,total_pass:Object.values(state).filter(v=>v.status==='pass').length,total_fail:fails.length,total_skip:Object.values(state).filter(v=>v.status==='skip').length,total_tc:Object.keys(state).length,bugs:fails}}
+let progressEl=null
+function showSending(){if(progressEl)progressEl.remove();progressEl=document.createElement('div');progressEl.className='send-progress';progressEl.innerHTML=`<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div><div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`;document.body.appendChild(progressEl)}
+function showSendDone(msg){if(!progressEl)return;progressEl.querySelector('#sp-0').className='send-step done';progressEl.querySelector('#sp-0').textContent='✓ '+msg;setTimeout(()=>{progressEl?.remove();progressEl=null},3000)}
+function showSendErr(msg){if(!progressEl)return;progressEl.querySelector('#sp-0').className='send-step err';progressEl.querySelector('#sp-0').textContent='✗ '+msg;setTimeout(()=>{progressEl?.remove();progressEl=null},5000)}
+async function sendToBoard(){const payload=buildPayload();if(!payload)return;showSending();try{const r=await fetch(`${PROXY_URL}/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await r.json();if(data.ok){showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`);showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)}else{showSendErr(data.error||'ส่งไม่สำเร็จ');showToast('❌ '+(data.error||'ส่งไม่สำเร็จ'))}}catch(err){showSendErr('เปิด proxy ก่อน');showToast('❌ ไม่พบ proxy — รัน: python proxy.py');console.error(err)}}
+</script>
+</body>
+</html>

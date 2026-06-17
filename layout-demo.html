@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layout Demo — 3 แบบ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0e0e0e;color:#fff;font-size:14px;min-height:100vh}
+
+/* ===== TAB NAV ===== */
+.demo-nav{background:#1a1a1a;border-bottom:0.5px solid rgba(255,255,255,0.08);padding:10px 20px;display:flex;align-items:center;gap:8px}
+.demo-nav-title{font-size:13px;color:rgba(255,255,255,0.3);margin-right:8px}
+.demo-tab{font-size:13px;padding:6px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.15s}
+.demo-tab:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+.demo-tab.active{background:#fff;color:#1a1a1a;border-color:#fff;font-weight:600}
+.demo-note{margin-left:auto;font-size:12px;color:rgba(255,255,255,0.25)}
+
+/* ===== DEMO CONTAINER ===== */
+.demo-section{display:none;height:calc(100vh - 45px)}
+.demo-section.active{display:flex;flex-direction:column}
+
+/* ================================================================
+   OPTION A — SPLIT LAYOUT
+================================================================ */
+.a-shell{display:flex;flex:1;overflow:hidden}
+
+.a-sidebar{width:220px;background:#141414;border-right:0.5px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.a-sidebar-header{padding:12px 14px 8px;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.06em;font-weight:600;text-transform:uppercase;border-bottom:0.5px solid rgba(255,255,255,0.05)}
+.a-project{margin:4px 0}
+.a-project-name{font-size:12px;color:rgba(255,255,255,0.5);padding:6px 14px;display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.a-project-name:hover{color:#fff}
+.a-sprint{padding:2px 0 6px}
+.a-sprint-name{font-size:11px;color:rgba(255,255,255,0.25);padding:4px 20px;text-transform:uppercase;letter-spacing:0.05em}
+.a-task-item{font-size:12px;padding:5px 14px 5px 24px;color:rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;gap:7px;border-left:2px solid transparent;transition:all 0.1s}
+.a-task-item:hover{color:#fff;background:rgba(255,255,255,0.04)}
+.a-task-item.active{color:#fff;background:rgba(255,255,255,0.07);border-left-color:rgba(255,255,255,0.3)}
+.a-task-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:0.5}
+.a-task-item.active .a-task-dot{opacity:1;background:#7ec87e}
+.a-task-num{flex:1}
+.a-task-badge{font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(226,75,74,0.25);color:#f09595}
+.a-task-badge.pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+
+.a-topbar{background:#1d1d1d;border-bottom:0.5px solid rgba(255,255,255,0.06);padding:9px 16px;display:flex;align-items:center;gap:8px}
+.a-topbar-title{font-size:13px;font-weight:600;color:#fff;flex:1}
+.a-topbar-meta{font-size:11px;color:rgba(255,255,255,0.25)}
+.a-topbar-link{font-size:11px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.1);border-radius:4px;padding:3px 8px;cursor:pointer;text-decoration:none;transition:all 0.1s}
+.a-topbar-link:hover{color:#fff;border-color:rgba(255,255,255,0.3)}
+
+.a-content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#141414}
+.a-task-frame{flex:1;background:#f5f4f1;overflow-y:auto;display:flex;flex-direction:column}
+.a-stats{background:#1a1a1a;padding:7px 14px;display:flex;gap:5px;flex-wrap:wrap}
+.a-pill{font-size:11px;padding:2px 8px;border-radius:12px;font-weight:500}
+.a-tclist{padding:12px 14px}
+.a-tc{background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.a-tc.pass{border-left-color:#52a869;background:#fafffe}
+.a-tc.fail{border-left-color:#e24b4a;background:#fffafa}
+.a-tc-id{font-size:11px;color:#bbb;flex-shrink:0;width:40px}
+.a-tc-name{font-size:13px;color:#1a1a1a;flex:1}
+.a-tc-btns{display:flex;gap:2px;flex-shrink:0}
+.a-tbtn{font-size:11px;padding:2px 7px;border-radius:3px;border:0.5px solid #e0e0e0;background:#fff;color:#999;cursor:pointer}
+.a-tbtn:hover{background:#f0f0f0}
+.a-tbtn.ap{background:#eaf3de;color:#3b6d11;border-color:#c0dd97}
+.a-tbtn.af{background:#fcebeb;color:#a32d2d;border-color:#f7c1c1}
+.a-sec-hd{font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.08em;padding:10px 0 4px;text-transform:uppercase}
+.a-sec-hd:first-child{padding-top:0}
+.a-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:rgba(255,255,255,0.15)}
+.a-empty-icon{font-size:32px;opacity:0.4}
+.a-empty-text{font-size:13px}
+.a-bottom{background:#eeecea;padding:9px 14px;display:flex;gap:6px;border-top:0.5px solid #e4e1dc}
+.a-abtn{font-size:12px;padding:5px 12px;border-radius:5px;border:0.5px solid #ddd;background:#fff;color:#666;cursor:pointer}
+.a-abtn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* ================================================================
+   OPTION B — FULL-WIDTH SLIDE
+================================================================ */
+.b-topbar{background:#1d1d1d;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.06)}
+.b-back{font-size:12px;color:rgba(255,255,255,0.4);border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;cursor:pointer;background:transparent;display:none;transition:all 0.1s}
+.b-back:hover{color:#fff}
+.b-breadcrumb{font-size:13px;color:rgba(255,255,255,0.4);flex:1}
+.b-breadcrumb b{color:#fff}
+
+.b-viewport{flex:1;overflow:hidden;position:relative}
+.b-panel{position:absolute;inset:0;overflow-y:auto;transition:transform 0.28s cubic-bezier(0.4,0,0.2,1),opacity 0.25s}
+.b-panel.hidden-left{transform:translateX(-100%);opacity:0;pointer-events:none}
+.b-panel.hidden-right{transform:translateX(100%);opacity:0;pointer-events:none}
+
+/* list panel */
+.b-list-panel{background:#141414;padding:20px}
+.b-project-block{margin-bottom:20px}
+.b-project-hd{font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px}
+.b-sprint-hd{font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:6px;margin-left:2px}
+.b-task-card{background:#1d1d1d;border:0.5px solid rgba(255,255,255,0.06);border-radius:8px;padding:11px 14px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.12s}
+.b-task-card:hover{background:#242424;border-color:rgba(255,255,255,0.12)}
+.b-task-card-num{font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);width:36px;flex-shrink:0}
+.b-task-card-name{font-size:13px;color:#fff;flex:1;line-height:1.4}
+.b-task-card-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.b-task-card-tc{font-size:11px;color:rgba(255,255,255,0.25)}
+.b-task-card-stat{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500}
+.b-arrow{font-size:14px;color:rgba(255,255,255,0.15);flex-shrink:0}
+
+/* task panel */
+.b-task-panel{background:#f5f4f1;display:flex;flex-direction:column}
+.b-task-stats{background:#1a1a1a;padding:7px 16px;display:flex;gap:5px}
+.b-task-body{flex:1;padding:12px 16px;overflow-y:auto}
+.b-task-bottom{background:#eeecea;padding:9px 16px;display:flex;gap:6px;border-top:0.5px solid #e4e1dc}
+
+/* ================================================================
+   OPTION C — DRAWER
+================================================================ */
+.c-topbar{background:#1d1d1d;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.06)}
+.c-topbar-title{font-size:13px;font-weight:600;color:#fff;flex:1}
+
+.c-body{flex:1;overflow-y:auto;background:#141414;padding:20px}
+.c-project-hd{font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px}
+.c-sprint-hd{font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:6px;margin-left:2px}
+.c-task-row{background:#1d1d1d;border:0.5px solid rgba(255,255,255,0.06);border-radius:8px;padding:11px 14px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.12s}
+.c-task-row:hover{background:#242424;border-color:rgba(255,255,255,0.12)}
+.c-task-row-num{font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);width:36px;flex-shrink:0}
+.c-task-row-name{font-size:13px;color:#fff;flex:1}
+.c-task-row-stat{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500;flex-shrink:0}
+.c-task-row-arrow{font-size:14px;color:rgba(255,255,255,0.15)}
+
+.c-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background 0.28s;z-index:100}
+.c-overlay.open{background:rgba(0,0,0,0.5);pointer-events:all}
+.c-drawer{position:fixed;bottom:0;left:0;right:0;height:85vh;background:#f5f4f1;border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);z-index:101;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,0.35)}
+.c-drawer.open{transform:translateY(0)}
+.c-drawer-handle{width:36px;height:4px;background:rgba(0,0,0,0.15);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.c-drawer-topbar{background:#242424;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.c-drawer-title{font-size:13px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-drawer-close{font-size:13px;color:rgba(255,255,255,0.4);border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;cursor:pointer;background:transparent;transition:all 0.1s}
+.c-drawer-close:hover{color:#fff}
+.c-drawer-stats{background:#1d1d1d;padding:7px 16px;display:flex;gap:5px;flex-shrink:0}
+.c-drawer-body{flex:1;overflow-y:auto;padding:12px 16px}
+.c-drawer-bottom{background:#eeecea;padding:9px 16px;display:flex;gap:6px;border-top:0.5px solid #e4e1dc;flex-shrink:0}
+
+/* ===== SHARED SMALL COMPONENTS ===== */
+.pill-p{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pill-f{background:rgba(226,75,74,0.2);color:#f09595}
+.pill-s{background:rgba(212,160,23,0.2);color:#c9a040}
+.pill-n{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+.pill{font-size:11px;padding:2px 8px;border-radius:12px;font-weight:500}
+.stat-pill{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- ===== TAB NAV ===== -->
+<div class="demo-nav">
+  <span class="demo-nav-title">Layout Demo</span>
+  <button class="demo-tab active" onclick="showDemo('a')">A — Split (sidebar)</button>
+  <button class="demo-tab" onclick="showDemo('b')">B — Full-width slide</button>
+  <button class="demo-tab" onclick="showDemo('c')">C — Drawer</button>
+  <span class="demo-note">กดที่ task เพื่อดูพฤติกรรม</span>
+</div>
+
+<!-- ================================================================
+     OPTION A — SPLIT LAYOUT
+================================================================ -->
+<div class="demo-section active" id="demo-a" style="height:calc(100vh - 45px)">
+  <div class="a-shell" style="height:100%">
+
+    <!-- Sidebar -->
+    <div class="a-sidebar">
+      <div class="a-sidebar-header">Projects</div>
+      <div class="a-project">
+        <div class="a-project-name">▾ HR</div>
+        <div class="a-sprint">
+          <div class="a-sprint-name">Sprint 5</div>
+          <div class="a-task-item active" onclick="aLoadTask(this,'403','ฟอร์มบันทึกประวัติการเปลี่ยนแปลง','p')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#403</div>
+            <div class="a-task-badge pass">P:5</div>
+          </div>
+          <div class="a-task-item" onclick="aLoadTask(this,'404','แก้ไขประวัติการเปลี่ยนแปลง','n')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#404</div>
+          </div>
+          <div class="a-task-item" onclick="aLoadTask(this,'405','ลบประวัติการทำงาน','f')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#405</div>
+            <div class="a-task-badge">F:2</div>
+          </div>
+          <div class="a-task-item" onclick="aLoadTask(this,'406','รายละเอียดประวัติ read-only','n')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#406</div>
+          </div>
+          <div class="a-task-item" onclick="aLoadTask(this,'407','รายการเอกสารสัญญาทั้งหมด','n')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#407</div>
+          </div>
+          <div class="a-task-item" onclick="aLoadTask(this,'416','Cronjob อัปเดตข้อมูล','n')">
+            <div class="a-task-dot"></div>
+            <div class="a-task-num">#416</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content area -->
+    <div class="a-content-area">
+      <div id="a-task-topbar" class="a-topbar">
+        <div class="a-topbar-title">#403 — ฟอร์มบันทึกประวัติการเปลี่ยนแปลง</div>
+        <div class="a-topbar-meta">HR · Sprint 5</div>
+        <a class="a-topbar-link">เปิด Board ↗</a>
+      </div>
+      <div id="a-task-content" class="a-task-frame">
+        <div class="a-stats">
+          <span class="pill pill-p">Pass 5</span>
+          <span class="pill pill-f">Fail 0</span>
+          <span class="pill pill-s">Skip 1</span>
+          <span class="pill pill-n">Pending 32</span>
+        </div>
+        <div class="a-tclist">
+          <div class="a-sec-hd">ส่วนที่ 1 — เลือกพนักงาน</div>
+          <div class="a-tc pass"><div class="a-tc-id">TC-001</div><div class="a-tc-name">ค้นหาพนักงาน Active ด้วยรหัส</div><div class="a-tc-btns"><button class="a-tbtn ap">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+          <div class="a-tc pass"><div class="a-tc-id">TC-002</div><div class="a-tc-name">ค้นหาด้วยชื่อ-สกุล</div><div class="a-tc-btns"><button class="a-tbtn ap">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+          <div class="a-tc"><div class="a-tc-id">TC-003</div><div class="a-tc-name">ค้นหาพนักงาน Inactive → ไม่แสดง</div><div class="a-tc-btns"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+          <div class="a-sec-hd">ส่วนที่ 2 — ประเภทการเปลี่ยนแปลง</div>
+          <div class="a-tc"><div class="a-tc-id">TC-004</div><div class="a-tc-name">เลือกประเภท "เปลี่ยนตำแหน่ง"</div><div class="a-tc-btns"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+          <div class="a-tc"><div class="a-tc-id">TC-005</div><div class="a-tc-name">เลือกประเภท "ปรับเงินเดือน"</div><div class="a-tc-btns"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+        </div>
+        <div class="a-bottom">
+          <button class="a-abtn">Reset</button>
+          <button class="a-abtn primary">สรุป Bug Report</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ================================================================
+     OPTION B — FULL-WIDTH SLIDE
+================================================================ -->
+<div class="demo-section" id="demo-b" style="flex-direction:column">
+  <div class="b-topbar">
+    <button class="b-back" id="b-back" onclick="bGoBack()">← กลับ</button>
+    <div class="b-breadcrumb" id="b-breadcrumb"><b>QA Dashboard</b></div>
+  </div>
+  <div class="b-viewport" style="flex:1;position:relative">
+
+    <!-- LIST PANEL -->
+    <div class="b-panel b-list-panel" id="b-list-panel">
+      <div class="b-project-block">
+        <div class="b-project-hd">HR</div>
+        <div class="b-sprint-hd">Sprint 5</div>
+        <div class="b-task-card" onclick="bOpenTask('403','ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงาน','p')">
+          <div class="b-task-card-num">#403</div>
+          <div class="b-task-card-name">ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงาน</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">38 TC</div>
+            <div class="b-task-card-stat pill-p pill">Pass 5</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+        <div class="b-task-card" onclick="bOpenTask('404','แก้ไขประวัติการเปลี่ยนแปลงข้อมูลการทำงาน','n')">
+          <div class="b-task-card-num">#404</div>
+          <div class="b-task-card-name">แก้ไขประวัติการเปลี่ยนแปลงข้อมูลการทำงาน</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">30 TC</div>
+            <div class="b-task-card-stat pill-n pill">Pending 30</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+        <div class="b-task-card" onclick="bOpenTask('405','ลบรายการประวัติการทำงาน','f')">
+          <div class="b-task-card-num">#405</div>
+          <div class="b-task-card-name">ลบรายการประวัติการทำงาน</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">23 TC</div>
+            <div class="b-task-card-stat pill-f pill">Fail 2</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+        <div class="b-task-card" onclick="bOpenTask('406','รายละเอียดประวัติการทำงาน read-only','n')">
+          <div class="b-task-card-num">#406</div>
+          <div class="b-task-card-name">รายละเอียดประวัติการทำงาน read-only</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">23 TC</div>
+            <div class="b-task-card-stat pill-n pill">Pending 23</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+        <div class="b-task-card" onclick="bOpenTask('407','รายการเอกสารสัญญาทั้งหมด','n')">
+          <div class="b-task-card-num">#407</div>
+          <div class="b-task-card-name">รายการเอกสารสัญญาทั้งหมดของพนักงาน</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">42 TC</div>
+            <div class="b-task-card-stat pill-n pill">Pending 42</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+        <div class="b-task-card" onclick="bOpenTask('416','Cronjob อัปเดตข้อมูลปัจจุบันพนักงาน','n')">
+          <div class="b-task-card-num">#416</div>
+          <div class="b-task-card-name">Cronjob อัปเดตข้อมูลปัจจุบันพนักงาน</div>
+          <div class="b-task-card-meta">
+            <div class="b-task-card-tc">22 TC</div>
+            <div class="b-task-card-stat pill-n pill">Pending 22</div>
+          </div>
+          <div class="b-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK PANEL -->
+    <div class="b-panel b-task-panel hidden-right" id="b-task-panel">
+      <div class="b-task-stats" id="b-task-stats">
+        <span class="pill pill-p">Pass 5</span>
+        <span class="pill pill-f">Fail 0</span>
+        <span class="pill pill-s">Skip 1</span>
+        <span class="pill pill-n">Pending 32</span>
+      </div>
+      <div class="b-task-body">
+        <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:.07em;text-transform:uppercase;padding:0 0 6px">ส่วนที่ 1 — เลือกพนักงาน</div>
+        <div class="a-tc pass" style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid #52a869;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-001</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาพนักงาน Active ด้วยรหัส</div><div style="display:flex;gap:2px"><button class="a-tbtn ap">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+        <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-002</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาด้วยชื่อ-สกุล</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+        <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-003</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาพนักงาน Inactive → ไม่แสดง</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+        <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:.07em;text-transform:uppercase;padding:10px 0 6px">ส่วนที่ 2 — ประเภทการเปลี่ยนแปลง</div>
+        <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-004</div><div style="font-size:13px;color:#1a1a1a;flex:1">เลือกประเภท "เปลี่ยนตำแหน่ง"</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+      </div>
+      <div class="b-task-bottom">
+        <button class="a-abtn">Reset</button>
+        <button class="a-abtn primary">สรุป Bug Report</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ================================================================
+     OPTION C — DRAWER
+================================================================ -->
+<div class="demo-section" id="demo-c">
+  <div class="c-topbar">
+    <div class="c-topbar-title">QA Dashboard</div>
+  </div>
+  <div class="c-body">
+    <div class="c-project-hd">HR</div>
+    <div class="c-sprint-hd">Sprint 5</div>
+    <div class="c-task-row" onclick="cOpenDrawer('403','ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงาน','p')">
+      <div class="c-task-row-num">#403</div>
+      <div class="c-task-row-name">ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงาน</div>
+      <div class="c-task-row-stat pill pill-p">Pass 5</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+    <div class="c-task-row" onclick="cOpenDrawer('404','แก้ไขประวัติการเปลี่ยนแปลงข้อมูลการทำงาน','n')">
+      <div class="c-task-row-num">#404</div>
+      <div class="c-task-row-name">แก้ไขประวัติการเปลี่ยนแปลงข้อมูลการทำงาน</div>
+      <div class="c-task-row-stat pill pill-n">Pending 30</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+    <div class="c-task-row" onclick="cOpenDrawer('405','ลบรายการประวัติการทำงาน','f')">
+      <div class="c-task-row-num">#405</div>
+      <div class="c-task-row-name">ลบรายการประวัติการทำงาน</div>
+      <div class="c-task-row-stat pill pill-f">Fail 2</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+    <div class="c-task-row" onclick="cOpenDrawer('406','รายละเอียดประวัติการทำงาน read-only','n')">
+      <div class="c-task-row-num">#406</div>
+      <div class="c-task-row-name">รายละเอียดประวัติการทำงาน read-only</div>
+      <div class="c-task-row-stat pill pill-n">Pending 23</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+    <div class="c-task-row" onclick="cOpenDrawer('407','รายการเอกสารสัญญาทั้งหมดของพนักงาน','n')">
+      <div class="c-task-row-num">#407</div>
+      <div class="c-task-row-name">รายการเอกสารสัญญาทั้งหมดของพนักงาน</div>
+      <div class="c-task-row-stat pill pill-n">Pending 42</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+    <div class="c-task-row" onclick="cOpenDrawer('416','Cronjob อัปเดตข้อมูลปัจจุบันพนักงาน','n')">
+      <div class="c-task-row-num">#416</div>
+      <div class="c-task-row-name">Cronjob อัปเดตข้อมูลปัจจุบันพนักงาน</div>
+      <div class="c-task-row-stat pill pill-n">Pending 22</div>
+      <div class="c-task-row-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="c-overlay" id="c-overlay" onclick="cCloseDrawer()"></div>
+
+  <!-- Drawer -->
+  <div class="c-drawer" id="c-drawer">
+    <div class="c-drawer-handle"></div>
+    <div class="c-drawer-topbar">
+      <div class="c-drawer-title" id="c-drawer-title">#403 — ฟอร์มบันทึก...</div>
+      <button class="c-drawer-close" onclick="cCloseDrawer()">✕ ปิด</button>
+    </div>
+    <div class="c-drawer-stats" id="c-drawer-stats">
+      <span class="pill pill-p">Pass 0</span>
+      <span class="pill pill-f">Fail 0</span>
+      <span class="pill pill-s">Skip 0</span>
+      <span class="pill pill-n">Pending 38</span>
+    </div>
+    <div class="c-drawer-body">
+      <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:.07em;text-transform:uppercase;padding:0 0 6px">ส่วนที่ 1 — เลือกพนักงาน</div>
+      <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-001</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาพนักงาน Active ด้วยรหัส</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+      <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-002</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาด้วยชื่อ-สกุล</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+      <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-003</div><div style="font-size:13px;color:#1a1a1a;flex:1">ค้นหาพนักงาน Inactive → ไม่แสดง</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+      <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:.07em;text-transform:uppercase;padding:10px 0 6px">ส่วนที่ 2 — ประเภทการเปลี่ยนแปลง</div>
+      <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-004</div><div style="font-size:13px;color:#1a1a1a;flex:1">เลือกประเภท "เปลี่ยนตำแหน่ง"</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+      <div style="background:#fff;border:0.5px solid #e8e8e8;border-left:3px solid transparent;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:#bbb;width:40px">TC-005</div><div style="font-size:13px;color:#1a1a1a;flex:1">เลือกประเภท "ปรับเงินเดือน"</div><div style="display:flex;gap:2px"><button class="a-tbtn">Pass</button><button class="a-tbtn">Fail</button><button class="a-tbtn">Skip</button></div></div>
+    </div>
+    <div class="c-drawer-bottom">
+      <button class="a-abtn">Reset</button>
+      <button class="a-abtn primary">สรุป Bug Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== TAB SWITCHING ===== */
+function showDemo(id) {
+  document.querySelectorAll('.demo-section').forEach(el => el.classList.remove('active'))
+  document.querySelectorAll('.demo-tab').forEach(el => el.classList.remove('active'))
+  document.getElementById('demo-' + id).classList.add('active')
+  document.querySelectorAll('.demo-tab').forEach(el => {
+    if (el.textContent.toLowerCase().startsWith(id)) el.classList.add('active')
+  })
+}
+
+/* ===== OPTION A — SPLIT ===== */
+const aStats = {
+  '403': {title:'#403 — ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงาน', pass:5, fail:0, skip:1, pend:32},
+  '404': {title:'#404 — แก้ไขประวัติการเปลี่ยนแปลงข้อมูลการทำงาน', pass:0, fail:0, skip:0, pend:30},
+  '405': {title:'#405 — ลบรายการประวัติการทำงาน', pass:8, fail:2, skip:0, pend:13},
+  '406': {title:'#406 — รายละเอียดประวัติการทำงาน read-only', pass:0, fail:0, skip:0, pend:23},
+  '407': {title:'#407 — รายการเอกสารสัญญาทั้งหมดของพนักงาน', pass:0, fail:0, skip:0, pend:42},
+  '416': {title:'#416 — Cronjob อัปเดตข้อมูลปัจจุบันพนักงาน', pass:0, fail:0, skip:0, pend:22},
+}
+function aLoadTask(el, num, name, st) {
+  document.querySelectorAll('.a-task-item').forEach(i => i.classList.remove('active'))
+  el.classList.add('active')
+  const s = aStats[num]
+  document.getElementById('a-task-topbar').innerHTML = `
+    <div class="a-topbar-title">${s.title}</div>
+    <div class="a-topbar-meta">HR · Sprint 5</div>
+    <a class="a-topbar-link">เปิด Board ↗</a>
+  `
+  const pills = `
+    <span class="pill pill-p">Pass ${s.pass}</span>
+    <span class="pill pill-f">Fail ${s.fail}</span>
+    <span class="pill pill-s">Skip ${s.skip}</span>
+    <span class="pill pill-n">Pending ${s.pend}</span>
+  `
+  document.querySelector('.a-stats').innerHTML = pills
+}
+
+/* ===== OPTION B — SLIDE ===== */
+let bInTask = false
+function bOpenTask(num, name, st) {
+  const stats = aStats[num]
+  document.getElementById('b-task-stats').innerHTML = `
+    <span class="pill pill-p">Pass ${stats.pass}</span>
+    <span class="pill pill-f">Fail ${stats.fail}</span>
+    <span class="pill pill-s">Skip ${stats.skip}</span>
+    <span class="pill pill-n">Pending ${stats.pend}</span>
+  `
+  document.getElementById('b-breadcrumb').innerHTML = `<span style="color:rgba(255,255,255,0.3);cursor:pointer" onclick="bGoBack()">QA Dashboard</span> <span style="color:rgba(255,255,255,0.3)"> / HR Sprint 5 / </span><b>#${num}</b>`
+  document.getElementById('b-back').style.display = 'block'
+
+  const list = document.getElementById('b-list-panel')
+  const task = document.getElementById('b-task-panel')
+  list.classList.add('hidden-left')
+  task.classList.remove('hidden-right')
+  bInTask = true
+}
+function bGoBack() {
+  const list = document.getElementById('b-list-panel')
+  const task = document.getElementById('b-task-panel')
+  list.classList.remove('hidden-left')
+  task.classList.add('hidden-right')
+  document.getElementById('b-back').style.display = 'none'
+  document.getElementById('b-breadcrumb').innerHTML = '<b>QA Dashboard</b>'
+  bInTask = false
+}
+
+/* ===== OPTION C — DRAWER ===== */
+function cOpenDrawer(num, name, st) {
+  const stats = aStats[num]
+  document.getElementById('c-drawer-title').textContent = `#${num} — ${name}`
+  document.getElementById('c-drawer-stats').innerHTML = `
+    <span class="pill pill-p">Pass ${stats.pass}</span>
+    <span class="pill pill-f">Fail ${stats.fail}</span>
+    <span class="pill pill-s">Skip ${stats.skip}</span>
+    <span class="pill pill-n">Pending ${stats.pend}</span>
+  `
+  document.getElementById('c-overlay').classList.add('open')
+  document.getElementById('c-drawer').classList.add('open')
+}
+function cCloseDrawer() {
+  document.getElementById('c-overlay').classList.remove('open')
+  document.getElementById('c-drawer').classList.remove('open')
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') cCloseDrawer()
+})
+</script>
+</body>
+</html>

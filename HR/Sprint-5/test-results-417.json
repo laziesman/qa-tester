@@ -1,0 +1,78 @@
+{
+  "TC-001": {
+    "status": "pass",
+    "note": "หน้าโหลดสำเร็จ URL=https://hr-stg.intelligent-bytes.com/employee/contracts"
+  },
+  "TC-002": {
+    "status": "pass",
+    "note": "พบ badge สถานะ 78 รายการในหน้า"
+  },
+  "TC-003": {
+    "status": "skip",
+    "note": "ไม่พบ badge \"มีผลบังคับใช้\" — อาจไม่มีข้อมูลสถานะนี้ในระบบ manual verify"
+  },
+  "TC-004": {
+    "status": "pass",
+    "note": "พบ badge \"ใกล้หมดอายุ\" ในหน้า class=\"light\" (manual verify สีสีส้ม)"
+  },
+  "TC-005": {
+    "status": "pass",
+    "note": "พบ badge \"หมดอายุ\" ในหน้า class=\"light\" (manual verify สีสีแดง)"
+  },
+  "TC-006": {
+    "status": "pass",
+    "note": "พบ badge \"ยกเลิก\" ในหน้า class=\"light\" (manual verify สีไม่เปลี่ยน)"
+  },
+  "TC-007": {
+    "status": "pass",
+    "note": "พบคอลัมน์วันที่เหลือในหน้า (manual verify ค่าตรงกับ วันสิ้นสุด - วันนี้)"
+  },
+  "TC-008": {
+    "status": "pass",
+    "note": "พบสัญญาสถานะ \"ใกล้หมดอายุ\" ในหน้า (manual verify วันที่เหลือ ≤ 30)"
+  },
+  "TC-009": {
+    "status": "pass",
+    "note": "พบข้อความ \"หมดอายุแล้ว\" ในหน้า class=\"light\" (manual verify สีแดง)"
+  },
+  "TC-010": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาที่ไม่มีวันสิ้นสุด"
+  },
+  "TC-011": {
+    "status": "skip",
+    "note": "ไม่พบปุ่ม/tab กรองสถานะ \"มีผลบังคับใช้\" — manual verify"
+  },
+  "TC-012": {
+    "status": "skip",
+    "note": "ไม่พบปุ่ม/tab กรองสถานะ \"ใกล้หมดอายุ\" — manual verify"
+  },
+  "TC-013": {
+    "status": "skip",
+    "note": "ไม่พบปุ่ม/tab กรองสถานะ \"หมดอายุ\" — manual verify"
+  },
+  "TC-014": {
+    "status": "skip",
+    "note": "ไม่พบปุ่มล้างตัวกรอง — manual verify"
+  },
+  "TC-015": {
+    "status": "skip",
+    "note": "ต้อง manual verify — trigger Cronjob ซ้ำ แล้วตรวจ \"ใกล้หมดอายุ\" ไม่เปลี่ยนกลับ"
+  },
+  "TC-016": {
+    "status": "skip",
+    "note": "ต้อง manual verify — trigger Cronjob ซ้ำ แล้วตรวจ \"หมดอายุ\" ไม่มี AuditLog ใหม่"
+  },
+  "TC-017": {
+    "status": "skip",
+    "note": "ต้อง manual verify ผ่าน AuditLog หรือ API ของระบบหลัง Cronjob รัน"
+  },
+  "TC-018": {
+    "status": "skip",
+    "note": "ต้อง manual verify ผ่าน AuditLog หรือ API ของระบบหลัง Cronjob รัน"
+  },
+  "TC-019": {
+    "status": "skip",
+    "note": "ต้อง manual verify ผ่าน AuditLog หรือ API ของระบบหลัง Cronjob รัน"
+  }
+}

@@ -1,0 +1,672 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 416 — อัปเดตข้อมูลปัจจุบันพนักงานเมื่อถึงวันที่มีผล (Cronjob 00:01)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;font-size:15px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 32px rgba(0,0,0,0.35),0 0 0 0.5px rgba(255,255,255,0.08)}
+
+.topbar{background:#1E293B;padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:14px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap}
+.task-link{font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;background:transparent;white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+
+.stats-bar{background:#162032;border-bottom:0.5px solid rgba(255,255,255,0.05);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.2);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.2);color:#c9a040}
+.pl-pend{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+
+.body{background:#0F172A;padding:14px 18px 20px}
+.note-box{background:rgba(56,189,248,0.08);border:0.5px solid rgba(56,189,248,0.2);border-radius:6px;padding:8px 11px;font-size:12px;color:rgba(56,189,248,0.9);margin-bottom:10px;line-height:1.6}
+.section-hd{font-size:11px;font-weight:600;color:rgba(248,250,252,0.4);letter-spacing:0.07em;padding:14px 0 6px;text-transform:uppercase}
+.section-hd:first-child{padding-top:4px}
+
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.4)}
+
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:#1E293B;border-top:0.5px solid rgba(255,255,255,0.06)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer;transition:background 0.1s}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+.abtn.send{background:#0369a1;color:#fff;border-color:#1F3864}
+.abtn.send:hover{background:#0284c7}
+
+.bug-out{display:none;padding:0 18px 20px;background:#0F172A}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px;padding-top:4px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+.bug-actual-content{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:#1a1a1a;color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.6}
+.send-progress-title{font-weight:500;margin-bottom:6px}
+.send-step{color:rgba(248,250,252,0.35);font-size:12px}
+.send-step.done{color:#7ec87e}
+.send-step.active{color:#fff}
+.send-step.err{color:#f09595}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+<div class="topbar-title">#416 — อัปเดตข้อมูลปัจจุบันพนักงานเมื่อถึงวันที่มีผล (Cronjob 00:01)</div>
+    <div class="topbar-meta">HR · Sprint 5</div>
+    <a class="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/416" target="_blank">เปิด Board ↗</a>
+  </div>
+
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+
+  <div class="body">
+    <div class="note-box">
+      <b>หมายเหตุ:</b> Task นี้เป็น Cronjob (ทำงานอัตโนมัติทุกวัน 00:01 น.) — ทดสอบโดยสร้าง test data ที่ วันที่มีผล = วันนี้ แล้ว trigger job หรือรอให้ทำงาน จากนั้นตรวจสอบผลลัพธ์ใน UI และ database
+    </div>
+    <div id="tc-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'qa_task_416'
+const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/416'
+const TASK_NUMBER = '416'
+const TASK_NAME = 'อัปเดตข้อมูลปัจจุบันพนักงานเมื่อถึงวันที่มีผล (Cronjob 00:01)'
+
+const SECTIONS = [
+  {
+    name: 'ส่วนที่ 1 — การดึงรายการที่ถึงวันมีผล',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'Job ดึงเฉพาะรายการที่ effective_date = วันนี้ (ไม่ดึงวันอื่น)',
+        precondition: 'มีรายการ pending ที่ effective_date = วันนี้ และวันอื่น',
+        steps: '1. สร้าง test data: รายการ effective_date = วันนี้ (2 รายการ), effective_date = พรุ่งนี้ (1 รายการ)\n2. Trigger job หรือรอให้ทำงาน 00:01\n3. ตรวจสอบ log หรือผลลัพธ์',
+        expected: 'Job ประมวลผลเฉพาะรายการที่ effective_date = วันนี้ (2 รายการ) ไม่แตะรายการพรุ่งนี้'
+      },
+      {
+        id: 'TC-002',
+        name: 'รายการที่ effective_date < วันนี้ (ค้างจากวันก่อน) → Job ดึงมาประมวลผลด้วย',
+        precondition: 'มีรายการ pending ที่ effective_date = เมื่อวาน (ค้างไม่ได้ประมวลผล)',
+        steps: '1. สร้าง test data ที่ค้างจากเมื่อวาน\n2. Trigger job\n3. ตรวจสอบผลลัพธ์',
+        expected: 'Job ดึงและประมวลผลรายการที่ค้างด้วย ไม่ข้ามรายการที่เลยกำหนด'
+      },
+      {
+        id: 'TC-003',
+        name: 'ไม่มีรายการถึงวันมีผลวันนี้ → Job ทำงานเสร็จโดยไม่มี error',
+        precondition: 'ไม่มีรายการ pending ที่ effective_date = วันนี้',
+        steps: '1. ตรวจสอบว่าไม่มีรายการในวันนี้\n2. Trigger job\n3. ตรวจสอบ log',
+        expected: 'Job ทำงานเสร็จ exit code 0 ไม่มี error ใน log ไม่ crash'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — อัปเดตข้อมูลตามประเภท',
+    tcs: [
+      {
+        id: 'TC-004',
+        name: 'ประเภท "เปลี่ยนตำแหน่ง" → ข้อมูลตำแหน่งปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทเปลี่ยนตำแหน่ง effective_date = วันนี้',
+        steps: '1. บันทึก current position ของพนักงาน\n2. Trigger job\n3. ตรวจสอบ current position หลัง job',
+        expected: 'ตำแหน่งปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-005',
+        name: 'ประเภท "เปลี่ยนแผนก" → ข้อมูลแผนกปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทเปลี่ยนแผนก effective_date = วันนี้',
+        steps: '1. บันทึก current department\n2. Trigger job\n3. ตรวจสอบ current department',
+        expected: 'แผนกปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-006',
+        name: 'ประเภท "ปรับเงินเดือน" → ข้อมูลเงินเดือนปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทปรับเงินเดือน effective_date = วันนี้',
+        steps: '1. บันทึก current salary\n2. Trigger job\n3. ตรวจสอบ current salary',
+        expected: 'เงินเดือนปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-007',
+        name: 'พนักงานหลายคนมีรายการในวันเดียวกัน → อัปเดตทุกคนครบ ไม่มีคนใดหลุด',
+        precondition: 'มีรายการของพนักงาน 3+ คน effective_date = วันนี้',
+        steps: '1. สร้าง test data สำหรับพนักงาน 3 คน\n2. Trigger job\n3. ตรวจสอบข้อมูลพนักงานทั้ง 3 คน',
+        expected: 'ข้อมูลพนักงานทุกคนอัปเดตครบ ไม่มีคนใดหลุด'
+      },
+      {
+        id: 'TC-008',
+        name: 'พนักงานคนเดียวมีหลายรายการในวันเดียวกัน → อัปเดตทุก field ครบ',
+        precondition: 'พนักงาน 1 คนมีรายการเปลี่ยนตำแหน่ง + เปลี่ยนแผนก effective_date = วันนี้',
+        steps: '1. สร้าง test data สำหรับพนักงาน 1 คน มี 2 รายการ\n2. Trigger job\n3. ตรวจสอบทั้งตำแหน่งและแผนก',
+        expected: 'ทั้งตำแหน่งและแผนกของพนักงานอัปเดตครบทั้ง 2 field'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — Sync เงินเดือนไปยัง 7.3',
+    tcs: [
+      {
+        id: 'TC-009',
+        name: 'ปรับเงินเดือน → ค่าใหม่ sync ไปยัง module 7.3 (Payroll) ด้วย',
+        precondition: 'มีรายการปรับเงินเดือน effective_date = วันนี้ และ module 7.3 เชื่อมต่ออยู่',
+        steps: '1. บันทึกเงินเดือนใน module 7.3\n2. Trigger job\n3. ตรวจสอบเงินเดือนใน module 7.3 หลัง job',
+        expected: 'เงินเดือนใน module 7.3 อัปเดตเป็นค่าใหม่โดยอัตโนมัติ ตรงกับค่า After'
+      },
+      {
+        id: 'TC-010',
+        name: 'ไม่ใช่การปรับเงินเดือน → ไม่มีการ sync ไปยัง 7.3',
+        precondition: 'มีรายการเปลี่ยนตำแหน่ง (ไม่ใช่เงินเดือน) effective_date = วันนี้',
+        steps: '1. Trigger job\n2. ตรวจสอบว่า module 7.3 ไม่มีการเปลี่ยนแปลง',
+        expected: 'module 7.3 ไม่มีการเปลี่ยนแปลงใดๆ สำหรับรายการที่ไม่ใช่เงินเดือน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — Badge "กำลังจะมีผล"',
+    tcs: [
+      {
+        id: 'TC-011',
+        name: 'รายการที่ยังไม่ถึง effective_date → แสดง Badge "กำลังจะมีผล" ใน UI',
+        precondition: 'มีรายการที่ effective_date = พรุ่งนี้',
+        steps: '1. เปิดหน้ารายการประวัติ\n2. ดู Badge ของรายการที่ effective_date = พรุ่งนี้',
+        expected: 'แสดง Badge "กำลังจะมีผล" ที่รายการนั้น'
+      },
+      {
+        id: 'TC-012',
+        name: 'หลัง Job ทำงาน → Badge "กำลังจะมีผล" หายไป (รายการมีผลแล้ว)',
+        precondition: 'มีรายการที่ effective_date = วันนี้ และมี Badge "กำลังจะมีผล"',
+        steps: '1. ตรวจสอบ Badge ก่อน job\n2. Trigger job\n3. ตรวจสอบ Badge หลัง job',
+        expected: 'Badge "กำลังจะมีผล" หายไป รายการแสดงสถานะ "มีผลแล้ว" หรือไม่มี Badge'
+      },
+      {
+        id: 'TC-013',
+        name: 'รายการที่มีผลแล้ว → ไม่แสดง Badge "กำลังจะมีผล"',
+        precondition: 'มีรายการเก่าที่ผ่าน effective_date ไปแล้ว',
+        steps: '1. เปิดดูรายการเก่าที่ผ่านมาแล้ว\n2. ตรวจสอบ Badge',
+        expected: 'ไม่แสดง Badge "กำลังจะมีผล" สำหรับรายการที่มีผลไปแล้ว'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — Audit Log',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'หลัง Job ทำงาน → มี audit log บันทึกว่า Job อัปเดตข้อมูล',
+        precondition: 'มีรายการถึงวันมีผล',
+        steps: '1. Trigger job\n2. ตรวจสอบ audit log ของรายการที่ถูกประมวลผล',
+        expected: 'มี audit log บันทึกการเปลี่ยนแปลงโดย system/cronjob แสดงค่าก่อน-หลัง และ timestamp'
+      },
+      {
+        id: 'TC-015',
+        name: 'Audit log แสดง actor เป็น "System" หรือ "Cronjob" (ไม่ใช่ user ใด)',
+        precondition: 'มี audit log หลัง job ทำงาน',
+        steps: '1. ดู audit log ที่บันทึกโดย job\n2. ตรวจสอบ field "ผู้แก้ไข" หรือ actor',
+        expected: 'แสดง actor เป็น "System", "Cronjob", หรือชื่อที่แสดงว่าเป็นระบบ ไม่ใช่ชื่อ user จริง'
+      },
+      {
+        id: 'TC-016',
+        name: 'Audit log บันทึกค่า Before และ After ถูกต้อง',
+        precondition: 'มี audit log หลัง job ทำงาน',
+        steps: '1. ดูค่า Before ใน audit log\n2. ดูค่า After ใน audit log\n3. เปรียบเทียบกับข้อมูลจริง',
+        expected: 'ค่า Before ตรงกับข้อมูลก่อน job และค่า After ตรงกับข้อมูลหลัง job'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — Edge Cases',
+    tcs: [
+      {
+        id: 'TC-017',
+        name: 'พนักงานที่ลาออกแล้ว → Job ข้ามรายการของพนักงานที่ inactive',
+        precondition: 'มีรายการ pending ของพนักงานที่ลาออก effective_date = วันนี้',
+        steps: '1. Trigger job\n2. ตรวจสอบว่าข้อมูลพนักงานที่ inactive เปลี่ยนหรือไม่',
+        expected: 'Job ข้ามหรือไม่ประมวลผลรายการของพนักงาน inactive ข้อมูลไม่เปลี่ยน ไม่มี error'
+      },
+      {
+        id: 'TC-018',
+        name: 'Job ทำงาน 2 ครั้งในวันเดียวกัน (idempotent) → ไม่อัปเดตซ้ำ',
+        precondition: 'มีรายการถึงวันมีผล และ job ทำงานครั้งแรกสำเร็จ',
+        steps: '1. Trigger job ครั้งแรก → ผ่าน\n2. Trigger job ครั้งที่สอง\n3. ตรวจสอบข้อมูลและ audit log',
+        expected: 'ครั้งที่สอง: ไม่มีการอัปเดตข้อมูลซ้ำ audit log ไม่มีรายการซ้ำ ระบบไม่ crash'
+      },
+      {
+        id: 'TC-019',
+        name: 'Database connection ล้มเหลวระหว่าง job → job rollback ไม่ทำข้อมูลเสียหาย',
+        precondition: 'จำลอง DB connection drop ระหว่าง job ทำงาน',
+        steps: '1. จำลอง DB ล้มเหลวระหว่าง job\n2. ตรวจสอบสถานะข้อมูลหลัง error',
+        expected: 'ข้อมูลไม่อยู่ในสถานะครึ่งกลาง (partial update) มีการ rollback อย่างถูกต้อง'
+      },
+      {
+        id: 'TC-020',
+        name: 'รายการ pending มีข้อมูล After ไม่ครบ → Job log error แต่ไม่ crash ข้ามไปรายการถัดไป',
+        precondition: 'มีรายการ pending ที่ข้อมูล After บางส่วนหายไป',
+        steps: '1. สร้าง test data ที่ข้อมูล After ไม่ครบ\n2. Trigger job\n3. ตรวจสอบ log และรายการอื่น',
+        expected: 'Job บันทึก error สำหรับรายการนั้น แต่ทำงานต่อกับรายการอื่น ไม่ crash ทั้ง job'
+      },
+      {
+        id: 'TC-021',
+        name: 'Job ทำงานเสร็จภายใน timeout ที่กำหนด (ไม่ hang)',
+        precondition: 'มีรายการหลายร้อยรายการรอประมวลผล',
+        steps: '1. สร้าง test data จำนวนมาก\n2. Trigger job\n3. จับเวลาที่ job ใช้',
+        expected: 'Job ทำงานเสร็จภายในเวลาที่กำหนด ไม่ timeout หรือ hang'
+      },
+      {
+        id: 'TC-022',
+        name: 'Log ของ Job บันทึกข้อมูลครบ: จำนวนรายการที่ประมวลผล / สำเร็จ / ล้มเหลว',
+        precondition: 'Trigger job ให้ทำงาน',
+        steps: '1. Trigger job\n2. ดู log ที่ได้',
+        expected: 'Log บันทึก: จำนวน records ที่ดึงมา, จำนวนที่ success, จำนวนที่ fail (ถ้ามี), เวลาที่ใช้'
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) {
+        state[id].status = data[id].status
+        state[id].note = data[id].note || ''
+      }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++
+    else if(v.status==='fail') f++
+    else if(v.status==='skip') s++
+    else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+  document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats()
+  saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+  editor.addEventListener('focus', () => { activeEditor = id })
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img)
+      showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+  editor.addEventListener('dragover', (e) => { e.preventDefault() })
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      editor.focus()
+      insertAtCursor(img)
+      showToast('📎 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents()
+  range.insertNode(node)
+  range.setStartAfter(node)
+  range.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState()
+  showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img')
+  img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'
+  close.textContent = '✕'
+  overlay.appendChild(img)
+  overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm
+  img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด?')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  document.getElementById('bug-out').classList.remove('open')
+  render()
+  loadState()
+  applyStateToUI()
+  updateStats()
+}
+
+function showBugReport() {
+  const fails = []
+  let num = 1
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const actual = editor ? editor.innerText.trim() : ''
+        const actualHtml = editor ? editor.innerHTML.trim() : ''
+        fails.push({ ...tc, section: sec.name, actual, actualHtml, num: num++ })
+      }
+    })
+  })
+
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
+  document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
+
+  if (!fails.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
+      ${f.precondition ? `<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>` : ''}
+      <div class="bug-line"><b>Steps:</b> ${f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')}</div>
+      <div class="bug-line"><b>Expected:</b> ${f.expected}</div>
+      <div class="bug-line"><b>Actual result:</b></div>
+      <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+    </div>
+  `).join('')
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+document.getElementById('bug-list').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target.src)
+})
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML = SECTIONS.map(sec => `
+    <div>
+      <div class="section-hd">${sec.name}</div>
+      ${sec.tcs.map(tc => `
+        <div class="tc-row" id="row-${tc.id}">
+          <div class="tc-top">
+            <div class="tc-id">${tc.id}</div>
+            <div class="tc-name">${tc.name}</div>
+            <div class="tc-btns">
+              <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+              <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+              <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+            </div>
+          </div>
+          <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+          <div class="tc-detail" id="detail-${tc.id}">
+            ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+            <div class="detail-label">Steps</div>
+            <div class="detail-val">${tc.steps.replace(/\n/g,'<br>')}</div>
+            <div class="detail-label">Expected</div>
+            <div class="detail-val">${tc.expected}</div>
+            <div class="detail-label" style="margin-top:10px">Actual result</div>
+            <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+              data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+            <div class="save-row">
+              <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('')
+
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+}
+
+function applyStateToUI() {
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+    const s = state[tc.id]
+    if (s.status) {
+      document.getElementById('row-' + tc.id).className = 'tc-row s-' + s.status
+      const map = { pass:'p', fail:'f', skip:'s' }
+      const btn = document.getElementById(map[s.status] + '-' + tc.id)
+      if (btn) btn.className = 'tbtn a' + map[s.status][0]
+    }
+    if (s.note) {
+      const editor = document.getElementById('actual-' + tc.id)
+      if (editor) editor.innerHTML = s.note
+    }
+  }))
+}
+
+render()
+loadState()
+applyStateToUI()
+updateStats()
+
+const PROXY_URL = 'http://localhost:8765'
+
+function exportBugJSON() {
+  const payload = buildPayload()
+  if (!payload) return
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'bug-report-' + TASK_NUMBER + '.json'
+  a.click()
+  showToast('📥 ดาวน์โหลด bug-report-' + TASK_NUMBER + '.json แล้วครับ')
+}
+
+function buildPayload() {
+  const fails = []
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const images = []
+        if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+        fails.push({ tc_id: tc.id, name: tc.name, section: sec.name,
+          precondition: tc.precondition || '', steps: tc.steps, expected: tc.expected,
+          actual: editor ? editor.innerText.trim() : 'ยังไม่ได้ระบุ', images })
+      }
+    })
+  })
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  return {
+    task_url: TASK_URL, task_number: TASK_NUMBER, task_name: TASK_NAME,
+    total_pass: Object.values(state).filter(v => v.status === 'pass').length,
+    total_fail: fails.length,
+    total_skip: Object.values(state).filter(v => v.status === 'skip').length,
+    total_tc: Object.keys(state).length,
+    bugs: fails
+  }
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div')
+  progressEl.className = 'send-progress'
+  progressEl.innerHTML = `<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div>
+    <div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`
+  document.body.appendChild(progressEl)
+}
+function showSendDone(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step done'
+  progressEl.querySelector('#sp-0').textContent = '✓ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 3000)
+}
+function showSendErr(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step err'
+  progressEl.querySelector('#sp-0').textContent = '✗ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 5000)
+}
+
+async function sendToBoard() {
+  const payload = buildPayload()
+  if (!payload) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await r.json()
+    if (data.ok) {
+      showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`)
+      showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)
+    } else {
+      showSendErr(data.error || 'ส่งไม่สำเร็จ')
+      showToast('❌ ' + (data.error || 'ส่งไม่สำเร็จ'))
+    }
+  } catch (err) {
+    showSendErr('เปิด proxy ก่อน')
+    showToast('❌ ไม่พบ proxy — รัน: python proxy.py')
+    console.error(err)
+  }
+}
+</script>
+</body>
+</html>

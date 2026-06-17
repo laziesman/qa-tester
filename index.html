@@ -1,0 +1,3404 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Tester — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pass:#22c55e; --fail:#ef5350; --skip:#eab308; --pending:#cbd5e1;
+  --pass-soft:#dcfce7; --fail-soft:#fee2e2; --skip-soft:#fef9c3;
+  --bg:#ffffff; --canvas:#f7f8fa; --panel:#fbfbfc; --panel2:#f1f3f7;
+  --line:#ececf0; --line2:#e2e4ea;
+  --text:#16181d; --dim:#5a606b; --faint:#9499a3;
+  --accent:#4f6ef7; --accent-soft:#eef2ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Sarabun','Inter',system-ui,sans-serif;background:var(--canvas);color:var(--text);font-size:14.5px;line-height:1.55}
+.num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.mono{font-family:'IBM Plex Mono',monospace}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:272px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.sb-brand{padding:16px 16px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line)}
+.sb-brand .dot{width:8px;height:8px;border-radius:999px;background:var(--pass)}
+.sb-brand .name{font-weight:700;letter-spacing:.2px}
+.sb-brand .ic{margin-left:auto;color:var(--faint);cursor:pointer;font-size:15px;transition:color .1s}
+.sb-brand .ic:hover{color:var(--text)}
+.selectors{padding:12px 12px 6px;display:flex;flex-direction:column;gap:7px}
+.sel-field{position:relative}
+.sel-field label{font-size:10px;font-weight:700;letter-spacing:0.8px;color:var(--faint);display:block;margin-bottom:5px}
+.sel-field select{width:100%;appearance:none;background:var(--panel2);border:none;border-radius:999px;padding:7px 32px 7px 14px;font-size:13px;font-weight:500;color:var(--text);font-family:inherit;cursor:pointer;outline:none;transition:background .1s,color .1s}
+.sel-field select:hover{background:var(--line2);color:var(--text)}
+.sel-field select:focus{background:var(--line2);color:var(--text)}
+.sel-field .chev{position:absolute;right:13px;bottom:8px;color:var(--faint);pointer-events:none;font-size:11px}
+.sb-home{margin:8px 12px;padding:7px 14px;border-radius:999px;border:none;background:var(--panel2);color:var(--text);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;transition:background .1s,color .1s;width:calc(100% - 24px);cursor:pointer}
+.sb-home:hover{background:var(--line2);color:var(--text)}
+.sb-home.on{background:var(--line2);color:var(--text);font-weight:600}
+.sb-search{padding:2px 12px 10px}
+.sb-search .wrap{position:relative}
+.sb-search input{width:100%;padding:8px 32px 8px 11px;border-radius:9px;background:var(--bg);border:1px solid var(--line2);color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.sb-search input:focus{border-color:var(--accent)}
+.sb-search .si{position:absolute;right:11px;top:9px;color:var(--faint)}
+.sb-secthd{padding:4px 16px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--faint);display:flex;align-items:center}
+.sb-secthd .c{margin-left:auto;font-weight:600;color:var(--dim)}
+.sb-list{flex:1;overflow-y:auto;padding:0 8px 14px}
+.sb-item{width:100%;text-align:left;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:2px;border:none;background:transparent;transition:.1s;cursor:pointer}
+.sb-item-meta{font-size:10px;color:var(--faint);margin-top:1px}
+.sb-title{font-size:11px;color:var(--dim);line-height:1.5;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-item:hover{background:var(--panel2)}
+.sb-item.sel{background:var(--line2)}
+.sb-item .sid{font-size:12px;font-weight:500;color:var(--text);font-family:'IBM Plex Mono',monospace;flex:1;text-align:left}
+.sb-badge{font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+.sb-badge.fail{color:#b91c1c;background:var(--fail-soft);border:1px solid #fca5a5}
+.sb-badge.pass{color:#15803d;background:var(--pass-soft);border:1px solid #86efac}
+.sb-badge.empty{color:var(--faint);font-weight:400;font-size:12px}
+.sb-open{width:20px;height:20px;border-radius:5px;border:1px solid var(--line2);outline:none;background:var(--bg);color:var(--faint);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;opacity:0;transition:.1s;text-decoration:none;cursor:pointer}
+.sb-item:hover .sb-open,.sb-item.sel .sb-open{opacity:1}
+.sb-open:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;position:relative;background:var(--canvas)}
+.bar{display:flex;border-radius:8px;overflow:hidden;background:var(--line)}
+.bar>span{transition:width .3s}
+.crumb{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--faint);margin-bottom:10px}
+.crumb b{color:var(--dim);font-weight:600}
+.crumb .sep{opacity:.6}
+.hide{display:none!important}
+
+/* ── Dashboard ── */
+.dash{padding:24px 30px}
+.dash-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.dash-hd{display:flex;align-items:flex-end;gap:24px;margin-bottom:18px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--faint);margin-bottom:5px;text-transform:uppercase}
+.dash-hd h1{font-size:24px;font-weight:700}
+.dash-hd .sub{font-size:13px;color:var(--dim);margin-top:3px}
+.dash-rate{margin-left:auto;text-align:right}
+.dash-rate .v{font-size:46px;font-weight:700;line-height:1;font-family:'Space Grotesk',sans-serif}
+.dash-rate .lb{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--faint);text-transform:uppercase}
+.legend{display:flex;gap:20px;margin-top:15px;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:8px}
+.lg .d{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.lg .n{font-weight:700;font-size:15px;font-family:'Space Grotesk',sans-serif}
+.lg .t{font-size:13px;color:var(--dim)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+.metric{background:var(--panel2);border-radius:11px;padding:14px 16px}
+.metric .ml{font-size:12px;color:var(--dim);margin-bottom:5px}
+.metric .mv{font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif}
+.dash-tasks{margin-top:26px}
+.dash-tasks .hd{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--faint);margin-bottom:12px;display:flex;align-items:center;text-transform:uppercase}
+.dash-tasks .hd .cnt{margin-left:auto;font-weight:600;letter-spacing:0;color:var(--dim)}
+.taskrow{display:grid;grid-template-columns:52px 1fr 180px 64px;gap:16px;align-items:center;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);margin-bottom:8px;cursor:pointer;transition:.12s;text-align:left;width:100%}
+.taskrow:hover{border-color:var(--line2);box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.taskrow.fail{border-left:3px solid var(--fail);border-radius:0 12px 12px 0}
+.taskrow .tid{font-size:13px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.taskrow .ttitle{font-size:14px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.taskrow .tbar{display:flex;flex-direction:column;gap:5px}
+.taskrow .tbar .meta{font-size:11px;color:var(--faint)}
+.taskrow .tstat{font-size:13px;font-weight:700;text-align:right;font-family:'Space Grotesk',sans-serif}
+
+/* ── TC View ── */
+.tcview{padding-bottom:112px}
+.tc-hdr{position:sticky;top:0;z-index:20;background:var(--canvas);border-bottom:1px solid var(--line);padding:18px 30px 16px}
+.tc-hdr .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.backbtn{font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;transition:.1s}
+.backbtn:hover{color:var(--text);border-color:var(--faint)}
+.tasklink{margin-left:auto;font-size:12px;color:var(--dim);text-decoration:none;border:1px solid var(--line2);border-radius:8px;padding:6px 12px;transition:.12s;background:var(--bg);cursor:pointer}
+.tasklink:hover{color:var(--accent);border-color:var(--accent)}
+.tc-hdr .title-row{display:flex;align-items:baseline;gap:10px;margin-bottom:13px}
+.tc-hdr .title-row .tid{font-size:14px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.tc-hdr .title-row h1{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.tc-legend{display:flex;gap:18px;align-items:center;margin-top:11px;flex-wrap:wrap}
+.tc-legend .rate{margin-left:auto;display:flex;align-items:baseline;gap:6px}
+.tc-legend .rate .v{font-size:28px;font-weight:700;font-family:'Space Grotesk',sans-serif}
+.tc-legend .rate .lb{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--faint);text-transform:uppercase}
+
+.tc-body{padding:0 30px}
+.note-box{background:var(--accent-soft);border:1px solid #d8e0fd;border-radius:11px;padding:11px 14px;font-size:13px;color:#3b50c4;line-height:1.65;margin:16px 0 4px}
+.toolbar{display:flex;align-items:center;gap:8px;padding:16px 0 4px;flex-wrap:wrap}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:3px}
+.seg button{border:none;background:transparent;color:var(--dim);font-size:13px;font-weight:600;padding:5px 12px;border-radius:6px;transition:.1s}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+.collapse-btn{margin-left:auto;font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 13px;transition:.1s}
+.collapse-btn:hover{color:var(--text);border-color:var(--faint)}
+
+.section{margin-top:22px}
+.section-hd{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--dim);padding-bottom:10px}
+.section-hd .count{font-size:11px;color:var(--faint);font-weight:600;margin-left:auto}
+.tc{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--line2);border-radius:0 11px 11px 0;margin-bottom:8px;overflow:hidden;transition:.12s}
+.tc.s-pass{border-left-color:var(--pass)}
+.tc.s-fail{border-left-color:var(--fail);background:#fff6f6}
+.tc.s-skip{border-left-color:var(--skip)}
+.tc-head{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:flex-start;padding:13px 15px}
+.tc-meta{min-width:0}
+.tc-idline{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.tc-id{font-size:12px;font-weight:600;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.tc-statustag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;display:none}
+.tc.s-pass .tc-statustag.pass{display:inline;color:#15803d;background:var(--pass-soft)}
+.tc.s-fail .tc-statustag.fail{display:inline;color:#b91c1c;background:var(--fail-soft)}
+.tc.s-skip .tc-statustag.skip{display:inline;color:#a16207;background:var(--skip-soft)}
+.tc-name{font-size:14px;font-weight:500;line-height:1.45}
+.tc-btns{display:flex;gap:4px;flex-shrink:0}
+.tbtn{font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid var(--line2);background:var(--bg);color:var(--dim);transition:.1s}
+.tbtn:hover{color:var(--text);border-color:var(--faint)}
+.tbtn.ap{background:var(--pass-soft);border-color:#86efac;color:#15803d}
+.tbtn.af{background:var(--fail-soft);border-color:#fca5a5;color:#b91c1c}
+.tbtn.as{background:var(--skip-soft);border-color:#fde047;color:#a16207}
+.tc-toggle{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--faint);background:transparent;border:none;padding:0 15px 12px;margin-top:-2px}
+.tc-toggle:hover{color:var(--dim)}
+.tc-detail{display:none;padding:2px 15px 15px;border-top:1px solid var(--line);margin-top:2px}
+.tc-detail.open{display:block}
+.dlabel{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--faint);margin:12px 0 4px;text-transform:uppercase}
+.dval{font-size:13px;color:var(--dim);line-height:1.6}
+.dval.expected{color:var(--text)}
+.actual-editor{margin-top:5px;min-height:54px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);padding:10px 12px;font-size:13px;color:var(--text);line-height:1.6;outline:none;transition:.12s}
+.actual-editor:focus{border-color:var(--accent);background:var(--bg)}
+.actual-editor:empty:before{content:attr(data-placeholder);color:var(--faint)}
+.actual-editor img{max-width:100%;border-radius:7px;display:block;margin:6px 0;cursor:zoom-in;border:1px solid var(--line2)}
+.save-row{margin-top:8px}
+.save-btn{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid #d8e0fd;border-radius:7px;padding:6px 13px;transition:.1s}
+.save-btn:hover{background:#e3e9fe}
+
+/* ── Action bar ── */
+.actionbar{position:fixed;left:272px;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 30px}
+.standalone .sidebar{display:none!important}
+.standalone .actionbar{left:0!important}
+.standalone .backbtn{display:none!important}
+.actionbar-inner{display:flex;align-items:center;gap:9px}
+.abtn{font-size:13px;font-weight:600;padding:9px 16px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);color:var(--dim);transition:.1s}
+.abtn:hover{color:var(--text);border-color:var(--faint)}
+.abtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.abtn.primary:hover{filter:brightness(1.06)}
+.abtn.send{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+.abtn.send:hover{filter:brightness(1.1)}
+.ab-spacer{margin-left:auto;font-size:12px;color:var(--faint)}
+
+/* ── Bug report ── */
+.bug-out{display:none;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.bug-out.open{display:block}
+.bug-title{font-size:14px;font-weight:700;margin-bottom:12px}
+.bug-item{border:1px solid #fbcaca;background:#fff6f6;border-radius:11px;padding:13px 15px;margin-bottom:9px}
+.bug-id{font-size:12px;font-weight:600;color:#b91c1c;margin-bottom:6px;letter-spacing:.3px;font-family:'IBM Plex Mono',monospace}
+.bug-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.45}
+.bug-line{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:2px}
+.bug-line b{color:var(--faint);font-weight:600}
+.bug-actual{font-size:13px;color:var(--text);line-height:1.6;margin-top:3px;padding-left:14px;border-left:2px solid var(--line2)}
+.bug-actual img{max-width:100%;border-radius:7px;display:block;margin:6px 0;cursor:zoom-in;border:1px solid var(--line2)}
+.no-fail{font-size:14px;font-weight:600;color:#15803d;background:var(--pass-soft);border:1px solid #86efac;border-radius:11px;padding:14px 16px;display:flex;align-items:center;gap:9px}
+
+/* ── Misc ── */
+.lb-overlay{position:fixed;inset:0;z-index:9999;background:rgba(15,18,25,.8);display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:40px}
+.lb-overlay img{max-width:92vw;max-height:90vh;border-radius:10px;cursor:default}
+.lb-close{position:fixed;top:18px;right:18px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,.32)}
+.toast{position:fixed;top:18px;right:18px;z-index:10000;background:var(--text);color:#fff;border-radius:9px;padding:9px 15px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.2);pointer-events:none}
+.send-progress{position:fixed;bottom:90px;right:24px;z-index:9998;background:var(--bg);color:var(--text);border:1px solid var(--line2);border-radius:11px;padding:13px 17px;font-size:13px;min-width:230px;box-shadow:0 6px 22px rgba(0,0,0,.12);line-height:1.65}
+.send-progress-title{font-weight:600;margin-bottom:6px}
+.send-step{color:var(--dim);font-size:12px}
+.send-step.done{color:#15803d}
+.send-step.err{color:#b91c1c}
+.loading-state{padding:32px;text-align:center;color:var(--faint);font-size:13px}
+.add-tc-btn-idx{display:block;width:100%;padding:10px;border:1px dashed var(--line2);border-radius:8px;background:transparent;color:var(--faint);cursor:pointer;font-size:13px;margin-top:6px;transition:all .15s;font-family:inherit}
+.add-tc-btn-idx:hover{border-color:var(--dim);color:var(--dim);background:var(--panel2)}
+.tbtn.del{color:var(--fail);border-color:rgba(239,83,80,.2)}
+.tbtn.del:hover{background:rgba(239,83,80,.1);border-color:rgba(239,83,80,.4)}
+
+/* ── Overview (All Projects) ── */
+.ov-wrap{padding:24px 30px}
+.ov-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.ov-hd h2{font-size:18px;font-weight:700}
+.ov-hd .sub{font-size:13px;color:var(--faint);margin-left:4px}
+.ov-sum{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.ov-sum-stat{display:flex;flex-direction:column;gap:3px;min-width:70px}
+.ov-sum-stat .sv{font-size:30px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1}
+.ov-sum-stat .sl{font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--faint);text-transform:uppercase;margin-top:3px}
+.ov-sum-bar{flex:1;min-width:200px}
+.ov-projects{display:flex;flex-direction:column;gap:10px}
+.ov-proj-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ov-proj-hd{padding:13px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--panel);transition:background .1s;user-select:none}
+.ov-proj-hd:hover{background:var(--panel2)}
+.ov-proj-name{font-size:14px;font-weight:700;flex:1}
+.ov-proj-meta{font-size:12px;color:var(--faint)}
+.ov-expand-btn{font-size:13px;color:var(--faint);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:transform .2s,color .1s;flex-shrink:0}
+.ov-proj-hd:hover .ov-expand-btn{color:var(--dim)}
+.ov-sprints{display:none;border-top:1px solid var(--line)}
+.ov-sprints.open{display:block}
+.ov-sprint-row{display:grid;grid-template-columns:100px 1fr 64px 90px;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:.1s}
+.ov-sprint-row:last-child{border-bottom:none}
+.ov-sprint-row:hover{background:var(--canvas)}
+.ov-sprint-name{font-size:13px;font-weight:600;color:var(--dim)}
+.ov-sprint-barwrap{display:flex;flex-direction:column;gap:4px}
+.ov-sprint-mini{display:flex;gap:10px;flex-wrap:wrap;margin-top:1px}
+.ov-mini-stat{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:3px}
+.ov-mini-stat .dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.ov-tasks-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ov-chip{font-size:11px;padding:3px 7px;border-radius:5px;border:1px solid var(--line2);background:var(--panel2);color:var(--dim);cursor:pointer;transition:.1s;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.ov-chip:hover{border-color:var(--faint);color:var(--text);background:var(--line2)}
+.ov-chip.chip-fail{border-color:#fca5a5;background:#fff6f6;color:#b91c1c}
+.ov-chip.chip-pass{border-color:#86efac;background:var(--pass-soft);color:#15803d}
+.ov-chip.chip-skip{border-color:#fde047;background:var(--skip-soft);color:#a16207}
+.ov-chip.chip-wip{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+.ov-sprint-rate{font-size:20px;font-weight:700;font-family:'Space Grotesk',sans-serif;text-align:right}
+.ov-sprint-btn{font-size:12px;padding:6px 11px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--dim);transition:.1s;white-space:nowrap;font-family:inherit;cursor:pointer}
+.ov-sprint-row:hover .ov-sprint-btn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+@media(max-width:720px){.sidebar{display:none}.actionbar{left:0}.metrics{grid-template-columns:repeat(2,1fr)}.taskrow{grid-template-columns:46px 1fr auto;gap:10px}.taskrow .tbar{display:none}.ov-sprint-row{grid-template-columns:80px 1fr;gap:8px}.ov-sprint-rate,.ov-sprint-btn{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <span class="dot"></span>
+      <span class="name">QA Tester</span>
+    </div>
+    <div class="sb-search"><div class="wrap"><input id="search" placeholder="ค้นหา task..." oninput="renderSidebar()"><span class="si">⌕</span></div></div>
+    <button class="sb-home on" id="home-btn" onclick="go('home')">Dashboard</button>
+    <div class="selectors">
+      <div class="sel-field"><label>PROJECT</label><select id="sel-project" onchange="onProjectChange()"></select><span class="chev">▾</span></div>
+      <div class="sel-field"><label>SPRINT</label><select id="sel-sprint" onchange="onSprintChange()"></select><span class="chev">▾</span></div>
+    </div>
+    <div class="sb-secthd"><span id="sb-sprintlabel">TASKS</span><span class="c" id="sb-count"></span></div>
+    <div class="sb-list" id="sb-list"></div>
+  </aside>
+
+  <main class="main" id="main">
+    <!-- Overview (All Projects) -->
+    <section id="view-overview" class="hide">
+      <div class="ov-wrap">
+        <div class="ov-hd">
+          <h2>Overview</h2>
+          <span class="sub" id="ov-sub">ทุกโปรเจค</span>
+        </div>
+        <div class="ov-sum">
+          <div class="ov-sum-stat"><div class="sv num" id="ov-rate">—</div><div class="sl">Pass Rate</div></div>
+          <div class="ov-sum-bar">
+            <div class="bar" style="height:9px;margin-bottom:9px" id="ov-bar"></div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap" id="ov-legend"></div>
+          </div>
+          <div class="ov-sum-stat"><div class="sv num" id="ov-total">0</div><div class="sl">Test Cases</div></div>
+          <div class="ov-sum-stat"><div class="sv num" id="ov-fail" style="color:var(--fail)">0</div><div class="sl">Fails</div></div>
+          <div class="ov-sum-stat"><div class="sv num" id="ov-tasks">0</div><div class="sl">Tasks</div></div>
+          <div class="ov-sum-stat"><div class="sv num" id="ov-projs">0</div><div class="sl">Projects</div></div>
+        </div>
+        <div class="ov-projects" id="ov-projects"></div>
+      </div>
+    </section>
+
+    <!-- Dashboard (Sprint-level) -->
+    <section class="dash hide" id="view-dash">
+      <div class="crumb" id="dash-crumb"></div>
+      <div class="dash-card">
+        <div class="dash-hd">
+          <div>
+            <div class="eyebrow" id="d-eyebrow">—</div>
+            <h1 class="num" id="d-sprintname">Sprint</h1>
+            <div class="sub"><span id="d-tasks">0</span> tasks · <span class="num" id="d-total">0</span> test cases</div>
+          </div>
+          <div class="dash-rate"><div class="v num" id="d-rate" style="color:var(--pass)">0<span style="font-size:.42em;color:var(--faint)">%</span></div><div class="lb">Pass Rate</div></div>
+        </div>
+        <div class="bar" style="height:9px" id="d-bar"></div>
+        <div class="legend" id="d-legend"></div>
+        <div class="metrics" id="d-metrics"></div>
+      </div>
+      <div class="dash-tasks">
+        <div class="hd">Tasks<span class="cnt" id="d-taskcount"></span></div>
+        <div id="d-tasklist"></div>
+      </div>
+    </section>
+
+    <!-- TC View -->
+    <section class="tcview hide" id="view-tc">
+      <div class="tc-hdr">
+        <div class="top">
+          <button class="backbtn" id="back-btn">← กลับ Dashboard</button>
+          <a class="tasklink" id="tc-link" href="#" target="_blank">↗ เปิด Taiga</a>
+        </div>
+        <div class="crumb" id="tc-crumb"></div>
+        <div class="title-row"><span class="tid mono" id="tc-tid">#000</span><h1 id="tc-title">—</h1></div>
+        <div class="bar" style="height:8px" id="tc-bar"></div>
+        <div class="tc-legend" id="tc-legend"></div>
+      </div>
+      <div class="tc-body">
+        <div class="note-box hide" id="tc-note"></div>
+        <div class="toolbar">
+          <div class="seg" id="tc-filter">
+            <button class="on" data-f="all">All</button>
+            <button data-f="fail">Fail</button>
+            <button data-f="pending">Pending</button>
+          </div>
+          <button class="collapse-btn" id="toggle-all">Expand all</button>
+        </div>
+        <div id="tc-list"></div>
+        <div class="bug-out" id="bug-out"><div class="bug-title" id="bug-title"></div><div id="bug-list"></div></div>
+      </div>
+      <div class="actionbar" id="actionbar">
+        <div class="actionbar-inner">
+          <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+          <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">↓ Export JSON</button>
+          <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">↑ ส่งไป Taiga</button>
+          <button class="abtn" onclick="resetTask()">Reset</button>
+          <span class="ab-spacer" id="ab-summary"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const BOARD_HOST = 'https://boards.intelligent-bytes.com/project/'
+const PROXY_URL  = 'http://localhost:8765'
+
+function boardUrl(taskId, taskObj) {
+  if (taskObj && taskObj.url) return taskObj.url
+  const p = project()
+  return BOARD_HOST + (p.boardSlug || p.id) + '/task/' + taskId
+}
+
+// ── Projects (our file-based structure) ──
+const PROJECTS = [
+  {
+    id: 'browser', name: 'Browser App', boardSlug: 'browser-app', sprints: [
+      { id: 's3', name: 'Sprint 3', tasks: [
+        { id: '826', title: 'กลับมาจากหน้าดู map (ดูบน browser ไม่ได้ออกไป google map) เจอหน้านี้', file: 'Browser/Sprint-3/task-826.html', storageKey: 'qa_task_826' },
+        { id: '861', title: 'เว็บเดียวกันแสดงรูปไม่เหมือนกัน', file: 'Browser/Sprint-3/task-861.html', storageKey: 'qa_task_861' },
+        { id: '843', title: 'เปิด streaming นานๆแล้วเจอหน้าขาว', file: 'Browser/Sprint-3/task-843.html', storageKey: 'qa_task_843', url: 'https://boards.intelligent-bytes.com/project/browser-app/us/843' },
+        { id: '842', title: 'ผู้ใช้งานแจ้งปัญหา 2026-05-30', file: 'Browser/Sprint-3/task-842.html', storageKey: 'qa_task_842', url: 'https://boards.intelligent-bytes.com/project/browser-app/us/842' }
+      ]}
+    ]
+  },
+  { id:'testerWL', name:'Tester WL', boardSlug: 'tester-workload-board', sprints: [
+    { id:'s1', name:'Sprint 1', tasks: [
+      { id:'38', title:'AICC : ตรวจ review ฟุตบอลทุกเช้า 15-19/06/2026', file:'TesterWL/Sprint-1/task-38.html', storageKey:'qa_task_38', url:'https://boards.intelligent-bytes.com/project/tester-workload-board/us/38' }
+    ]}
+  ]},
+  { id:'boost', name:'Boost', boardSlug: 'boostfitness', sprints: [
+    { id:'s1', name:'Sprint 1', tasks: [
+      { id:'817', title:'สร้าง model stock retail', file:'Boost/Sprint-1/task-817.html', storageKey:'qa_task_817' },
+      { id:'818', title:'แก้ไขการแสดงผล ส่วนการขาย Retail', file:'Boost/Sprint-1/task-818.html', storageKey:'qa_task_818' },
+      { id:'820', title:'เพิ่ม Logic การตัด quantity_on_hand (ตัด Stock)', file:'Boost/Sprint-1/task-820.html', storageKey:'qa_task_820' },
+      { id:'821', title:'เพิ่ม Feature นำเข้าสินค้า ประเภท Retail', file:'Boost/Sprint-1/task-821.html', storageKey:'qa_task_821' },
+      { id:'822', title:'แก้ไข UI Tab Retail', file:'Boost/Sprint-1/task-822.html', storageKey:'qa_task_822' }
+    ]}
+  ]},
+  { id:'hrfi', name:'HR&FI', boardSlug: 'hrfi', sprints: [
+    { id:'s5', name:'Sprint 5', tasks: [
+      { id:'395', title:'บันทึกใบลาออก', file:'HR/Sprint-5/task-395.html', storageKey:'qa_task_395' },
+      { id:'403', title:'ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงานของพนักงาน', file:'HR/Sprint-5/task-403.html', storageKey:'qa_task_403' },
+      { id:'404', title:'ฟอร์มแก้ไขรายการประวัติการเปลี่ยนแปลงที่บันทึกไว้แล้ว',   file:'HR/Sprint-5/task-404.html', storageKey:'qa_task_404' },
+      { id:'405', title:'ลบรายการประวัติการเปลี่ยนแปลงที่ไม่ถูกต้อง',              file:'HR/Sprint-5/task-405.html', storageKey:'qa_task_405' },
+      { id:'406', title:'หน้าแสดงรายละเอียดของรายการประวัติการทำงานแบบ read-only',   file:'HR/Sprint-5/task-406.html', storageKey:'qa_task_406' },
+      { id:'407', title:'หน้าแสดงรายการเอกสารสัญญาทั้งหมดของพนักงาน',             file:'HR/Sprint-5/task-407.html', storageKey:'qa_task_407' },
+      { id:'408', title:'ฟอร์มสร้างเอกสารสัญญาใหม่ให้พนักงาน',                   file:'HR/Sprint-5/task-408.html', storageKey:'qa_task_408' },
+      { id:'409', title:'ฟอร์มแก้ไขเอกสารสัญญาที่บันทึกไว้',                     file:'HR/Sprint-5/task-409.html', storageKey:'qa_task_409' },
+      { id:'410', title:'ลบเอกสารสัญญาออกจากระบบ',                                    file:'HR/Sprint-5/task-410.html', storageKey:'qa_task_410' },
+      { id:'411', title:'หน้าแสดงรายละเอียดเอกสารสัญญาแบบ read-only',               file:'HR/Sprint-5/task-411.html', storageKey:'qa_task_411' },
+      { id:'416', title:'อัปเดตข้อมูลปัจจุบันพนักงานเมื่อถึงวันที่มีผล (Cronjob 00:01)', file:'HR/Sprint-5/task-416.html', storageKey:'qa_task_416' },
+      { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
+    ]}
+  ]}
+]
+
+// ── Helpers ──
+function project() { return PROJECTS.find(p => p.id === curProject) }
+function sprint()  { return project().sprints.find(s => s.id === curSprint) }
+function task(tid) { return sprint().tasks.find(t => t.id === tid) }
+
+function getTaskData(key)      { try { return JSON.parse(localStorage.getItem(key) || '{}') } catch(e) { return {} } }
+function setTaskData(key, data){ localStorage.setItem(key, JSON.stringify(data)) }
+
+function getProgress(key) {
+  const d = getTaskData(key)
+  let pass=0, fail=0, skip=0
+  Object.values(d).forEach(v => { if(v.status==='pass') pass++; else if(v.status==='fail') fail++; else if(v.status==='skip') skip++ })
+  const total = Object.keys(d).length
+  return { pass, fail, skip, n: total-pass-fail-skip, total }
+}
+
+function sprintTally() {
+  const acc = {pass:0,fail:0,skip:0,n:0,total:0}
+  sprint().tasks.forEach(t => { const c=getProgress(t.storageKey); acc.pass+=c.pass; acc.fail+=c.fail; acc.skip+=c.skip; acc.n+=c.n; acc.total+=c.total })
+  return acc
+}
+
+function barHTML(c) {
+  if (!c.total) return ''
+  const seg = (v,col) => v>0 ? `<span style="width:${v/c.total*100}%;background:${col}"></span>` : ''
+  return seg(c.pass,'var(--pass)') + seg(c.fail,'var(--fail)') + seg(c.skip,'var(--skip)') + seg(c.n,'var(--pending)')
+}
+
+function allTcIds() {
+  return currentSections.flatMap(s => s.tcs.map(tc => tc.id))
+}
+
+const SECTIONS_DB = {
+  'HR/Sprint-5/task-395.html': [
+    { name: 'ส่วนที่ 1 — เลือกพนักงาน', tcs: [
+      { id:'TC-001', name:'ค้นหาพนักงาน Active ด้วยรหัสพนักงาน — แสดงผลใน dropdown', precondition:'มีพนักงานสถานะ Active อยู่ในระบบ', steps:'1. เปิดฟอร์มบันทึกใบลาออก\n2. พิมพ์รหัสพนักงาน Active ในช่องค้นหา\n3. สังเกต dropdown ที่แสดงขึ้น', expected:'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับรหัสใน dropdown และสามารถเลือกได้' },
+      { id:'TC-002', name:'ค้นหาพนักงาน Active ด้วยชื่อ-สกุล — แสดงผลใน dropdown', precondition:'มีพนักงานสถานะ Active อยู่ในระบบ', steps:'1. พิมพ์ชื่อหรือสกุลพนักงาน Active ในช่องค้นหา\n2. สังเกต dropdown', expected:'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับชื่อ/สกุล สามารถเลือกได้' },
+      { id:'TC-003', name:'พนักงานที่บันทึกลาออกแล้ว ไม่ปรากฏใน dropdown', precondition:'มีพนักงานที่เคยบันทึกใบลาออกไว้แล้วในระบบ', steps:'1. พิมพ์รหัส/ชื่อพนักงานที่ลาออกแล้ว\n2. ดู dropdown', expected:'พนักงานที่ลาออกแล้วไม่ปรากฏในรายการค้นหา' },
+      { id:'TC-004', name:'พนักงาน Inactive ไม่ปรากฏใน dropdown', precondition:'มีพนักงานสถานะ Inactive ในระบบ', steps:'1. พิมพ์รหัส/ชื่อพนักงาน Inactive\n2. ดู dropdown', expected:'พนักงาน Inactive ไม่ปรากฏในรายการ' },
+      { id:'TC-005', name:'เลือกพนักงาน → ข้อมูลส่วนที่ 2 auto-fill ทั้งหมดทันที', precondition:'มีพนักงาน Active ในระบบ (ใช้ test1–test4)', steps:'1. ค้นหาและเลือกพนักงาน Active จาก dropdown\n2. สังเกตฟิลด์ในส่วนที่ 2', expected:'ฟิลด์ส่วนที่ 2 ทุกตัวแสดงข้อมูลของพนักงานที่เลือกทันที' },
+      { id:'TC-006', name:'ฟิลด์ auto-fill ส่วนที่ 2 ทั้งหมดเป็น read-only', precondition:'เลือกพนักงานแล้ว', steps:'1. พยายามคลิกแก้ไขฟิลด์ ชื่อ-สกุล, ฝ่าย, แผนก, ตำแหน่ง\n2. พยายามพิมพ์ข้อความ', expected:'ฟิลด์ทุกตัวใน auto-fill เป็น read-only ไม่สามารถแก้ไขได้' },
+      { id:'TC-007', name:'"อายุงาน" คำนวณถูกต้อง — แสดง ปี เดือน วัน', precondition:'เลือกพนักงานที่ทราบวันเริ่มงานแน่ชัด', steps:'1. เลือกพนักงาน\n2. ดูค่า "อายุงาน"\n3. คำนวณเองจากวันเริ่มงาน → วันปัจจุบัน', expected:'อายุงานตรงกับการคำนวณ แสดงเป็น X ปี X เดือน X วัน' },
+    ]},
+    { name: 'ส่วนที่ 2 — Validation ฟิลด์บังคับ', tcs: [
+      { id:'TC-008', name:'กด "บันทึก" โดยไม่เลือกพนักงาน → บล็อค + error highlight', precondition:'เปิดฟอร์มใหม่ ยังไม่เลือกพนักงาน', steps:'1. ไม่เลือกพนักงาน\n2. กดปุ่ม "บันทึกใบลาออก"', expected:'ระบบบล็อคการบันทึก highlight ฟิลด์รหัสพนักงานสีแดง และแสดง error' },
+      { id:'TC-009', name:'กด "บันทึก" ไม่เลือกประเภทลาออก → highlight + error', precondition:'เลือกพนักงานแล้ว แต่ยังไม่เลือกประเภทลาออก', steps:'1. เลือกพนักงาน\n2. ข้ามฟิลด์ประเภทลาออก\n3. กรอกอื่นครบ\n4. กดบันทึก', expected:'ระบบ highlight ฟิลด์ประเภทลาออกสีแดงและแสดง error' },
+      { id:'TC-010', name:'กด "บันทึก" ไม่เลือกสาเหตุการลาออก → highlight + error', precondition:'กรอกฟิลด์บังคับอื่นครบ ยกเว้นสาเหตุ', steps:'1. กรอกฟิลด์อื่นครบ ยกเว้นสาเหตุ\n2. กดบันทึก', expected:'ระบบ highlight ฟิลด์สาเหตุสีแดงและแสดง error' },
+      { id:'TC-011', name:'กด "บันทึก" ไม่กรอกวันที่แจ้งลาออก → highlight + error', precondition:'กรอกฟิลด์บังคับอื่นครบ ยกเว้นวันที่แจ้ง', steps:'1. ปล่อยวันที่แจ้งลาออกว่าง\n2. กดบันทึก', expected:'ระบบ highlight วันที่แจ้งลาออกสีแดงและแสดง error' },
+      { id:'TC-012', name:'กด "บันทึก" ไม่กรอกวันที่ลาออก → highlight + error', precondition:'กรอกฟิลด์บังคับอื่นครบ ยกเว้นวันที่ลาออก', steps:'1. ปล่อยวันที่ลาออกว่าง\n2. กดบันทึก', expected:'ระบบ highlight วันที่ลาออกสีแดงและแสดง error' },
+      { id:'TC-013', name:'ปุ่ม "บันทึกใบลาออก" disabled จนกว่าฟิลด์บังคับครบ', precondition:'เปิดฟอร์มใหม่', steps:'1. สังเกตสถานะปุ่มก่อนกรอก\n2. ค่อยๆ กรอกฟิลด์บังคับทีละตัว', expected:'ปุ่ม disabled จนกว่าฟิลด์บังคับทุกตัวจะครบ จึง enable' },
+    ]},
+    { name: 'ส่วนที่ 3 — Validation วันที่', tcs: [
+      { id:'TC-014', name:'วันที่ลาออก < วันที่แจ้ง → error', precondition:'เลือกพนักงานและกรอกข้อมูลครบ', steps:'1. กรอกวันที่แจ้ง = วันนี้\n2. กรอกวันที่ลาออก = เมื่อวาน', expected:'แสดง error "วันที่ลาออกต้องอยู่หลังหรือตรงกับวันที่แจ้ง" และบล็อคบันทึก' },
+      { id:'TC-015', name:'วันที่ลาออก = วันที่แจ้ง → ผ่าน valid', precondition:'เลือกพนักงานและกรอกข้อมูลครบ', steps:'1. กรอกวันที่แจ้งและวันที่ลาออกเป็นวันเดียวกัน', expected:'ไม่มี error — สามารถบันทึกได้' },
+      { id:'TC-016', name:'วันที่ลาออก > วันที่แจ้ง → ผ่าน valid', precondition:'เลือกพนักงานและกรอกข้อมูลครบ', steps:'1. กรอกวันที่แจ้ง = วันนี้\n2. กรอกวันที่ลาออก = +30 วัน', expected:'ไม่มี error — สามารถบันทึกได้' },
+      { id:'TC-017', name:'"วันที่บันทึก" default = วันปัจจุบัน', precondition:'เปิดฟอร์มใหม่', steps:'1. เปิดฟอร์ม\n2. ดูค่า default ของ "วันที่บันทึก"', expected:'แสดงวันที่ปัจจุบันโดยอัตโนมัติ' },
+      { id:'TC-018', name:'"วันที่บันทึก" ย้อนหลังเกิน 30 วัน → ไม่อนุญาต', precondition:'เปิดฟอร์ม', steps:'1. แก้ "วันที่บันทึก" เป็นมากกว่า 30 วันก่อนวันนี้', expected:'ระบบแสดง error หรือไม่ให้เลือก' },
+      { id:'TC-019', name:'"ระยะเวลาแจ้งล่วงหน้า" คำนวณ real-time', precondition:'เลือกพนักงานแล้ว', steps:'1. กรอกวันที่แจ้ง\n2. กรอกวันที่ลาออก', expected:'ค่าระยะเวลาแจ้งล่วงหน้าแสดงทันที (หน่วย: วัน)' },
+      { id:'TC-020', name:'แจ้งล่วงหน้า < 30 วัน → warning สีส้ม (ไม่บล็อค)', precondition:'กรอกข้อมูลครบ', steps:'1. กรอกวันที่ให้ห่างกันน้อยกว่า 30 วัน\n2. สังเกต warning\n3. ลองกดบันทึก', expected:'Warning สีส้ม แต่สามารถบันทึกได้' },
+      { id:'TC-021', name:'แจ้งล่วงหน้า ≥ 30 วัน → ไม่มี warning', precondition:'กรอกข้อมูลครบ', steps:'1. กรอกวันที่ห่างกัน 30+ วัน', expected:'ไม่มี warning สีส้ม' },
+    ]},
+    { name: 'ส่วนที่ 4 — สาเหตุ/ประเภท "อื่นๆ"', tcs: [
+      { id:'TC-022', name:'เลือกประเภทลาออก "อื่นๆ" → แสดง text input เพิ่มเติม (บังคับ)', precondition:'เลือกพนักงานแล้ว', steps:'1. เลือกประเภทลาออก = อื่นๆ\n2. สังเกต UI', expected:'แสดง text input เพิ่มเติมและบังคับกรอก' },
+      { id:'TC-023', name:'เลือกประเภทลาออก "อื่นๆ" ไม่กรอก text → บล็อค', precondition:'เลือกประเภท = อื่นๆ', steps:'1. ไม่กรอก text เพิ่มเติม\n2. กดบันทึก', expected:'ระบบบล็อคและแสดง error' },
+      { id:'TC-024', name:'เลือกสาเหตุลาออก "อื่นๆ" → แสดง text input เพิ่มเติม (บังคับ)', precondition:'เลือกพนักงานแล้ว', steps:'1. เลือกสาเหตุ = อื่นๆ\n2. สังเกต UI', expected:'แสดง text input เพิ่มเติมและบังคับกรอก' },
+      { id:'TC-025', name:'เลือกสาเหตุ "อื่นๆ" ไม่กรอก text → บล็อค', precondition:'เลือกสาเหตุ = อื่นๆ', steps:'1. ไม่กรอก text\n2. กดบันทึก', expected:'ระบบบล็อคและแสดง error' },
+      { id:'TC-026', name:'เปลี่ยนสาเหตุจาก "อื่นๆ" กลับเป็นตัวเลือกอื่น → ซ่อน text input', precondition:'เลือกสาเหตุ = อื่นๆ (text input โชว์แล้ว)', steps:'1. เปลี่ยนสาเหตุเป็น "ได้งานใหม่"', expected:'text input ซ่อนหายไป' },
+    ]},
+    { name: 'ส่วนที่ 5 — Checklist การดำเนินการต่อเนื่อง', tcs: [
+      { id:'TC-027', name:'ไม่ tick Checklist ใดเลย → บันทึกได้ปกติ', precondition:'กรอกฟิลด์บังคับครบ', steps:'1. ไม่ tick checkbox ใด\n2. กดบันทึก', expected:'บันทึกสำเร็จ — Checklist เป็น optional' },
+      { id:'TC-028', name:'Tick "แจ้งออกประกันสังคม" → ต้องระบุ "วันที่แจ้ง"', precondition:'กรอกฟิลด์บังคับครบ', steps:'1. Tick "แจ้งออกประกันสังคม"\n2. สังเกต UI', expected:'ระบบแสดง date picker "วันที่แจ้ง" เป็นฟิลด์บังคับ' },
+      { id:'TC-029', name:'Tick "แจ้งออก สปส." ไม่กรอกวันที่แจ้ง → บล็อค', precondition:'Tick แจ้งออก สปส. แล้ว', steps:'1. ไม่กรอก "วันที่แจ้ง"\n2. กดบันทึก', expected:'ระบบบล็อคและแสดง error' },
+      { id:'TC-030', name:'สถานะ Checklist บันทึกลงใน record และแสดงในหน้ารายการ', precondition:'บันทึกสำเร็จพร้อม Checklist บางรายการถูก tick', steps:'1. บันทึกพร้อม tick บาง Checklist\n2. ดูรายการ 7.1.19.1', expected:'สถานะ Checklist แสดงตรงกับที่กรอก' },
+    ]},
+    { name: 'ส่วนที่ 6 — เมื่อบันทึกสำเร็จ', tcs: [
+      { id:'TC-031', name:'บันทึกสำเร็จ → Toast "บันทึกใบลาออกสำเร็จ — [ชื่อพนักงาน]"', precondition:'กรอกข้อมูลครบ', steps:'1. กรอกครบ\n2. กดบันทึก\n3. สังเกต Toast', expected:'Toast แสดง "บันทึกใบลาออกสำเร็จ — [ชื่อพนักงาน]"' },
+      { id:'TC-032', name:'บันทึกสำเร็จ → สถานะพนักงาน "ลาออก" + badge ในรายการ', precondition:'บันทึกสำเร็จแล้ว', steps:'1. ไปหน้ารายการพนักงาน\n2. ค้นหาพนักงานที่บันทึก', expected:'พนักงานแสดงในรายชื่อพร้อม badge "ลาออก"' },
+      { id:'TC-033', name:'หลังวันที่ลาออก พนักงาน login Staff Portal ไม่ได้', precondition:'บันทึกสำเร็จ วันที่ลาออก = วันนี้หรือผ่านมาแล้ว', steps:'1. ใช้ account พนักงาน\n2. ลอง login Staff Portal', expected:'ไม่สามารถ login ได้ ระบบแสดงข้อความปฏิเสธ' },
+      { id:'TC-034', name:'ระบบบันทึก Audit Log ครบ', precondition:'บันทึกสำเร็จแล้ว', steps:'1. ดู Audit Log ของ record', expected:'Log บันทึก: วันที่, ผู้บันทึก, ข้อมูลที่กรอก' },
+      { id:'TC-035', name:'ระบบส่ง Notification แจ้ง HR Admin + ผู้บังคับบัญชา', precondition:'บันทึกสำเร็จ', steps:'1. ตรวจสอบ notification HR Admin\n2. ตรวจสอบผู้บังคับบัญชา', expected:'ทั้งคู่ได้รับ notification' },
+      { id:'TC-036', name:'บันทึกสำเร็จ → redirect กลับหน้ารายการ 7.1.19.1', precondition:'กรอกครบ', steps:'1. กดบันทึก\n2. สังเกต redirect', expected:'ระบบ redirect กลับหน้ารายการอัตโนมัติ' },
+    ]},
+    { name: 'ส่วนที่ 7 — การแก้ไขหลังบันทึก', tcs: [
+      { id:'TC-037', name:'เอกสารสถานะ "รอดำเนินการ" → แก้ไขได้', precondition:'มีใบลาออกสถานะ "รอดำเนินการ"', steps:'1. เปิดใบลาออก\n2. กดแก้ไข', expected:'สามารถแก้ไขและบันทึกได้' },
+      { id:'TC-038', name:'เอกสารสถานะอื่น → ไม่สามารถแก้ไขได้', precondition:'มีใบลาออกสถานะอื่น', steps:'1. เปิดใบลาออก\n2. ลองกดแก้ไข', expected:'ปุ่มแก้ไข disabled หรือไม่อนุญาต' },
+      { id:'TC-039', name:'ไม่สามารถเปลี่ยน "รหัสพนักงาน" หลังบันทึก', precondition:'เปิดใบลาออกโหมดแก้ไข', steps:'1. ลองแก้ไขฟิลด์รหัสพนักงาน', expected:'ฟิลด์รหัสพนักงาน read-only ในโหมดแก้ไข' },
+      { id:'TC-040', name:'แก้ไขสำเร็จ → Audit Log บันทึกก่อน/หลัง', precondition:'แก้ไขและบันทึกสำเร็จ', steps:'1. แก้ไขข้อมูล\n2. บันทึก\n3. ดู Audit Log', expected:'Log แสดงข้อมูลก่อนและหลังแก้ไขในรายการเดียวกัน' },
+    ]},
+  ],
+  'HR/Sprint-5/task-403.html': [
+  {
+    name: 'ส่วนที่ 1 — เลือกพนักงาน',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'ค้นหาพนักงาน Active ด้วยรหัสพนักงาน — แสดงผลใน dropdown',
+        precondition: 'มีพนักงานสถานะ Active ในระบบ',
+        steps: '1. เปิดฟอร์มบันทึกการเปลี่ยนแปลง\n2. พิมพ์รหัสพนักงาน Active ในช่องค้นหา\n3. สังเกต dropdown ที่แสดงขึ้น',
+        expected: 'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับรหัสใน dropdown สามารถเลือกได้'
+      },
+      {
+        id: 'TC-002',
+        name: 'ค้นหาพนักงาน Active ด้วยชื่อ-สกุล — แสดงผลใน dropdown',
+        precondition: 'มีพนักงานสถานะ Active ในระบบ',
+        steps: '1. พิมพ์ชื่อหรือสกุลพนักงาน Active ในช่องค้นหา\n2. สังเกต dropdown',
+        expected: 'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับชื่อ/สกุล สามารถเลือกได้'
+      },
+      {
+        id: 'TC-003',
+        name: 'เลือกพนักงาน → ชื่อ-สกุล auto-fill และ read-only',
+        precondition: 'มีพนักงาน Active ในระบบ',
+        steps: '1. ค้นหาและเลือกพนักงานจาก dropdown\n2. ตรวจสอบ field ชื่อ-สกุล',
+        expected: 'ชื่อ-สกุล auto-fill จากข้อมูลพนักงานที่เลือก และไม่สามารถแก้ไขได้ (read-only)'
+      },
+      {
+        id: 'TC-004',
+        name: 'พนักงาน Inactive / ลาออก — ไม่แสดงใน dropdown',
+        precondition: 'มีพนักงานสถานะ Inactive หรือลาออกในระบบ',
+        steps: '1. พิมพ์รหัสหรือชื่อพนักงานที่ Inactive\n2. สังเกต dropdown',
+        expected: 'พนักงาน Inactive ไม่ปรากฏใน dropdown เลือกได้เฉพาะพนักงาน Active เท่านั้น'
+      },
+      {
+        id: 'TC-005',
+        name: 'ไม่เลือกพนักงาน → บล็อคการบันทึก',
+        precondition: 'เปิดฟอร์มใหม่ ยังไม่เลือกพนักงาน',
+        steps: '1. กรอกข้อมูลส่วนอื่นครบ\n2. ไม่เลือกพนักงาน\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error และบล็อคการบันทึก ไม่บันทึกข้อมูล'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ประเภทการเปลี่ยนแปลง',
+    tcs: [
+      {
+        id: 'TC-006',
+        name: 'ไม่เลือกประเภทใดเลย → บล็อคการบันทึก',
+        precondition: 'เลือกพนักงานแล้ว แต่ยังไม่ติ๊ก checkbox ใด',
+        steps: '1. เลือกพนักงาน\n2. ไม่ติ๊ก checkbox ประเภทใด\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error "ต้องเลือกประเภทการเปลี่ยนแปลงอย่างน้อย 1 ข้อ" และบล็อคการบันทึก'
+      },
+      {
+        id: 'TC-007',
+        name: 'เลือก 1 ประเภท → แสดง field ของประเภทนั้นเท่านั้น',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. ติ๊ก checkbox "เปลี่ยนตำแหน่ง" อย่างเดียว\n2. สังเกต field ที่แสดงขึ้น',
+        expected: 'แสดงเฉพาะ field ของ "เปลี่ยนตำแหน่ง" ไม่แสดง field ของประเภทอื่น'
+      },
+      {
+        id: 'TC-008',
+        name: 'เลือกหลายประเภทพร้อมกัน → แสดง field ของทุกประเภทที่เลือก',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. ติ๊ก checkbox "เปลี่ยนตำแหน่ง" และ "ปรับเงินเดือน" พร้อมกัน\n2. สังเกต field ที่แสดง',
+        expected: 'แสดง field ของทั้ง "เปลี่ยนตำแหน่ง" และ "ปรับเงินเดือน" พร้อมกัน ครบทุก field'
+      },
+      {
+        id: 'TC-009',
+        name: 'ยกเลือก checkbox → field ที่เกี่ยวข้องซ่อนและล้างข้อมูล',
+        precondition: 'เลือก checkbox ไว้แล้วและมี field แสดงอยู่',
+        steps: '1. ติ๊ก "เปลี่ยนแผนก/ฝ่าย"\n2. กรอกข้อมูลใน field ที่แสดง\n3. ยกเลือก (untick) "เปลี่ยนแผนก/ฝ่าย"\n4. สังเกต field',
+        expected: 'Field ของ "เปลี่ยนแผนก/ฝ่าย" ซ่อนหายไป ข้อมูลที่กรอกไว้ถูกล้างออก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — เปลี่ยนตำแหน่ง',
+    tcs: [
+      {
+        id: 'TC-010',
+        name: 'ตำแหน่งเดิม auto-fill ตรงกับข้อมูลปัจจุบันของพนักงาน',
+        precondition: 'เลือกพนักงานและติ๊ก "เปลี่ยนตำแหน่ง"',
+        steps: '1. เลือกพนักงาน\n2. ติ๊ก "เปลี่ยนตำแหน่ง"\n3. ตรวจสอบ field "ตำแหน่งเดิม"',
+        expected: 'ตำแหน่งเดิม auto-fill แสดงตำแหน่งปัจจุบันของพนักงานที่เลือก ตรงกับข้อมูลในระบบ'
+      },
+      {
+        id: 'TC-011',
+        name: 'ตำแหน่งเดิม read-only ไม่สามารถแก้ไขได้',
+        precondition: 'เลือกพนักงานและติ๊ก "เปลี่ยนตำแหน่ง"',
+        steps: '1. พยายามคลิกและแก้ไข field "ตำแหน่งเดิม"',
+        expected: 'Field "ตำแหน่งเดิม" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-012',
+        name: 'เลือกตำแหน่งใหม่ → ระดับพนักงาน auto-fill ตามตำแหน่งใหม่',
+        precondition: 'ติ๊ก "เปลี่ยนตำแหน่ง" และ dropdown ตำแหน่งใหม่มีตัวเลือก',
+        steps: '1. เลือกตำแหน่งใหม่จาก dropdown\n2. ตรวจสอบ field "ระดับพนักงาน"',
+        expected: 'ระดับพนักงาน auto-fill ตามระดับของตำแหน่งใหม่ที่เลือก อัปเดตทันทีเมื่อเปลี่ยนตำแหน่ง'
+      },
+      {
+        id: 'TC-013',
+        name: 'ไม่เลือกตำแหน่งใหม่ → บล็อคการบันทึก',
+        precondition: 'ติ๊ก "เปลี่ยนตำแหน่ง" แต่ไม่เลือกตำแหน่งใหม่',
+        steps: '1. ติ๊ก "เปลี่ยนตำแหน่ง"\n2. ไม่เลือกตำแหน่งใหม่\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error ที่ field "ตำแหน่งใหม่" และบล็อคการบันทึก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — เปลี่ยนแผนก / ฝ่าย',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'แผนก/ฝ่ายเดิม auto-fill ตรงกับข้อมูลปัจจุบันของพนักงาน',
+        precondition: 'เลือกพนักงานและติ๊ก "เปลี่ยนแผนก/ฝ่าย"',
+        steps: '1. เลือกพนักงาน\n2. ติ๊ก "เปลี่ยนแผนก/ฝ่าย"\n3. ตรวจสอบ field "แผนก/ฝ่ายเดิม"',
+        expected: 'แผนก/ฝ่ายเดิม auto-fill แสดงแผนก/ฝ่ายปัจจุบันของพนักงาน ตรงกับข้อมูลในระบบ'
+      },
+      {
+        id: 'TC-015',
+        name: 'แผนก/ฝ่ายเดิม read-only ไม่สามารถแก้ไขได้',
+        precondition: 'ติ๊ก "เปลี่ยนแผนก/ฝ่าย"',
+        steps: '1. พยายามคลิกและแก้ไข field "แผนก/ฝ่ายเดิม"',
+        expected: 'Field "แผนก/ฝ่ายเดิม" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-016',
+        name: 'เลือกแผนก/ฝ่ายใหม่ → สาขาที่ทำงาน auto-fill หรือเลือกใหม่ได้',
+        precondition: 'ติ๊ก "เปลี่ยนแผนก/ฝ่าย"',
+        steps: '1. เลือกแผนก/ฝ่ายใหม่จาก dropdown\n2. สังเกต field "สาขาที่ทำงาน"',
+        expected: 'สาขาที่ทำงาน auto-fill ตามค่าเริ่มต้น หรือสามารถเลือกใหม่ได้จาก dropdown'
+      },
+      {
+        id: 'TC-017',
+        name: 'ไม่เลือกแผนก/ฝ่ายใหม่ → บล็อคการบันทึก',
+        precondition: 'ติ๊ก "เปลี่ยนแผนก/ฝ่าย" แต่ไม่เลือกแผนก/ฝ่ายใหม่',
+        steps: '1. ติ๊ก "เปลี่ยนแผนก/ฝ่าย"\n2. ไม่เลือกแผนก/ฝ่ายใหม่\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error ที่ field "แผนก/ฝ่ายใหม่" และบล็อคการบันทึก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — ปรับเงินเดือน',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'เงินเดือนเดิม auto-fill ตรงกับข้อมูลปัจจุบันของพนักงาน',
+        precondition: 'เลือกพนักงานและติ๊ก "ปรับเงินเดือน"',
+        steps: '1. เลือกพนักงาน\n2. ติ๊ก "ปรับเงินเดือน"\n3. ตรวจสอบ field "เงินเดือนเดิม"',
+        expected: 'เงินเดือนเดิม auto-fill แสดงเงินเดือนปัจจุบันของพนักงานที่เลือก ตรงกับข้อมูลในระบบ'
+      },
+      {
+        id: 'TC-019',
+        name: 'เงินเดือนเดิม read-only ไม่สามารถแก้ไขได้',
+        precondition: 'ติ๊ก "ปรับเงินเดือน"',
+        steps: '1. พยายามคลิกและแก้ไข field "เงินเดือนเดิม"',
+        expected: 'Field "เงินเดือนเดิม" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-020',
+        name: 'เงินเดือนใหม่ > เดิม → อัตราการเปลี่ยนแปลง real-time แสดง +X.X%',
+        precondition: 'ติ๊ก "ปรับเงินเดือน", เงินเดือนเดิม auto-fill แล้ว',
+        steps: '1. ใส่เงินเดือนใหม่ที่มากกว่าเดิม เช่น เดิม 25,000 → ใหม่ 27,125\n2. สังเกต field "อัตราการเปลี่ยนแปลง" ขณะพิมพ์',
+        expected: 'แสดง "+8.5%" คำนวณจาก ((27125-25000)/25000)×100 แบบ real-time ทันทีที่พิมพ์'
+      },
+      {
+        id: 'TC-021',
+        name: 'เงินเดือนใหม่ < เดิม → แสดง -X.X% และ warning สีส้ม (non-blocking)',
+        precondition: 'ติ๊ก "ปรับเงินเดือน"',
+        steps: '1. ใส่เงินเดือนใหม่ที่น้อยกว่าเดิม\n2. สังเกต อัตราการเปลี่ยนแปลง และ warning\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'แสดง "-X.X%" และ warning สีส้ม "เงินเดือนใหม่น้อยกว่าเดิม ต้องการดำเนินการต่อหรือไม่?" แต่ยังสามารถบันทึกได้ (non-blocking)'
+      },
+      {
+        id: 'TC-022',
+        name: 'เงินเดือนใหม่ = 0 หรือติดลบ → บล็อคการบันทึก',
+        precondition: 'ติ๊ก "ปรับเงินเดือน"',
+        steps: '1. ใส่ค่า 0 หรือค่าติดลบในช่องเงินเดือนใหม่\n2. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error "เงินเดือนใหม่ต้องมากกว่า 0" และบล็อคการบันทึก'
+      },
+      {
+        id: 'TC-023',
+        name: 'เงินเดือนใหม่ = เดิม → แสดง 0.0% ไม่มี warning สีส้ม',
+        precondition: 'ติ๊ก "ปรับเงินเดือน"',
+        steps: '1. ใส่เงินเดือนใหม่เท่ากับเดิมทุกบาท\n2. สังเกต field "อัตราการเปลี่ยนแปลง" และ warning',
+        expected: 'แสดง "0.0%" ไม่มี warning สีส้ม สามารถบันทึกได้ปกติ'
+      },
+      {
+        id: 'TC-024',
+        name: 'ไม่ใส่เงินเดือนใหม่ → บล็อคการบันทึก',
+        precondition: 'ติ๊ก "ปรับเงินเดือน"',
+        steps: '1. ไม่ใส่ค่าใดใน field "เงินเดือนใหม่"\n2. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error ที่ field "เงินเดือนใหม่" และบล็อคการบันทึก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — วันที่มีผลและรายละเอียดเพิ่มเติม',
+    tcs: [
+      {
+        id: 'TC-025',
+        name: 'ไม่ระบุวันที่มีผล → บล็อคการบันทึก',
+        precondition: 'กรอกข้อมูลส่วนอื่นครบ แต่ไม่ระบุวันที่มีผล',
+        steps: '1. กรอกข้อมูลอื่นครบ\n2. ไม่เลือกวันที่มีผล\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'ระบบแสดง error "กรุณาระบุวันที่มีผล" และบล็อคการบันทึก'
+      },
+      {
+        id: 'TC-026',
+        name: 'วันที่มีผล < วันเริ่มงานพนักงาน → Error บล็อคการบันทึก',
+        precondition: 'ทราบวันเริ่มงานของพนักงานที่เลือก',
+        steps: '1. เลือกพนักงาน\n2. เลือกวันที่มีผลก่อนวันเริ่มงานของพนักงาน\n3. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'แสดง error "วันที่มีผลต้องไม่ก่อนวันเริ่มงาน [วันเริ่มงาน]" และบล็อคการบันทึก'
+      },
+      {
+        id: 'TC-027',
+        name: 'วันที่มีผล ซ้ำกับรายการที่บันทึกไว้แล้ว → Warning non-blocking',
+        precondition: 'พนักงานที่เลือกมีรายการบันทึกในวันดังกล่าวอยู่แล้ว',
+        steps: '1. เลือกพนักงานที่มีรายการในวันนั้น\n2. เลือกวันที่มีผลซ้ำกับรายการที่มีอยู่\n3. สังเกต warning',
+        expected: 'แสดง warning "มีการบันทึกในวันนี้แล้ว ต้องการบันทึกเพิ่มหรือไม่?" สามารถยืนยันและบันทึกได้ต่อ'
+      },
+      {
+        id: 'TC-028',
+        name: 'วันที่มีผล ≥ วันเริ่มงาน และไม่ซ้ำ → ผ่าน ไม่มี error/warning',
+        precondition: 'เลือกพนักงาน',
+        steps: '1. เลือกวันที่มีผลที่ถูกต้อง (≥ วันเริ่มงาน, ไม่ซ้ำรายการเดิม)\n2. สังเกต validation',
+        expected: 'ไม่แสดง error หรือ warning ใดๆ ที่เกี่ยวกับวันที่มีผล สามารถบันทึกได้'
+      },
+      {
+        id: 'TC-029',
+        name: 'เหตุผล/หมายเหตุ เป็น optional — บันทึกได้แม้ไม่กรอก',
+        precondition: 'กรอกข้อมูลที่จำเป็นครบ',
+        steps: '1. ไม่กรอก field เหตุผล/หมายเหตุ\n2. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'บันทึกสำเร็จ ไม่มี error จาก field เหตุผล/หมายเหตุ'
+      },
+      {
+        id: 'TC-030',
+        name: 'แนบเอกสารอ้างอิง เป็น optional — บันทึกได้แม้ไม่แนบ',
+        precondition: 'กรอกข้อมูลที่จำเป็นครบ',
+        steps: '1. ไม่แนบเอกสารใดๆ\n2. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'บันทึกสำเร็จ ไม่มี error จาก field เอกสารแนบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — บันทึกสำเร็จ',
+    tcs: [
+      {
+        id: 'TC-031',
+        name: 'บันทึกสำเร็จ → Toast "บันทึกข้อมูลการทำงานสำเร็จ"',
+        precondition: 'กรอกข้อมูลครบถ้วนและถูกต้อง',
+        steps: '1. กรอกข้อมูลครบทุก required field\n2. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'Toast แสดง "บันทึกข้อมูลการทำงานสำเร็จ" และหายไปหลังจากสักครู่'
+      },
+      {
+        id: 'TC-032',
+        name: 'วันที่มีผล = วันนี้ → ข้อมูลปัจจุบันพนักงานอัปเดตทันที',
+        precondition: 'บันทึกโดยใช้วันที่มีผล = วันนี้',
+        steps: '1. บันทึกการเปลี่ยนแปลงด้วยวันที่มีผล = วันนี้\n2. เปิดหน้าข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงานอัปเดตทันที สะท้อนการเปลี่ยนแปลงที่บันทึก'
+      },
+      {
+        id: 'TC-033',
+        name: 'วันที่มีผลย้อนหลัง → ข้อมูลปัจจุบันพนักงานอัปเดตทันที',
+        precondition: 'บันทึกโดยใช้วันที่มีผลเป็นวันในอดีต',
+        steps: '1. บันทึกการเปลี่ยนแปลงด้วยวันที่มีผลย้อนหลัง\n2. เปิดหน้าข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงานอัปเดตทันที สะท้อนการเปลี่ยนแปลง'
+      },
+      {
+        id: 'TC-034',
+        name: 'วันที่มีผลในอนาคต → ข้อมูลปัจจุบันยังไม่อัปเดต รอถึงวันมีผล',
+        precondition: 'บันทึกโดยใช้วันที่มีผลในอนาคต',
+        steps: '1. บันทึกการเปลี่ยนแปลงด้วยวันที่มีผลในอนาคต\n2. เปิดหน้าข้อมูลปัจจุบันของพนักงานทันที',
+        expected: 'ข้อมูลปัจจุบันยังไม่เปลี่ยน รายการถูกบันทึกแล้วแต่รอถึงวันที่มีผล'
+      },
+      {
+        id: 'TC-035',
+        name: 'บันทึกสำเร็จ → รายการใหม่ปรากฏเป็นอันดับแรกในรายการ',
+        precondition: 'มีรายการเดิมอยู่ในรายการ',
+        steps: '1. บันทึกการเปลี่ยนแปลงสำเร็จ\n2. กลับไปดูหน้ารายการ',
+        expected: 'รายการที่เพิ่งบันทึกปรากฏเป็นอันดับแรก (บนสุด) ของรายการ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — Sync เงินเดือน, ปุ่มยกเลิก และ Out-of-scope',
+    tcs: [
+      {
+        id: 'TC-036',
+        name: 'เลือก "ปรับเงินเดือน" ร่วม → ระบบ sync ไป module 7.3 อัตโนมัติ ไม่บันทึกซ้ำ',
+        precondition: 'ระบบมี module 7.3 (เงินเดือน)',
+        steps: '1. บันทึกการเปลี่ยนแปลงที่มี "ปรับเงินเดือน" รวมอยู่ด้วย\n2. ตรวจสอบ module 7.3',
+        expected: 'รายการเงินเดือนถูก sync ไป 7.3 อัตโนมัติ ไม่ปรากฏรายการซ้ำใน 7.3'
+      },
+      {
+        id: 'TC-037',
+        name: 'กดปุ่ม "ยกเลิก" → กลับหน้ารายการโดยไม่บันทึกข้อมูล',
+        precondition: 'กรอกข้อมูลบางส่วนแล้ว',
+        steps: '1. กรอกข้อมูลบางส่วน\n2. กดปุ่ม "ยกเลิก"',
+        expected: 'กลับสู่หน้ารายการ ข้อมูลที่กรอกไม่ถูกบันทึก รายการในระบบไม่เปลี่ยนแปลง'
+      },
+      {
+        id: 'TC-038',
+        name: '[Out of scope] ส่งเมลแจ้งพนักงานหลังบันทึก (cronjob)',
+        precondition: 'N/A — ฟีเจอร์นี้ทำใน cronjob ไม่ใช่ฝั่ง UI',
+        steps: 'N/A',
+        expected: 'N/A — ข้ามการทดสอบ ฟีเจอร์ส่งเมลดำเนินการโดย cronjob ไม่อยู่ในขอบเขตการทดสอบ UI'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-404.html': [
+  {
+    name: 'ส่วนที่ 1 — โหลดข้อมูลเดิมมาแสดง',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดฟอร์มแก้ไข → ข้อมูลเดิมโหลดครบทุก field ก่อนให้แก้ไข',
+        precondition: 'มีรายการที่บันทึกไว้แล้วในระบบ',
+        steps: '1. เปิดหน้ารายการประวัติการเปลี่ยนแปลง\n2. เลือกรายการใดรายการหนึ่ง\n3. กดปุ่ม "แก้ไข"\n4. ตรวจสอบว่าข้อมูลทุก field โหลดมาแสดงครบ',
+        expected: 'ฟอร์มแสดงข้อมูลเดิมของรายการนั้นครบทุก field ก่อนให้ผู้ใช้แก้ไข ไม่มี field ใดว่างเปล่าที่ควรมีข้อมูล'
+      },
+      {
+        id: 'TC-002',
+        name: 'ประเภทการเปลี่ยนแปลงโหลดมาแสดงตรงกับรายการที่เลือก',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีประเภทการเปลี่ยนแปลงชัดเจน เช่น "เปลี่ยนตำแหน่ง"',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "ประเภทการเปลี่ยนแปลง"',
+        expected: 'แสดงประเภทการเปลี่ยนแปลงตรงกับที่บันทึกไว้ เช่น "เปลี่ยนตำแหน่ง" หรือหลายประเภทหากมีหลายประเภท'
+      },
+      {
+        id: 'TC-003',
+        name: 'ข้อมูล Before / After โหลดมาแสดงตรงกับรายการที่เลือก',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล Before/After',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบค่าใน field Before และ After ของแต่ละประเภทการเปลี่ยนแปลง',
+        expected: 'ค่า Before และ After ตรงกับข้อมูลที่บันทึกไว้ในรายการนั้น ไม่ใช่ค่าของรายการอื่น'
+      },
+      {
+        id: 'TC-004',
+        name: 'วันที่มีผลโหลดมาแสดงตรงกับรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "วันที่มีผล"',
+        expected: 'แสดงวันที่มีผลตรงกับที่บันทึกไว้ ไม่ใช่วันที่ปัจจุบันหรือค่าว่าง'
+      },
+      {
+        id: 'TC-005',
+        name: 'ผู้บันทึก / วันที่บันทึกโหลดมาแสดงตรงกับรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่ทราบว่าใครบันทึกและเมื่อไร',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "ผู้บันทึก" และ "วันที่บันทึก"',
+        expected: 'แสดงชื่อผู้บันทึกและวันที่บันทึกตรงกับรายการนั้น'
+      },
+      {
+        id: 'TC-006',
+        name: 'เหตุผล / หมายเหตุเดิมโหลดมาแสดงใน field ที่แก้ไขได้',
+        precondition: 'มีรายการที่บันทึก "เหตุผล/หมายเหตุ" ไว้แล้ว',
+        steps: '1. เปิดฟอร์มแก้ไขรายการที่มีเหตุผล/หมายเหตุ\n2. ตรวจสอบ field "เหตุผล/หมายเหตุ"',
+        expected: 'แสดงข้อความเหตุผล/หมายเหตุเดิมใน field ที่แก้ไขได้ สามารถเห็น cursor ได้ (editable)'
+      },
+      {
+        id: 'TC-007',
+        name: 'เอกสารแนบเดิมโหลดมาแสดงรายชื่อครบ พร้อมดูหรือลบแต่ละไฟล์',
+        precondition: 'มีรายการที่มีเอกสารแนบไว้แล้ว',
+        steps: '1. เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบ\n2. ตรวจสอบรายชื่อเอกสารแนบ\n3. ตรวจสอบว่ามีปุ่ม/ลิงก์สำหรับดูหรือลบแต่ละไฟล์',
+        expected: 'แสดงรายชื่อเอกสารแนบเดิมครบ มีปุ่มดูหรือดาวน์โหลด และปุ่มลบแต่ละไฟล์'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Read-only fields',
+    tcs: [
+      {
+        id: 'TC-008',
+        name: 'ประเภทการเปลี่ยนแปลง — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกหรือแก้ไข field "ประเภทการเปลี่ยนแปลง"\n2. พยายาม tick/untick checkbox หรือเปลี่ยนค่า',
+        expected: 'Field "ประเภทการเปลี่ยนแปลง" ไม่สามารถแก้ไขได้ (read-only / disabled) ค่าคงเดิม'
+      },
+      {
+        id: 'TC-009',
+        name: 'ข้อมูลก่อนเปลี่ยน (Before) — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล Before',
+        steps: '1. พยายามคลิกและแก้ไขข้อมูลใน field Before (เช่น ตำแหน่งเดิม, เงินเดือนเดิม)\n2. พยายามพิมพ์ค่าใหม่',
+        expected: 'ทุก field ที่แสดงข้อมูลก่อนเปลี่ยน (Before) ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-010',
+        name: 'ข้อมูลหลังเปลี่ยน (After) — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล After',
+        steps: '1. พยายามคลิกและแก้ไขข้อมูลใน field After (เช่น ตำแหน่งใหม่, เงินเดือนใหม่)\n2. พยายามพิมพ์ค่าใหม่',
+        expected: 'ทุก field ที่แสดงข้อมูลหลังเปลี่ยน (After) ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-011',
+        name: 'วันที่มีผล — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิก date picker ที่ field "วันที่มีผล"\n2. พยายามเปลี่ยนวันที่',
+        expected: 'Field "วันที่มีผล" ไม่สามารถแก้ไขได้ date picker ไม่เปิด หรือ field เป็น disabled'
+      },
+      {
+        id: 'TC-012',
+        name: 'ผู้บันทึก — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกและแก้ไข field "ผู้บันทึก"',
+        expected: 'Field "ผู้บันทึก" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-013',
+        name: 'วันที่บันทึก — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกและแก้ไข field "วันที่บันทึก"',
+        expected: 'Field "วันที่บันทึก" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-014',
+        name: 'แสดงข้อความแจ้งว่าหากต้องการเปลี่ยน Before/After หรือวันที่มีผล ต้องลบและสร้างใหม่',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. สังเกตหน้าฟอร์มแก้ไขทั้งหน้า\n2. ตรวจสอบว่ามีข้อความแจ้งเตือนหรือ hint ใกล้ field read-only',
+        expected: 'มีข้อความแจ้งว่า "หากต้องการแก้ไข Before/After หรือวันที่มีผล ต้องลบรายการเดิมและสร้างใหม่" หรือข้อความที่มีความหมายเดียวกัน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — แก้ไขเหตุผล / หมายเหตุ',
+    tcs: [
+      {
+        id: 'TC-015',
+        name: 'แก้ไขข้อความใน "เหตุผล/หมายเหตุ" ได้ปกติ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. คลิกที่ field "เหตุผล/หมายเหตุ"\n2. ลบข้อความเดิมและพิมพ์ข้อความใหม่\n3. ตรวจสอบว่าข้อความที่พิมพ์แสดงใน field',
+        expected: 'สามารถแก้ไขข้อความใน field "เหตุผล/หมายเหตุ" ได้ ข้อความใหม่แสดงใน field ปกติ'
+      },
+      {
+        id: 'TC-016',
+        name: 'ล้าง "เหตุผล/หมายเหตุ" ทั้งหมด (เป็นค่าว่าง) → บันทึกได้ (optional field)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มี "เหตุผล/หมายเหตุ" อยู่',
+        steps: '1. ลบข้อความทั้งหมดใน field "เหตุผล/หมายเหตุ" จนว่าง\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast แสดง "แก้ไขข้อมูลสำเร็จ" field "เหตุผล/หมายเหตุ" เป็นค่าว่างได้ (ไม่บังคับ)'
+      },
+      {
+        id: 'TC-017',
+        name: 'พิมพ์ "เหตุผล/หมายเหตุ" ความยาวมากๆ → ระบบจัดการได้ (รับหรือแสดง error ขนาดสูงสุด)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พิมพ์ข้อความยาวมากในช่อง "เหตุผล/หมายเหตุ" เช่น 500+ ตัวอักษร\n2. กดปุ่ม "บันทึก"',
+        expected: 'หากมี limit: แสดง error แจ้งจำนวนสูงสุด / หากไม่มี limit: บันทึกสำเร็จ ข้อความยาวถูกเก็บครบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — จัดการเอกสารแนบ',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'เพิ่มเอกสารแนบใหม่ → แสดงในรายการพร้อมชื่อไฟล์',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. คลิกปุ่ม "เพิ่มเอกสาร" หรือ input file\n2. เลือกไฟล์ใหม่จากเครื่อง\n3. สังเกตรายการเอกสารแนบ',
+        expected: 'ไฟล์ที่เพิ่งเลือกปรากฏในรายการเอกสารแนบ พร้อมชื่อไฟล์ถูกต้อง รายการเดิมยังอยู่ครบ'
+      },
+      {
+        id: 'TC-019',
+        name: 'ลบเอกสารแนบเดิม → ไฟล์หายจากรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบเดิม',
+        steps: '1. คลิกปุ่มลบที่เอกสารแนบรายการใดรายการหนึ่ง\n2. ยืนยันการลบ (ถ้ามี dialog)\n3. สังเกตรายการเอกสาร',
+        expected: 'ไฟล์ที่ลบหายออกจากรายการทันที ไฟล์อื่นยังอยู่ครบ'
+      },
+      {
+        id: 'TC-020',
+        name: 'แทนที่เอกสารแนบเดิม → ไฟล์ใหม่แทนที่ไฟล์เดิม',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบเดิม (ถ้ามีฟีเจอร์ replace)',
+        steps: '1. คลิกปุ่ม "แทนที่" ที่ไฟล์ใดไฟล์หนึ่ง\n2. เลือกไฟล์ใหม่\n3. สังเกตรายการเอกสาร',
+        expected: 'ไฟล์ใหม่แทนที่ไฟล์เดิมในรายการ ชื่อไฟล์อัปเดตเป็นชื่อใหม่ ไฟล์เดิมไม่ปรากฏอีก'
+      },
+      {
+        id: 'TC-021',
+        name: 'ลบเอกสารแนบทั้งหมด → บันทึกได้ (optional)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบหลายไฟล์',
+        steps: '1. ลบเอกสารแนบทั้งหมดออกทุกไฟล์\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast "แก้ไขข้อมูลสำเร็จ" เอกสารแนบเป็นค่าว่างได้ (ไม่บังคับต้องมี)'
+      },
+      {
+        id: 'TC-022',
+        name: 'แนบไฟล์ประเภทที่ไม่รองรับ → แสดง error ระบุประเภทที่รองรับ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามแนบไฟล์ประเภทที่ไม่รองรับ เช่น .exe, .sh\n2. สังเกต error',
+        expected: 'ระบบแสดง error แจ้งประเภทไฟล์ที่รองรับ เช่น "รองรับเฉพาะ PDF, JPG, PNG, DOC" ไม่อนุญาตให้แนบไฟล์นั้น'
+      },
+      {
+        id: 'TC-023',
+        name: 'แนบไฟล์เกินขนาดสูงสุด → แสดง error แจ้งขนาดสูงสุด',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามแนบไฟล์ขนาดใหญ่เกิน limit ที่กำหนด\n2. สังเกต error',
+        expected: 'ระบบแสดง error แจ้งขนาดสูงสุดที่อนุญาต เช่น "ไฟล์ต้องไม่เกิน 10 MB" ไม่อนุญาตให้แนบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — บันทึกการแก้ไขและ Audit Log',
+    tcs: [
+      {
+        id: 'TC-024',
+        name: 'แก้ไขเหตุผล/หมายเหตุ แล้วกด "บันทึก" → Toast "แก้ไขข้อมูลสำเร็จ"',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. แก้ไขข้อความในช่อง "เหตุผล/หมายเหตุ"\n2. กดปุ่ม "บันทึก"\n3. สังเกต Toast notification',
+        expected: 'Toast แสดง "แก้ไขข้อมูลสำเร็จ" และหายไปหลังสักครู่'
+      },
+      {
+        id: 'TC-025',
+        name: 'เพิ่ม/ลบเอกสารแนบ แล้วกด "บันทึก" → Toast "แก้ไขข้อมูลสำเร็จ"',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เพิ่มหรือลบเอกสารแนบ\n2. กดปุ่ม "บันทึก"\n3. สังเกต Toast notification',
+        expected: 'Toast แสดง "แก้ไขข้อมูลสำเร็จ" และหายไปหลังสักครู่'
+      },
+      {
+        id: 'TC-026',
+        name: 'บันทึกสำเร็จ → ข้อมูลที่แก้ไขอัปเดตทันทีใน list / detail',
+        precondition: 'บันทึกการแก้ไขสำเร็จแล้ว',
+        steps: '1. บันทึกการแก้ไขสำเร็จ\n2. กลับไปดูรายการใน list\n3. เปิดดู detail ของรายการที่แก้ไข',
+        expected: 'ข้อมูลที่แก้ไข (เหตุผล/หมายเหตุ / เอกสารแนบ) อัปเดตใน list และ detail ทันที ไม่ต้อง refresh หน้า'
+      },
+      {
+        id: 'TC-027',
+        name: 'บันทึกสำเร็จ → Audit log บันทึก วันที่แก้ไข / ผู้แก้ไข / ค่าก่อน / ค่าหลัง',
+        precondition: 'มีสิทธิ์ดู audit log',
+        steps: '1. บันทึกการแก้ไขสำเร็จ\n2. เปิดดู audit log ของรายการนั้น',
+        expected: 'Audit log แสดงรายการแก้ไขใหม่ ประกอบด้วย: วันที่แก้ไข, ชื่อผู้แก้ไข, ค่าก่อนแก้ไข, ค่าหลังแก้ไข'
+      },
+      {
+        id: 'TC-028',
+        name: 'บันทึกโดยไม่เปลี่ยนแปลงใดๆ → บันทึกสำเร็จ ไม่มี error',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เปิดฟอร์มแก้ไขแต่ไม่เปลี่ยนแปลงข้อมูลใดๆ\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast "แก้ไขข้อมูลสำเร็จ" ไม่มี error ใดๆ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — ปุ่มยกเลิก',
+    tcs: [
+      {
+        id: 'TC-029',
+        name: 'กด "ยกเลิก" โดยไม่แก้ไขใดๆ → กลับหน้ารายการปกติ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ ยังไม่แก้ไขใดๆ',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ไม่แก้ไขข้อมูลใดๆ\n3. กดปุ่ม "ยกเลิก"',
+        expected: 'กลับสู่หน้ารายการปกติ ไม่มี dialog ยืนยัน รายการไม่เปลี่ยนแปลง'
+      },
+      {
+        id: 'TC-030',
+        name: 'กด "ยกเลิก" หลังแก้ไขข้อมูลแล้ว → ยืนยัน dialog / ข้อมูลไม่ถูกบันทึก',
+        precondition: 'เปิดฟอร์มแก้ไขและแก้ไขข้อมูลบางส่วนแล้ว',
+        steps: '1. แก้ไขข้อความใน "เหตุผล/หมายเหตุ"\n2. กดปุ่ม "ยกเลิก"\n3. สังเกต dialog หรือพฤติกรรมของระบบ',
+        expected: 'ระบบแสดง dialog ยืนยัน "ยกเลิกการแก้ไข?" หรือกลับทันที — กรณีกลับ: ข้อมูลที่แก้ไขไม่ถูกบันทึก รายการในระบบยังเป็นค่าเดิม'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-405.html': [
+  {
+    name: 'ส่วนที่ 1 — Modal ยืนยันก่อนลบ',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'กดปุ่มลบรายการ → Modal ยืนยันแสดงขึ้นทันที',
+        precondition: 'มีรายการที่ไม่ใช่รายการแรกสุด (ข้อมูล ณ วันเริ่มงาน)',
+        steps: '1. เปิดหน้ารายการประวัติการเปลี่ยนแปลง\n2. กดปุ่ม/icon ลบที่รายการใด (ไม่ใช่รายการแรกสุด)\n3. สังเกตพฤติกรรมของระบบ',
+        expected: 'Modal ยืนยันการลบแสดงขึ้นทันที ระบบไม่ลบรายการทันทีโดยไม่ถาม'
+      },
+      {
+        id: 'TC-002',
+        name: 'Modal แสดงชื่อพนักงานของรายการที่จะลบ',
+        precondition: 'กดปุ่มลบรายการ Modal เปิดอยู่',
+        steps: '1. กดปุ่มลบรายการของพนักงาน "ก"\n2. อ่านข้อมูลที่แสดงใน Modal',
+        expected: 'Modal แสดงชื่อพนักงาน "ก" ตรงกับรายการที่เลือกลบ ไม่ใช่ชื่อพนักงานคนอื่น'
+      },
+      {
+        id: 'TC-003',
+        name: 'Modal แสดงประเภทการเปลี่ยนแปลงของรายการที่จะลบ',
+        precondition: 'กดปุ่มลบรายการ Modal เปิดอยู่',
+        steps: '1. กดปุ่มลบรายการที่มีประเภท "เปลี่ยนตำแหน่ง"\n2. อ่านข้อมูลใน Modal',
+        expected: 'Modal แสดงประเภทการเปลี่ยนแปลง "เปลี่ยนตำแหน่ง" ตรงกับรายการนั้น'
+      },
+      {
+        id: 'TC-004',
+        name: 'Modal แสดงวันที่มีผลของรายการที่จะลบ',
+        precondition: 'กดปุ่มลบรายการ Modal เปิดอยู่',
+        steps: '1. กดปุ่มลบรายการที่มีวันที่มีผลชัดเจน\n2. อ่านวันที่ที่แสดงใน Modal',
+        expected: 'Modal แสดงวันที่มีผลตรงกับรายการที่เลือกลบ'
+      },
+      {
+        id: 'TC-005',
+        name: 'Modal แสดงข้อความเตือนครบ — "การลบรายการนี้จะไม่สามารถกู้คืนได้ และข้อมูลปัจจุบันของพนักงานอาจเปลี่ยนแปลง ต้องการดำเนินการต่อหรือไม่?"',
+        precondition: 'กดปุ่มลบรายการ Modal เปิดอยู่',
+        steps: '1. กดปุ่มลบรายการใด\n2. อ่านข้อความเตือนใน Modal',
+        expected: 'Modal แสดงข้อความ: "การลบรายการนี้จะไม่สามารถกู้คืนได้ และข้อมูลปัจจุบันของพนักงานอาจเปลี่ยนแปลง ต้องการดำเนินการต่อหรือไม่?" ครบถ้วน'
+      },
+      {
+        id: 'TC-006',
+        name: 'กดปุ่ม "ยกเลิก" ใน Modal → Modal ปิด รายการยังอยู่ครบ',
+        precondition: 'Modal ยืนยันการลบเปิดอยู่',
+        steps: '1. กดปุ่ม "ยกเลิก" หรือ "ไม่" ใน Modal\n2. สังเกต Modal และรายการในหน้า',
+        expected: 'Modal ปิด รายการที่จะลบยังอยู่ในรายการปกติ ไม่มีข้อมูลถูกลบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ป้องกันลบรายการแรกสุด (ข้อมูล ณ วันเริ่มงาน)',
+    tcs: [
+      {
+        id: 'TC-007',
+        name: 'รายการแรกสุด (ข้อมูล ณ วันเริ่มงาน) → icon ลบ disabled ไม่สามารถกดได้',
+        precondition: 'พนักงานมีรายการประวัติอย่างน้อย 1 รายการ',
+        steps: '1. เปิดหน้ารายการประวัติการเปลี่ยนแปลงของพนักงาน\n2. สังเกต icon ลบของรายการแรกสุด (วันเริ่มงาน)',
+        expected: 'Icon ลบของรายการแรกสุดแสดงเป็น disabled/greyed out ไม่สามารถกดได้ มี visual cue ที่ชัดเจนว่าลบไม่ได้'
+      },
+      {
+        id: 'TC-008',
+        name: 'กดปุ่มลบที่รายการแรกสุด (disabled) → Modal ไม่แสดง ระบบไม่ตอบสนอง',
+        precondition: 'รายการแรกสุดมี icon ลบแบบ disabled',
+        steps: '1. พยายามคลิก icon ลบของรายการแรกสุด\n2. สังเกตพฤติกรรมของระบบ',
+        expected: 'Modal ยืนยันไม่แสดง ระบบไม่มีการตอบสนองต่อการคลิก (ไม่มี error, ไม่มี Modal, ไม่มีการเปลี่ยนแปลง)'
+      },
+      {
+        id: 'TC-009',
+        name: 'รายการที่ 2 ขึ้นไป → icon ลบ active สามารถกดได้ปกติ',
+        precondition: 'พนักงานมีรายการประวัติอย่างน้อย 2 รายการ',
+        steps: '1. สังเกต icon ลบของรายการที่ 2 ขึ้นไป (ไม่ใช่รายการแรกสุด)\n2. กดปุ่มลบ',
+        expected: 'Icon ลบของรายการที่ 2 ขึ้นไปแสดงเป็น active สามารถกดได้ Modal ยืนยันแสดงขึ้น'
+      },
+      {
+        id: 'TC-010',
+        name: 'Tooltip หรือ hint อธิบายว่าทำไมลบรายการแรกสุดไม่ได้',
+        precondition: 'Icon ลบของรายการแรกสุดเป็น disabled',
+        steps: '1. Hover หรือ tap ที่ icon ลบ disabled ของรายการแรกสุด\n2. สังเกต tooltip หรือข้อความอธิบาย',
+        expected: 'แสดง tooltip หรือข้อความอธิบาย เช่น "ไม่สามารถลบข้อมูล ณ วันเริ่มงานได้" หรือข้อความที่ชัดเจน (อาจ skip ถ้าระบบไม่มี tooltip)'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — Warning เพิ่มเติม: รายการ sync กับ 7.3 (ปรับเงินเดือน)',
+    tcs: [
+      {
+        id: 'TC-011',
+        name: 'รายการที่มี "ปรับเงินเดือน" (sync กับ 7.3) → Modal แสดง warning เพิ่มเติม',
+        precondition: 'มีรายการที่ประเภทการเปลี่ยนแปลงรวม "ปรับเงินเดือน"',
+        steps: '1. กดปุ่มลบรายการที่มีประเภท "ปรับเงินเดือน"\n2. อ่านข้อความทั้งหมดใน Modal',
+        expected: 'Modal แสดง warning เพิ่มเติม: "รายการนี้เชื่อมกับประวัติเงินเดือนใน 7.3 การลบจะลบข้อมูลทั้งสองที่พร้อมกัน" นอกเหนือจากข้อความเตือนปกติ'
+      },
+      {
+        id: 'TC-012',
+        name: 'รายการที่ไม่มี "ปรับเงินเดือน" → Modal ไม่แสดง warning 7.3',
+        precondition: 'มีรายการที่ประเภทการเปลี่ยนแปลงไม่รวม "ปรับเงินเดือน" เช่น "เปลี่ยนตำแหน่ง" อย่างเดียว',
+        steps: '1. กดปุ่มลบรายการที่มีเฉพาะ "เปลี่ยนตำแหน่ง" (ไม่มีปรับเงินเดือน)\n2. อ่านข้อความใน Modal',
+        expected: 'Modal ไม่แสดง warning เกี่ยวกับ 7.3 แสดงเฉพาะข้อความเตือนปกติ'
+      },
+      {
+        id: 'TC-013',
+        name: 'รายการที่มีหลายประเภทรวมถึง "ปรับเงินเดือน" → แสดง warning 7.3',
+        precondition: 'มีรายการที่มีหลายประเภท เช่น "เปลี่ยนตำแหน่ง + ปรับเงินเดือน"',
+        steps: '1. กดปุ่มลบรายการที่มีหลายประเภทรวมถึง "ปรับเงินเดือน"\n2. อ่านข้อความใน Modal',
+        expected: 'Modal แสดง warning เพิ่มเติมเกี่ยวกับ 7.3 เนื่องจากมี "ปรับเงินเดือน" รวมอยู่'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — ยืนยันลบและผลลัพธ์',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'กดปุ่ม "ยืนยัน/ลบ" ใน Modal → รายการหายออกจาก list ทันที',
+        precondition: 'Modal ยืนยันการลบเปิดอยู่',
+        steps: '1. กดปุ่ม "ยืนยัน" หรือ "ลบ" ใน Modal\n2. สังเกต list รายการ',
+        expected: 'รายการที่ลบหายออกจาก list ทันที รายการอื่นยังอยู่ครบ Modal ปิดลง'
+      },
+      {
+        id: 'TC-015',
+        name: 'ลบสำเร็จ → Toast "ลบรายการสำเร็จ" แสดงและหายไปเอง',
+        precondition: 'ยืนยันการลบแล้ว',
+        steps: '1. ยืนยันการลบรายการสำเร็จ\n2. สังเกต Toast notification',
+        expected: 'Toast แสดง "ลบรายการสำเร็จ" และหายไปหลังสักครู่ โดยอัตโนมัติ'
+      },
+      {
+        id: 'TC-016',
+        name: 'ลบสำเร็จ → ข้อมูลปัจจุบันของพนักงานอัปเดตเป็น Before ของรายการที่ถูกลบ',
+        precondition: 'ลบรายการที่เป็นรายการล่าสุดของพนักงาน',
+        steps: '1. จดค่า Before ของรายการที่จะลบ (เช่น ตำแหน่ง Before = "เจ้าหน้าที่")\n2. ลบรายการนั้น\n3. ดูข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงานเปลี่ยนเป็นค่า Before ของรายการที่ถูกลบ เช่น ตำแหน่งปัจจุบัน = "เจ้าหน้าที่"'
+      },
+      {
+        id: 'TC-017',
+        name: 'ลบสำเร็จ → Audit log บันทึก วันที่ลบ / ผู้ลบ / รายละเอียดรายการที่ลบ',
+        precondition: 'มีสิทธิ์ดู audit log',
+        steps: '1. ลบรายการสำเร็จ\n2. เปิดดู audit log ของพนักงานหรือระบบ',
+        expected: 'Audit log แสดงรายการลบใหม่ ประกอบด้วย: วันที่ลบ, ชื่อผู้ลบ, รายละเอียดรายการที่ถูกลบ (ประเภท, วันที่มีผล, ค่า Before/After)'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — อัปเดตข้อมูลปัจจุบันพนักงานหลังลบ',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'ลบรายการ "เปลี่ยนตำแหน่ง" ล่าสุด → ตำแหน่งปัจจุบันย้อนกลับเป็น Before ของรายการนั้น',
+        precondition: 'พนักงานมีรายการ "เปลี่ยนตำแหน่ง" เป็นรายการล่าสุด ทราบค่า Before',
+        steps: '1. จดตำแหน่ง Before ของรายการล่าสุด\n2. ลบรายการนั้น\n3. ตรวจสอบตำแหน่งปัจจุบันของพนักงาน',
+        expected: 'ตำแหน่งปัจจุบันของพนักงานเปลี่ยนเป็น Before ของรายการที่ถูกลบ ตรงกับที่บันทึกไว้'
+      },
+      {
+        id: 'TC-019',
+        name: 'ลบรายการ "เปลี่ยนแผนก/ฝ่าย" ล่าสุด → แผนก/ฝ่ายปัจจุบันย้อนกลับเป็น Before',
+        precondition: 'พนักงานมีรายการ "เปลี่ยนแผนก/ฝ่าย" เป็นรายการล่าสุด',
+        steps: '1. จดแผนก/ฝ่าย Before ของรายการล่าสุด\n2. ลบรายการนั้น\n3. ตรวจสอบแผนก/ฝ่ายปัจจุบันของพนักงาน',
+        expected: 'แผนก/ฝ่ายปัจจุบันของพนักงานย้อนกลับเป็น Before ของรายการที่ถูกลบ'
+      },
+      {
+        id: 'TC-020',
+        name: 'ลบรายการ "ปรับเงินเดือน" → เงินเดือนปัจจุบันย้อนกลับ และรายการใน 7.3 ถูกลบด้วย',
+        precondition: 'พนักงานมีรายการ "ปรับเงินเดือน" และมีข้อมูลใน module 7.3',
+        steps: '1. จดเงินเดือน Before ของรายการที่จะลบ\n2. ลบรายการยืนยันผ่าน Modal (รวม warning 7.3)\n3. ตรวจสอบเงินเดือนปัจจุบัน\n4. ตรวจสอบข้อมูลใน module 7.3',
+        expected: 'เงินเดือนปัจจุบันย้อนกลับเป็นค่า Before และรายการที่ sync ใน 7.3 ถูกลบพร้อมกัน ไม่มีรายการซ้ำหรือ orphan data'
+      },
+      {
+        id: 'TC-021',
+        name: 'ลบรายการที่ไม่ใช่ล่าสุด (กลาง list) → ข้อมูลปัจจุบันยังคงตามรายการล่าสุด',
+        precondition: 'พนักงานมีรายการประวัติอย่างน้อย 3 รายการ (ไม่นับรายการแรก)',
+        steps: '1. ลบรายการที่อยู่กลาง list (ไม่ใช่ล่าสุด)\n2. ตรวจสอบข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงานยังคงตามรายการล่าสุด (ไม่ใช่ Before ของรายการที่ลบ) เนื่องจากมีรายการหลังจากนั้นอยู่'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — Edge Cases',
+    tcs: [
+      {
+        id: 'TC-022',
+        name: 'ลบรายการเดียวที่เหลือ (นอกจากรายการแรกสุด) → ข้อมูลปัจจุบันย้อนกลับเป็นข้อมูล ณ วันเริ่มงาน',
+        precondition: 'พนักงานมีรายการประวัติ 2 รายการ (รายการแรกสุด + อีก 1 รายการ)',
+        steps: '1. ลบรายการที่ไม่ใช่แรกสุด (รายการที่ 2)\n2. ตรวจสอบข้อมูลปัจจุบันของพนักงาน\n3. ตรวจสอบว่ายังมีรายการแรกสุดเหลืออยู่',
+        expected: 'ข้อมูลปัจจุบันของพนักงานย้อนกลับเป็นข้อมูล ณ วันเริ่มงาน รายการแรกสุดยังคงอยู่ในรายการ ไม่ถูกลบ'
+      },
+      {
+        id: 'TC-023',
+        name: 'ปิด Modal โดยคลิกนอก Modal หรือกด Esc → Modal ปิด รายการไม่ถูกลบ',
+        precondition: 'Modal ยืนยันการลบเปิดอยู่',
+        steps: '1. คลิกพื้นที่นอก Modal หรือกดปุ่ม Esc บนคีย์บอร์ด\n2. สังเกต Modal และรายการ',
+        expected: 'Modal ปิดลง รายการยังอยู่ในรายการปกติ ไม่มีการลบเกิดขึ้น'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-406.html': [
+  {
+    name: 'ส่วนที่ 1 — ข้อมูลพนักงานและประเภทการเปลี่ยนแปลง',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดหน้า detail → ชื่อ-สกุล และรหัสพนักงานแสดงตรงกับรายการที่เลือก',
+        precondition: 'มีรายการประวัติในระบบ',
+        steps: '1. เปิดหน้ารายการประวัติ\n2. กดดูรายละเอียดรายการใด\n3. ตรวจสอบ field ชื่อ-สกุล และรหัสพนักงาน',
+        expected: 'แสดงชื่อ-สกุล และรหัสพนักงานตรงกับรายการที่เลือก ไม่ใช่ข้อมูลพนักงานคนอื่น'
+      },
+      {
+        id: 'TC-002',
+        name: 'ประเภทการเปลี่ยนแปลงแสดงครบ ตรงกับรายการที่เลือก',
+        precondition: 'เปิดหน้า detail ของรายการที่มีประเภทที่ชัดเจน',
+        steps: '1. เปิดหน้า detail\n2. ตรวจสอบ field ประเภทการเปลี่ยนแปลง',
+        expected: 'แสดงประเภทการเปลี่ยนแปลงครบ ตรงกับรายการนั้น หากมีหลายประเภทแสดงทุกประเภท'
+      },
+      {
+        id: 'TC-003',
+        name: 'ข้อมูลก่อนเปลี่ยน (Before) แสดงครบทุก field ตรงกับรายการ',
+        precondition: 'เปิดหน้า detail ของรายการที่มีข้อมูล Before',
+        steps: '1. เปิดหน้า detail\n2. ตรวจสอบ field Before ทุก field (ตำแหน่ง / แผนก / เงินเดือน ตามประเภท)',
+        expected: 'แสดงข้อมูล Before ครบทุก field ที่เกี่ยวข้องกับประเภทการเปลี่ยนแปลง ตรงกับข้อมูลในระบบ'
+      },
+      {
+        id: 'TC-004',
+        name: 'ข้อมูลหลังเปลี่ยน (After) แสดงครบทุก field ตรงกับรายการ',
+        precondition: 'เปิดหน้า detail ของรายการที่มีข้อมูล After',
+        steps: '1. เปิดหน้า detail\n2. ตรวจสอบ field After ทุก field',
+        expected: 'แสดงข้อมูล After ครบทุก field ที่เกี่ยวข้อง ตรงกับข้อมูลในระบบ'
+      },
+      {
+        id: 'TC-005',
+        name: 'วันที่มีผลแสดงตรงกับรายการ',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. ตรวจสอบ field "วันที่มีผล" ในหน้า detail',
+        expected: 'แสดงวันที่มีผลตรงกับที่บันทึกไว้ รูปแบบวันที่อ่านง่าย'
+      },
+      {
+        id: 'TC-006',
+        name: 'เหตุผล / หมายเหตุแสดงตรงกับที่บันทึก (หรือว่างถ้าไม่มี)',
+        precondition: 'เปิดหน้า detail ของรายการที่มีและไม่มีเหตุผล/หมายเหตุ',
+        steps: '1. เปิดหน้า detail รายการที่มีเหตุผล → ตรวจสอบ\n2. เปิดหน้า detail รายการที่ไม่มีเหตุผล → ตรวจสอบ',
+        expected: 'กรณีมีเหตุผล: แสดงข้อความตรงกับที่บันทึก / กรณีไม่มี: แสดงว่าง หรือ "-" ไม่แสดง error'
+      },
+      {
+        id: 'TC-007',
+        name: 'ผู้บันทึกแสดงตรงกับรายการ',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. ตรวจสอบ field "ผู้บันทึก" ในหน้า detail',
+        expected: 'แสดงชื่อผู้บันทึกตรงกับที่บันทึกในระบบ'
+      },
+      {
+        id: 'TC-008',
+        name: 'วันที่บันทึกแสดงตรงกับรายการ',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. ตรวจสอบ field "วันที่บันทึก" ในหน้า detail',
+        expected: 'แสดงวันที่บันทึกตรงกับที่บันทึกในระบบ รูปแบบวันที่อ่านง่าย'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Read-only ทุก field',
+    tcs: [
+      {
+        id: 'TC-009',
+        name: 'ทุก field ในหน้า detail ไม่สามารถแก้ไขได้ (read-only)',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. พยายามคลิกและพิมพ์ค่าใหม่ใน field ต่างๆ เช่น ชื่อพนักงาน, ประเภท, Before, After, วันที่มีผล\n2. สังเกตพฤติกรรม',
+        expected: 'ไม่มี field ใดที่สามารถแก้ไขได้ ทุก field แสดงแบบ read-only ไม่มี input, cursor, หรือ dropdown เปิด'
+      },
+      {
+        id: 'TC-010',
+        name: 'ไม่มี form input หรือ editable element ซ่อนอยู่ใน DOM',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. เปิด DevTools\n2. ตรวจสอบ DOM หา input/textarea/select ที่ไม่ disabled\n3. ตรวจสอบ contenteditable attribute',
+        expected: 'ไม่มี input, textarea, หรือ select ที่ active อยู่ใน DOM ของหน้า detail (หรือทั้งหมดเป็น disabled/readonly)'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — เอกสารแนบ',
+    tcs: [
+      {
+        id: 'TC-011',
+        name: 'เอกสารแนบแสดงรายชื่อครบ ตรงกับที่บันทึกไว้',
+        precondition: 'เปิดหน้า detail ของรายการที่มีเอกสารแนบ',
+        steps: '1. ตรวจสอบรายชื่อเอกสารแนบในหน้า detail',
+        expected: 'แสดงชื่อไฟล์เอกสารแนบครบ ตรงกับจำนวนและชื่อที่บันทึกไว้'
+      },
+      {
+        id: 'TC-012',
+        name: 'กดดาวน์โหลดเอกสารแนบ → ไฟล์ดาวน์โหลดสำเร็จ ไม่ขึ้น error',
+        precondition: 'เปิดหน้า detail ของรายการที่มีเอกสารแนบ',
+        steps: '1. กดปุ่มดาวน์โหลดที่เอกสารแนบรายการใด\n2. สังเกตว่าไฟล์ดาวน์โหลด',
+        expected: 'ไฟล์ดาวน์โหลดสำเร็จ ชื่อไฟล์ตรงกับที่แสดง ไม่ขึ้น error 404 หรือ access denied'
+      },
+      {
+        id: 'TC-013',
+        name: 'ดาวน์โหลดไฟล์หลายรายการได้ทั้งหมด ไม่มีไฟล์ใดดาวน์โหลดไม่ได้',
+        precondition: 'เปิดหน้า detail ของรายการที่มีเอกสารแนบหลายไฟล์',
+        steps: '1. ดาวน์โหลดเอกสารแนบทุกไฟล์ทีละรายการ\n2. ตรวจสอบว่าครบทุกไฟล์',
+        expected: 'ทุกไฟล์ดาวน์โหลดได้ปกติ ไม่มีไฟล์ใดที่ดาวน์โหลดล้มเหลวหรือได้ไฟล์ผิด'
+      },
+      {
+        id: 'TC-014',
+        name: 'รายการที่ไม่มีเอกสารแนบ → แสดง "-" หรือข้อความ "ไม่มีเอกสารแนบ" ไม่แสดง error',
+        precondition: 'เปิดหน้า detail ของรายการที่ไม่มีเอกสารแนบ',
+        steps: '1. เปิดหน้า detail ของรายการที่ไม่มีเอกสารแนบ\n2. ตรวจสอบส่วนเอกสารแนบ',
+        expected: 'แสดง "-" หรือข้อความ "ไม่มีเอกสารแนบ" ไม่แสดง error ไม่มีปุ่มดาวน์โหลดที่ใช้ไม่ได้'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — ประวัติการแก้ไข (Audit Log)',
+    tcs: [
+      {
+        id: 'TC-015',
+        name: 'รายการที่ไม่เคยแก้ไข → ส่วน audit log ว่าง หรือแสดง "ยังไม่มีการแก้ไข"',
+        precondition: 'เปิดหน้า detail ของรายการที่ไม่เคยถูกแก้ไขหลังบันทึก',
+        steps: '1. เปิดหน้า detail\n2. ดูส่วนประวัติการแก้ไข',
+        expected: 'ส่วน audit log แสดงว่าง หรือข้อความ "ยังไม่มีการแก้ไข" ไม่แสดง error'
+      },
+      {
+        id: 'TC-016',
+        name: 'รายการที่แก้ไขแล้ว → audit log แสดงข้อมูลครบ: วันที่แก้ไข / ผู้แก้ไข / ค่าก่อน / ค่าหลัง',
+        precondition: 'เปิดหน้า detail ของรายการที่มีประวัติการแก้ไข',
+        steps: '1. เปิดหน้า detail\n2. ดูส่วนประวัติการแก้ไข\n3. ตรวจสอบข้อมูลในแต่ละรายการ',
+        expected: 'แต่ละรายการใน audit log แสดง: วันที่แก้ไข, ชื่อผู้แก้ไข, ค่าก่อนแก้ไข, ค่าหลังแก้ไข ครบถ้วน'
+      },
+      {
+        id: 'TC-017',
+        name: 'audit log เรียงจากล่าสุดก่อน (newest first)',
+        precondition: 'เปิดหน้า detail ของรายการที่มีประวัติการแก้ไขหลายครั้ง',
+        steps: '1. ดูลำดับของรายการใน audit log\n2. เปรียบเทียบวันที่ของรายการแรกสุดและล่าสุด',
+        expected: 'รายการแรกสุดใน audit log มีวันที่ล่าสุด (เรียงจากใหม่ไปเก่า)'
+      },
+      {
+        id: 'TC-018',
+        name: 'แก้ไขรายการแล้วกลับมาดูหน้า detail → audit log อัปเดตทันที',
+        precondition: 'เปิดหน้า detail และมีสิทธิ์แก้ไข',
+        steps: '1. เปิดหน้า detail → จด audit log ปัจจุบัน\n2. กดปุ่ม "แก้ไข" แก้ข้อมูล บันทึก\n3. กลับมาหน้า detail',
+        expected: 'audit log มีรายการใหม่เพิ่มขึ้น 1 รายการ แสดงการแก้ไขที่เพิ่งทำ อยู่บนสุดของ list'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — ปุ่มแก้ไขและลบ',
+    tcs: [
+      {
+        id: 'TC-019',
+        name: 'ปุ่ม "แก้ไข" แสดงอยู่ที่มุมขวาบนของหน้า',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. สังเกตมุมขวาบนของหน้า detail',
+        expected: 'ปุ่ม "แก้ไข" แสดงอยู่ที่มุมขวาบนชัดเจน สามารถมองเห็นได้โดยไม่ต้อง scroll'
+      },
+      {
+        id: 'TC-020',
+        name: 'ปุ่ม "ลบ" แสดงอยู่ที่มุมขวาบนของหน้า',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. สังเกตมุมขวาบนของหน้า detail',
+        expected: 'ปุ่ม "ลบ" แสดงอยู่ที่มุมขวาบนชัดเจน visual ต่างจากปุ่ม "แก้ไข" (เช่น สีแดง)'
+      },
+      {
+        id: 'TC-021',
+        name: 'กดปุ่ม "แก้ไข" → นำไปยังหน้าฟอร์มแก้ไขของรายการนั้น',
+        precondition: 'เปิดหน้า detail',
+        steps: '1. กดปุ่ม "แก้ไข"\n2. สังเกตหน้าที่เปิดขึ้น',
+        expected: 'นำทางไปยังหน้าฟอร์มแก้ไข (task-404) ของรายการนั้น ข้อมูลเดิมโหลดมาแสดงครบ'
+      },
+      {
+        id: 'TC-022',
+        name: 'กดปุ่ม "ลบ" → Modal ยืนยันการลบแสดงขึ้น (task-405 flow)',
+        precondition: 'เปิดหน้า detail ของรายการที่ไม่ใช่รายการแรกสุด',
+        steps: '1. กดปุ่ม "ลบ"\n2. สังเกตพฤติกรรม',
+        expected: 'Modal ยืนยันการลบแสดงขึ้น แสดงชื่อพนักงาน ประเภท วันที่มีผล และข้อความเตือน'
+      },
+      {
+        id: 'TC-023',
+        name: 'รายการแรกสุด (ข้อมูล ณ วันเริ่มงาน) → ปุ่ม "ลบ" disabled หรือซ่อน',
+        precondition: 'เปิดหน้า detail ของรายการแรกสุดของพนักงาน',
+        steps: '1. เปิดหน้า detail ของรายการแรกสุด\n2. สังเกตปุ่ม "ลบ"',
+        expected: 'ปุ่ม "ลบ" เป็น disabled หรือซ่อน ไม่สามารถกดได้ สอดคล้องกับ AC ของ task-405'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-407.html': [
+  {
+    name: 'ส่วนที่ 1 — การแสดงรายการและ Default',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดหน้า → แสดงรายการสัญญาทั้งหมดของพนักงาน เรียงตามวันที่ล่าสุดก่อน',
+        precondition: 'พนักงานมีเอกสารสัญญาในระบบ',
+        steps: '1. เปิดหน้ารายการเอกสารสัญญา\n2. สังเกตลำดับรายการที่แสดง',
+        expected: 'แสดงรายการสัญญาทั้งหมดของพนักงาน เรียงตามวันที่สัญญาล่าสุดก่อน'
+      },
+      {
+        id: 'TC-002',
+        name: 'แต่ละแถวแสดง: ชื่อสัญญา / ประเภทสัญญา / วันที่เริ่มต้น / วันที่สิ้นสุด / สถานะ',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. ตรวจสอบข้อมูลในแต่ละแถว',
+        expected: 'ทุกแถวแสดงข้อมูลครบ: ชื่อสัญญา, ประเภทสัญญา, วันที่เริ่มต้น, วันที่สิ้นสุด, Badge สถานะ'
+      },
+      {
+        id: 'TC-003',
+        name: 'พนักงานที่ไม่มีสัญญา → แสดงข้อความ "ไม่มีเอกสารสัญญา" ไม่ขึ้น error',
+        precondition: 'พนักงานที่ไม่มีเอกสารสัญญาในระบบ',
+        steps: '1. เปิดหน้ารายการของพนักงานที่ไม่มีสัญญา\n2. สังเกตการแสดงผล',
+        expected: 'แสดง empty state เช่น "ไม่มีเอกสารสัญญา" ไม่ขึ้น error ไม่แสดงตารางว่าง'
+      },
+      {
+        id: 'TC-004',
+        name: 'Column header ครบและ label ถูกต้อง',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. ตรวจสอบ header ของตาราง/รายการ',
+        expected: 'ทุก column header แสดงถูกต้อง ไม่มี header ที่ว่างหรือ label ผิด'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ค้นหา',
+    tcs: [
+      {
+        id: 'TC-005',
+        name: 'พิมพ์คำค้นหาใน search box → แสดงเฉพาะรายการที่ตรงกับชื่อสัญญา',
+        precondition: 'มีรายการสัญญาหลายรายการ',
+        steps: '1. พิมพ์คำในช่อง search\n2. สังเกตรายการที่แสดง',
+        expected: 'กรองแสดงเฉพาะรายการที่ชื่อสัญญาตรงกับคำค้นหา (case-insensitive) รายการที่ไม่ตรงถูกซ่อน'
+      },
+      {
+        id: 'TC-006',
+        name: 'ค้นหาด้วยคำที่ไม่มีในระบบ → แสดง "ไม่พบ" หรือ empty state',
+        precondition: 'มีรายการสัญญาในระบบ',
+        steps: '1. พิมพ์คำที่ไม่มีชื่อสัญญาใดตรงกัน\n2. สังเกตผล',
+        expected: 'แสดง empty state หรือข้อความ "ไม่พบ" ไม่แสดง error หรือหน้าขาว'
+      },
+      {
+        id: 'TC-007',
+        name: 'ลบคำค้นหาออก → แสดงรายการทั้งหมดกลับมา',
+        precondition: 'มีคำค้นหาอยู่ใน search box',
+        steps: '1. ลบคำค้นหาออกจาก search box\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่ต้องกด reset'
+      },
+      {
+        id: 'TC-008',
+        name: 'ค้นหาแบบ real-time (ไม่ต้องกด Enter)',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. พิมพ์ทีละตัวอักษรใน search box\n2. สังเกตว่ารายการอัปเดตทันทีหรือต้องกด Enter',
+        expected: 'รายการกรองแบบ real-time ทุกครั้งที่พิมพ์ ไม่ต้องกด Enter'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — กรองตามประเภทสัญญา',
+    tcs: [
+      {
+        id: 'TC-009',
+        name: 'เลือก filter ประเภทสัญญา → แสดงเฉพาะรายการที่ตรงกับประเภทที่เลือก',
+        precondition: 'มีสัญญาหลายประเภทในระบบ',
+        steps: '1. เลือกประเภทสัญญาใดในตัวกรอง\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ประเภทตรงกับที่เลือก รายการประเภทอื่นถูกซ่อน'
+      },
+      {
+        id: 'TC-010',
+        name: 'Dropdown ประเภทสัญญาแสดงประเภทจริงในระบบ ไม่แสดงประเภทที่ไม่มีรายการ',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. เปิด dropdown filter ประเภทสัญญา\n2. ตรวจสอบรายการใน dropdown',
+        expected: 'แสดงเฉพาะประเภทที่มีสัญญาอยู่จริงในระบบ ไม่แสดงประเภทที่ว่าง'
+      },
+      {
+        id: 'TC-011',
+        name: 'เลือก "ทั้งหมด" → รายการทั้งหมดกลับมา',
+        precondition: 'มีการเลือก filter ประเภทสัญญา',
+        steps: '1. เลือก "ทั้งหมด" ใน filter ประเภทสัญญา\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามประเภท'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — กรองตามสถานะสัญญา',
+    tcs: [
+      {
+        id: 'TC-012',
+        name: 'เลือก filter "ใช้งาน" → แสดงเฉพาะสัญญาที่ active',
+        precondition: 'มีสัญญาสถานะ active และ inactive ในระบบ',
+        steps: '1. เลือก filter "ใช้งาน"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่มีสถานะ active / ใช้งาน สัญญาที่หมดอายุหรือยกเลิกถูกซ่อน'
+      },
+      {
+        id: 'TC-013',
+        name: 'เลือก filter "หมดอายุ" → แสดงเฉพาะสัญญาที่หมดอายุ',
+        precondition: 'มีสัญญาที่หมดอายุในระบบ',
+        steps: '1. เลือก filter "หมดอายุ"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่หมดอายุ สัญญา active ถูกซ่อน'
+      },
+      {
+        id: 'TC-014',
+        name: 'เลือก filter "ใกล้หมดอายุ" → แสดงเฉพาะสัญญาที่ใกล้หมดอายุ',
+        precondition: 'มีสัญญาที่ใกล้หมดอายุในระบบ (ภายใน 30 วัน)',
+        steps: '1. เลือก filter "ใกล้หมดอายุ"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ใกล้หมดอายุ สัญญาอื่นถูกซ่อน'
+      },
+      {
+        id: 'TC-015',
+        name: 'เลือก "ทั้งหมด" → รายการทั้งหมดกลับมา',
+        precondition: 'มีการเลือก filter สถานะ',
+        steps: '1. เลือก "ทั้งหมด" ใน filter สถานะ\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามสถานะ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — กรองตามช่วงวันที่',
+    tcs: [
+      {
+        id: 'TC-016',
+        name: 'เลือกวันที่เริ่มต้น และ วันที่สิ้นสุด → แสดงเฉพาะสัญญาที่อยู่ในช่วงที่เลือก',
+        precondition: 'มีสัญญาในช่วงวันที่ต่างๆ',
+        steps: '1. เลือกวันที่เริ่มต้น\n2. เลือกวันที่สิ้นสุด\n3. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่วันที่สัญญาอยู่ในช่วงที่เลือก สัญญานอกช่วงถูกซ่อน'
+      },
+      {
+        id: 'TC-017',
+        name: 'วันที่สิ้นสุดน้อยกว่าวันที่เริ่มต้น → แสดง error หรือ warning',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. เลือกวันที่เริ่มต้น = วันนี้\n2. เลือกวันที่สิ้นสุด = เมื่อวาน\n3. สังเกตพฤติกรรม',
+        expected: 'แสดง validation error หรือ warning เช่น "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น"'
+      },
+      {
+        id: 'TC-018',
+        name: 'เคลียร์ filter วันที่ → รายการทั้งหมดกลับมา',
+        precondition: 'มีการตั้ง filter วันที่',
+        steps: '1. กดปุ่ม clear หรือลบวันที่ทั้งสองออก\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามวันที่'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — กรองหลายเงื่อนไขพร้อมกัน',
+    tcs: [
+      {
+        id: 'TC-019',
+        name: 'ใช้ filter หลายตัวพร้อมกัน → ผลลัพธ์เป็น AND (ต้องตรงทุกเงื่อนไข)',
+        precondition: 'มีสัญญาหลายประเภทและสถานะ',
+        steps: '1. เลือกประเภทสัญญา\n2. เลือกสถานะสัญญา\n3. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ตรงทั้งประเภทและสถานะที่เลือก (AND logic)'
+      },
+      {
+        id: 'TC-020',
+        name: 'ใช้ search + filter พร้อมกัน → ผลลัพธ์ตรงตามเงื่อนไขรวม',
+        precondition: 'มีสัญญาในระบบ',
+        steps: '1. พิมพ์คำค้นหา\n2. เลือก filter ประเภทสัญญา\n3. ตรวจสอบผล',
+        expected: 'แสดงเฉพาะสัญญาที่ตรงทั้งคำค้นหาและ filter ที่เลือก'
+      },
+      {
+        id: 'TC-021',
+        name: 'กดปุ่ม "Reset" หรือ "เคลียร์ทั้งหมด" → filter ทั้งหมดกลับ default',
+        precondition: 'มีการตั้ง filter หลายตัว',
+        steps: '1. ตั้ง filter หลายตัว\n2. กดปุ่ม reset/clear\n3. สังเกตสถานะ filter และรายการที่แสดง',
+        expected: 'filter ทั้งหมดกลับเป็นค่า default, search box ว่าง, รายการทั้งหมดแสดง'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — Badge สถานะและวันที่เหลือ',
+    tcs: [
+      {
+        id: 'TC-022',
+        name: 'สัญญา active → Badge สีเขียว หรือ text "ใช้งาน"',
+        precondition: 'มีสัญญา active ในระบบ',
+        steps: '1. ดู Badge ของสัญญา active',
+        expected: 'Badge สีเขียว หรือ label "ใช้งาน" แสดงชัดเจน'
+      },
+      {
+        id: 'TC-023',
+        name: 'สัญญาหมดอายุ → Badge สีแดง หรือ text "หมดอายุ"',
+        precondition: 'มีสัญญาที่หมดอายุแล้วในระบบ',
+        steps: '1. ดู Badge ของสัญญาที่หมดอายุ',
+        expected: 'Badge สีแดง หรือ label "หมดอายุ" แสดงชัดเจน'
+      },
+      {
+        id: 'TC-024',
+        name: 'สัญญาใกล้หมดอายุ (≤30 วัน) → Badge สีเหลือง/ส้ม + แสดงวันที่เหลือ',
+        precondition: 'มีสัญญาที่จะหมดอายุภายใน 30 วัน',
+        steps: '1. ดู Badge ของสัญญาที่ใกล้หมดอายุ',
+        expected: 'Badge สีเหลืองหรือส้ม + แสดงจำนวนวันที่เหลือ เช่น "เหลือ 15 วัน"'
+      },
+      {
+        id: 'TC-025',
+        name: 'วันที่เหลือแสดงตัวเลขถูกต้อง (ตรงกับ วันสิ้นสุด - วันนี้)',
+        precondition: 'มีสัญญาที่ใกล้หมดอายุ',
+        steps: '1. ดูวันที่เหลือที่แสดงใน Badge\n2. คำนวณเองว่า วันสิ้นสุด - วันนี้ = กี่วัน',
+        expected: 'ตัวเลขวันที่เหลือตรงกับการคำนวณ วันสิ้นสุด - วันนี้'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — Auto-เปลี่ยนสถานะ',
+    tcs: [
+      {
+        id: 'TC-026',
+        name: 'เมื่อถึงวันหมดสัญญา (วันนี้ = วันสิ้นสุด + 1) → สถานะเปลี่ยนเป็น "หมดอายุ" อัตโนมัติ',
+        precondition: 'มีสัญญาที่วันสิ้นสุด = เมื่อวาน',
+        steps: '1. ตรวจสอบ Badge สถานะของสัญญาที่วันสิ้นสุด = เมื่อวาน',
+        expected: 'สัญญาแสดงสถานะ "หมดอายุ" โดยไม่ต้องอัปเดต manually'
+      },
+      {
+        id: 'TC-027',
+        name: 'เมื่อยังอยู่ในช่วงสัญญา → ไม่เปลี่ยนเป็น "หมดอายุ"',
+        precondition: 'มีสัญญาที่วันสิ้นสุด = อีก 10 วัน',
+        steps: '1. ตรวจสอบสถานะของสัญญาที่ยังไม่หมด',
+        expected: 'ยังแสดงสถานะ "ใช้งาน" หรือ "ใกล้หมดอายุ" ไม่เปลี่ยนเป็น "หมดอายุ" ก่อนกำหนด'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 9 — Pagination',
+    tcs: [
+      {
+        id: 'TC-028',
+        name: 'มีสัญญาเกิน page size → Pagination แสดง',
+        precondition: 'มีสัญญามากกว่า page size ที่กำหนด',
+        steps: '1. ตรวจสอบว่ามี pagination แสดงที่ด้านล่าง',
+        expected: 'Pagination แสดง แสดงจำนวนหน้า สามารถกดเปลี่ยนหน้าได้'
+      },
+      {
+        id: 'TC-029',
+        name: 'กดหน้าถัดไป → แสดงรายการชุดถัดไป ไม่ซ้ำกับหน้าแรก',
+        precondition: 'มีสัญญาเกิน 1 หน้า',
+        steps: '1. กด "หน้าถัดไป" หรือ กดหมายเลขหน้าถัดไป\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงรายการชุดถัดไป ไม่ซ้ำกับรายการในหน้าก่อน'
+      },
+      {
+        id: 'TC-030',
+        name: 'กรอง filter แล้ว → Pagination อัปเดตตามผล filter (ไม่แสดงหน้าที่เกิน)',
+        precondition: 'มีสัญญาเกิน 1 หน้า',
+        steps: '1. กรองให้เหลือรายการน้อยกว่า page size\n2. ดู pagination',
+        expected: 'Pagination ลดลงหรือหายไปตามจำนวนผลลัพธ์ ไม่มีปุ่มหน้าที่เกินจำนวนจริง'
+      },
+      {
+        id: 'TC-031',
+        name: 'มีสัญญาน้อยกว่าหรือเท่ากับ page size → ไม่แสดง pagination',
+        precondition: 'มีสัญญาน้อยกว่า page size',
+        steps: '1. ตรวจสอบว่ามี pagination แสดงหรือไม่',
+        expected: 'ไม่แสดง pagination เมื่อรายการน้อยกว่าหรือเท่ากับ page size'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 10 — Export Excel',
+    tcs: [
+      {
+        id: 'TC-032',
+        name: 'กดปุ่ม Export Excel → ดาวน์โหลดไฟล์ .xlsx สำเร็จ',
+        precondition: 'มีสัญญาในระบบ',
+        steps: '1. กดปุ่ม "Export Excel"\n2. สังเกตการดาวน์โหลด',
+        expected: 'ไฟล์ .xlsx ดาวน์โหลดสำเร็จ ชื่อไฟล์เหมาะสม'
+      },
+      {
+        id: 'TC-033',
+        name: 'ไฟล์ที่ export มีข้อมูลครบทุก column และตรงกับที่แสดงในหน้า',
+        precondition: 'เปิดไฟล์ .xlsx ที่ export มา',
+        steps: '1. เปิดไฟล์ Excel\n2. ตรวจสอบว่ามี column ครบและข้อมูลตรงกับ UI',
+        expected: 'มีทุก column ที่แสดงใน UI ข้อมูลในแต่ละแถวตรงกับที่แสดงบนหน้า'
+      },
+      {
+        id: 'TC-034',
+        name: 'Export ขณะมี filter active → export เฉพาะรายการที่ผ่าน filter',
+        precondition: 'มีการตั้ง filter',
+        steps: '1. ตั้ง filter บางอย่าง\n2. กด Export\n3. ตรวจสอบไฟล์',
+        expected: 'ไฟล์ export มีเฉพาะรายการที่ผ่าน filter ณ ขณะที่กด export'
+      },
+      {
+        id: 'TC-035',
+        name: 'ไม่มีสัญญา (หรือ filter ไม่พบผล) → Export ให้ไฟล์ว่างหรือมีแค่ header',
+        precondition: 'ไม่มีรายการ (filter ไม่พบหรือไม่มีข้อมูล)',
+        steps: '1. ตั้ง filter ให้ไม่มีผล\n2. กด Export',
+        expected: 'ดาวน์โหลดไฟล์ได้ ไฟล์มีเฉพาะ header หรือแสดงข้อความว่าไม่มีข้อมูล ไม่ขึ้น error'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 11 — สิทธิ์และปุ่มต่างๆ',
+    tcs: [
+      {
+        id: 'TC-036',
+        name: 'ปุ่ม "เพิ่มสัญญา" แสดงสำหรับ user ที่มีสิทธิ์สร้าง',
+        precondition: 'login ด้วย user ที่มีสิทธิ์สร้างสัญญา',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตปุ่ม "เพิ่มสัญญา"',
+        expected: 'ปุ่ม "เพิ่มสัญญา" แสดงอยู่ที่มุมขวาบนหรือตำแหน่งที่ชัดเจน'
+      },
+      {
+        id: 'TC-037',
+        name: 'ปุ่ม "เพิ่มสัญญา" ซ่อนสำหรับ user ที่ไม่มีสิทธิ์สร้าง',
+        precondition: 'login ด้วย user ที่ไม่มีสิทธิ์สร้างสัญญา',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตว่ามีปุ่ม "เพิ่มสัญญา" หรือไม่',
+        expected: 'ปุ่ม "เพิ่มสัญญา" ซ่อนหรือ disabled ไม่ให้ user ที่ไม่มีสิทธิ์กดได้'
+      },
+      {
+        id: 'TC-038',
+        name: 'กดปุ่ม "ดูรายละเอียด" → เปิดหน้า detail ของสัญญานั้น (task-406 flow)',
+        precondition: 'เปิดหน้ารายการสัญญา',
+        steps: '1. กดปุ่ม "ดูรายละเอียด" ของสัญญาใด\n2. สังเกตหน้าที่เปิดขึ้น',
+        expected: 'เปิดหน้า detail ของสัญญานั้น ข้อมูลตรงกับรายการที่กด'
+      },
+      {
+        id: 'TC-039',
+        name: 'กดปุ่ม "แก้ไข" → เปิดหน้าฟอร์มแก้ไขสัญญานั้น',
+        precondition: 'login ด้วย user ที่มีสิทธิ์แก้ไข',
+        steps: '1. กดปุ่ม "แก้ไข" ของสัญญาใด\n2. สังเกตหน้าที่เปิดขึ้น',
+        expected: 'เปิดหน้าฟอร์มแก้ไขสัญญา ข้อมูลเดิมโหลดมาแสดงครบ'
+      },
+      {
+        id: 'TC-040',
+        name: 'กดปุ่ม "ลบ" → Modal ยืนยันแสดงขึ้น',
+        precondition: 'login ด้วย user ที่มีสิทธิ์ลบ',
+        steps: '1. กดปุ่ม "ลบ" ของสัญญาใด\n2. สังเกตพฤติกรรม',
+        expected: 'Modal ยืนยันการลบแสดงขึ้น แสดงชื่อสัญญาและข้อความเตือน'
+      },
+      {
+        id: 'TC-041',
+        name: 'user ที่ไม่มีสิทธิ์แก้ไข → ปุ่ม "แก้ไข" และ "ลบ" ซ่อนหรือ disabled',
+        precondition: 'login ด้วย user ที่ไม่มีสิทธิ์แก้ไข/ลบ',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตปุ่ม "แก้ไข" และ "ลบ"',
+        expected: 'ปุ่ม "แก้ไข" และ "ลบ" ซ่อนหรือ disabled ไม่ให้ user ที่ไม่มีสิทธิ์กดได้'
+      },
+      {
+        id: 'TC-042',
+        name: 'responsive บน mobile (viewport 375px) — ตารางหรือ list แสดงได้อ่านออก ไม่ overflow',
+        precondition: 'ปรับ viewport เป็น 375px',
+        steps: '1. ปรับ viewport หรือใช้ DevTools ตั้งเป็น 375px\n2. ตรวจสอบการแสดงผล',
+        expected: 'หน้าแสดงผลได้อ่านออก ไม่มี horizontal scroll ไม่มีข้อความหรือปุ่มถูกตัด'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-408.html': [
+  {
+    name: 'ส่วนที่ 1 — เลือกพนักงาน',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'ค้นหาพนักงาน Active ด้วยรหัสพนักงาน → แสดงใน dropdown',
+        precondition: 'มีพนักงานสถานะ Active ในระบบ',
+        steps: '1. เปิดฟอร์มสร้างเอกสารสัญญา\n2. พิมพ์รหัสพนักงาน Active ในช่องค้นหา\n3. ตรวจสอบ dropdown',
+        expected: 'dropdown แสดงรายชื่อพนักงาน Active ที่ตรงกับรหัส สามารถเลือกได้'
+      },
+      {
+        id: 'TC-002',
+        name: 'ค้นหาพนักงาน Inactive → ไม่แสดงใน dropdown',
+        precondition: 'มีพนักงานสถานะ Inactive ในระบบ',
+        steps: '1. เปิดฟอร์ม\n2. พิมพ์รหัสพนักงาน Inactive\n3. ตรวจสอบ dropdown',
+        expected: 'ไม่แสดงพนักงาน Inactive ใน dropdown'
+      },
+      {
+        id: 'TC-003',
+        name: 'เลือกพนักงาน → auto-fill ชื่อ-สกุล, ตำแหน่ง, แผนก/ฝ่าย',
+        precondition: 'มีพนักงาน Active ในระบบ',
+        steps: '1. ค้นหาและเลือกพนักงาน\n2. ตรวจสอบฟิลด์ ชื่อ-สกุล, ตำแหน่งปัจจุบัน, แผนก/ฝ่าย',
+        expected: 'ฟิลด์ทั้ง 3 auto-fill ข้อมูลถูกต้องตรงกับข้อมูลพนักงานที่เลือก'
+      },
+      {
+        id: 'TC-004',
+        name: 'ฟิลด์ auto-fill เป็น read-only ไม่สามารถแก้ไขได้',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. เลือกพนักงาน\n2. พยายามพิมพ์/แก้ไขในฟิลด์ ชื่อ-สกุล, ตำแหน่ง, แผนก/ฝ่าย',
+        expected: 'ฟิลด์ทั้ง 3 เป็น read-only ไม่สามารถพิมพ์หรือแก้ไขได้'
+      },
+      {
+        id: 'TC-005',
+        name: 'ไม่เลือกรหัสพนักงาน → กดบันทึกไม่ได้ (required)',
+        precondition: 'เปิดฟอร์มใหม่ ยังไม่เลือกพนักงาน',
+        steps: '1. ปล่อยช่องรหัสพนักงานว่าง\n2. กรอกข้อมูลส่วนอื่นครบ\n3. กด บันทึกเอกสารสัญญา',
+        expected: 'ระบบบล็อกการบันทึก แสดง error หรือ highlight ว่ารหัสพนักงานเป็นฟิลด์บังคับ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ประเภทสัญญาและเลขที่สัญญา',
+    tcs: [
+      {
+        id: 'TC-006',
+        name: 'dropdown ประเภทสัญญามีครบ 6 ตัวเลือก',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. คลิก dropdown ประเภทสัญญา\n2. ตรวจสอบรายการตัวเลือกทั้งหมด',
+        expected: 'มีครบ 6 ตัวเลือก: สัญญาจ้างงาน, สัญญาทดลองงาน, สัญญาจ้างพิเศษ/ชั่วคราว, สัญญาต่ออายุ, สัญญาโอนย้าย, อื่นๆ'
+      },
+      {
+        id: 'TC-007',
+        name: 'เลือกประเภท "อื่นๆ" → แสดงช่องกรอกรายละเอียดเพิ่มเติม',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. เลือก "อื่นๆ" ใน dropdown ประเภทสัญญา\n2. ตรวจสอบว่ามีช่องกรอกรายละเอียดปรากฏ',
+        expected: 'แสดงช่อง text input/area สำหรับกรอกรายละเอียดเพิ่มเติมทันที'
+      },
+      {
+        id: 'TC-008',
+        name: 'ไม่เลือกประเภทสัญญา → บันทึกไม่ได้ (required)',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ปล่อย dropdown ประเภทสัญญาว่าง\n2. กรอกข้อมูลส่วนอื่นครบ\n3. กด บันทึก',
+        expected: 'ระบบบล็อกการบันทึก แสดง error ว่าประเภทสัญญาเป็นฟิลด์บังคับ'
+      },
+      {
+        id: 'TC-009',
+        name: 'เลขที่สัญญา auto-generate รูปแบบ CON-[ปี]-[running number]',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. เปิดฟอร์ม\n2. ตรวจสอบช่อง เลขที่สัญญา\n3. หาก auto-generate ให้ตรวจสอบรูปแบบ',
+        expected: 'ค่า auto-generate มีรูปแบบ CON-[ปีพ.ศ. หรือค.ศ.]-[running number 4 หลัก] เช่น CON-2568-0001 และไม่ซ้ำกับที่มีอยู่'
+      },
+      {
+        id: 'TC-010',
+        name: 'กรอกเลขที่สัญญาเองได้ (manual input)',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ลบหรือ clear ค่า auto-generate ออก\n2. พิมพ์เลขที่สัญญาใหม่เอง\n3. ตรวจสอบว่าระบบรับค่า',
+        expected: 'ระบบยอมรับเลขที่สัญญาที่กรอกเอง'
+      },
+      {
+        id: 'TC-011',
+        name: 'เลขที่สัญญาซ้ำกับที่มีอยู่ → แสดง error',
+        precondition: 'มีเลขที่สัญญาในระบบแล้ว',
+        steps: '1. กรอกเลขที่สัญญาที่มีอยู่แล้วในระบบ\n2. กด บันทึก หรือ blur ออกจากฟิลด์',
+        expected: 'แสดง error "เลขที่สัญญานี้มีอยู่แล้ว" และบล็อกการบันทึก'
+      },
+      {
+        id: 'TC-012',
+        name: 'ไม่กรอกเลขที่สัญญา → บันทึกไม่ได้ (required)',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ลบเลขที่สัญญาออกให้ว่าง\n2. กรอกข้อมูลส่วนอื่นครบ\n3. กด บันทึก',
+        expected: 'ระบบบล็อกการบันทึก แสดง error ว่าเลขที่สัญญาเป็นฟิลด์บังคับ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — วันที่สัญญาและเงื่อนไข',
+    tcs: [
+      {
+        id: 'TC-013',
+        name: 'ไม่กรอกวันที่เริ่มสัญญา → บันทึกไม่ได้ (required)',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ปล่อยช่องวันที่เริ่มสัญญาว่าง\n2. กรอกข้อมูลส่วนอื่นครบ\n3. กด บันทึก',
+        expected: 'ระบบบล็อกการบันทึก แสดง error ว่าวันที่เริ่มสัญญาเป็นฟิลด์บังคับ'
+      },
+      {
+        id: 'TC-014',
+        name: 'toggle "ไม่กำหนดวันสิ้นสุด" เปิด → ฟิลด์วันที่สิ้นสุด disabled',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. เปิด toggle "ไม่กำหนดวันสิ้นสุด"\n2. ตรวจสอบสถานะช่องวันที่สิ้นสุด',
+        expected: 'ช่องวันที่สิ้นสุดสัญญา disabled ไม่สามารถกรอกหรือคลิกได้'
+      },
+      {
+        id: 'TC-015',
+        name: 'toggle "ไม่กำหนดวันสิ้นสุด" เปิด → ส่วนการแจ้งเตือน disabled ทั้งหมด',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. เปิด toggle "ไม่กำหนดวันสิ้นสุด"\n2. ตรวจสอบส่วนที่ 4 การแจ้งเตือนก่อนหมดอายุ',
+        expected: 'ส่วนการแจ้งเตือนทั้งหมด (toggle, จำนวนวัน, checkbox) disabled ไม่สามารถกำหนดค่าได้'
+      },
+      {
+        id: 'TC-016',
+        name: 'วันที่สิ้นสุด < วันที่เริ่มสัญญา → แสดง error',
+        precondition: 'เปิดฟอร์ม และไม่ได้เปิด toggle ไม่กำหนดวันสิ้นสุด',
+        steps: '1. กรอกวันที่เริ่มสัญญา เช่น 01/06/2568\n2. กรอกวันที่สิ้นสุดก่อนวันที่เริ่ม เช่น 31/05/2568\n3. กด บันทึก หรือ blur',
+        expected: 'แสดง error "วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มสัญญา" และบล็อกการบันทึก'
+      },
+      {
+        id: 'TC-017',
+        name: 'วันที่สิ้นสุด = วันที่เริ่มสัญญา → แสดง error',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. กรอกวันที่เริ่มและวันที่สิ้นสุดเป็นวันเดียวกัน\n2. กด บันทึก หรือ blur',
+        expected: 'แสดง error เนื่องจากวันสิ้นสุดต้อง "อยู่หลัง" ไม่ใช่เท่ากัน'
+      },
+      {
+        id: 'TC-018',
+        name: 'เงื่อนไขสำคัญ optional → บันทึกได้แม้ไม่กรอก',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ปล่อยช่องเงื่อนไขสำคัญว่าง\n2. กรอกฟิลด์บังคับครบ\n3. กด บันทึก',
+        expected: 'บันทึกสำเร็จโดยไม่ต้องกรอกเงื่อนไขสำคัญ'
+      },
+      {
+        id: 'TC-019',
+        name: 'หมายเหตุ optional → บันทึกได้แม้ไม่กรอก',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ปล่อยช่องหมายเหตุว่าง\n2. กรอกฟิลด์บังคับครบ\n3. กด บันทึก',
+        expected: 'บันทึกสำเร็จโดยไม่ต้องกรอกหมายเหตุ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — เอกสารแนบ',
+    tcs: [
+      {
+        id: 'TC-020',
+        name: 'อัปโหลดไฟล์ PDF → สำเร็จ',
+        precondition: 'มีไฟล์ .pdf พร้อม',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกไฟล์ .pdf\n3. ตรวจสอบผล',
+        expected: 'ไฟล์ PDF อัปโหลดสำเร็จ แสดงชื่อไฟล์ในรายการ'
+      },
+      {
+        id: 'TC-021',
+        name: 'อัปโหลดไฟล์ DOC → สำเร็จ',
+        precondition: 'มีไฟล์ .doc พร้อม',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกไฟล์ .doc\n3. ตรวจสอบผล',
+        expected: 'ไฟล์ DOC อัปโหลดสำเร็จ แสดงชื่อไฟล์ในรายการ'
+      },
+      {
+        id: 'TC-022',
+        name: 'อัปโหลดไฟล์ DOCX → สำเร็จ',
+        precondition: 'มีไฟล์ .docx พร้อม',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกไฟล์ .docx\n3. ตรวจสอบผล',
+        expected: 'ไฟล์ DOCX อัปโหลดสำเร็จ แสดงชื่อไฟล์ในรายการ'
+      },
+      {
+        id: 'TC-023',
+        name: 'อัปโหลดไฟล์ประเภทอื่น เช่น .jpg → แสดง error',
+        precondition: 'มีไฟล์ .jpg หรือ .png พร้อม',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกไฟล์ .jpg\n3. ตรวจสอบผล',
+        expected: 'แสดง error "รองรับเฉพาะไฟล์ PDF / DOC / DOCX" ไม่อัปโหลดไฟล์'
+      },
+      {
+        id: 'TC-024',
+        name: 'อัปโหลดไฟล์ขนาดเกิน 20MB → แสดง error',
+        precondition: 'มีไฟล์ขนาด > 20MB พร้อม',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกไฟล์ขนาดเกิน 20MB\n3. ตรวจสอบผล',
+        expected: 'แสดง error ไฟล์ขนาดเกิน 20MB ไม่อัปโหลดไฟล์'
+      },
+      {
+        id: 'TC-025',
+        name: 'อัปโหลดหลายไฟล์พร้อมกัน → รองรับได้',
+        precondition: 'มีไฟล์ PDF/DOC/DOCX หลายไฟล์',
+        steps: '1. คลิก อัปโหลดไฟล์สัญญา\n2. เลือกหลายไฟล์พร้อมกัน\n3. ตรวจสอบผล',
+        expected: 'ทุกไฟล์อัปโหลดสำเร็จ แสดงรายการไฟล์ทั้งหมด'
+      },
+      {
+        id: 'TC-026',
+        name: 'แก้ไขชื่อไฟล์ได้หลังอัปโหลด',
+        precondition: 'อัปโหลดไฟล์แล้วอย่างน้อย 1 ไฟล์',
+        steps: '1. อัปโหลดไฟล์\n2. คลิกแก้ไขชื่อไฟล์\n3. เปลี่ยนชื่อและ confirm',
+        expected: 'บันทึกชื่อไฟล์ใหม่สำเร็จ แสดงชื่อที่แก้ไขแล้ว'
+      },
+      {
+        id: 'TC-027',
+        name: 'กรอกหมายเหตุไฟล์ได้ และเป็น optional',
+        precondition: 'อัปโหลดไฟล์แล้ว',
+        steps: '1. อัปโหลดไฟล์\n2. กรอกหมายเหตุไฟล์\n3. บันทึก\nหรือปล่อยว่างแล้วบันทึก',
+        expected: 'กรอกหรือไม่กรอกหมายเหตุไฟล์ก็บันทึกได้สำเร็จ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — การแจ้งเตือนก่อนหมดอายุ',
+    tcs: [
+      {
+        id: 'TC-028',
+        name: 'toggle การแจ้งเตือน default เปิด (enabled)',
+        precondition: 'เปิดฟอร์มใหม่',
+        steps: '1. เปิดฟอร์ม\n2. ตรวจสอบสถานะ toggle การแจ้งเตือน',
+        expected: 'toggle การแจ้งเตือนอยู่ในสถานะ เปิด (on) โดย default'
+      },
+      {
+        id: 'TC-029',
+        name: 'ปิด toggle การแจ้งเตือน → ฟิลด์ทั้งหมดใน section แจ้งเตือน disabled',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. ปิด toggle การแจ้งเตือน\n2. ตรวจสอบฟิลด์จำนวนวัน, checkbox HR Admin, ผู้บังคับบัญชา, อื่นๆ',
+        expected: 'ฟิลด์ทั้งหมดใน section การแจ้งเตือน disabled ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-030',
+        name: 'จำนวนวันแจ้งเตือนล่วงหน้า default = 30 วัน',
+        precondition: 'เปิดฟอร์มใหม่',
+        steps: '1. เปิดฟอร์ม\n2. ตรวจสอบค่า default ของช่อง แจ้งเตือนล่วงหน้า',
+        expected: 'ค่า default คือ 30 วัน'
+      },
+      {
+        id: 'TC-031',
+        name: 'กรอกจำนวนวันแจ้งเตือน = 0 → error หรือ block',
+        precondition: 'toggle การแจ้งเตือนเปิดอยู่',
+        steps: '1. กรอก 0 ในช่องแจ้งเตือนล่วงหน้า\n2. กด บันทึก',
+        expected: 'ระบบแสดง error หรือบล็อก เนื่องจากต้องเป็นเลขบวก 1-365'
+      },
+      {
+        id: 'TC-032',
+        name: 'กรอกจำนวนวันแจ้งเตือน = 366 → error หรือ block',
+        precondition: 'toggle การแจ้งเตือนเปิดอยู่',
+        steps: '1. กรอก 366 ในช่องแจ้งเตือนล่วงหน้า\n2. กด บันทึก',
+        expected: 'ระบบแสดง error หรือบล็อก เนื่องจากเกินช่วง 1-365 วัน'
+      },
+      {
+        id: 'TC-033',
+        name: 'กรอกตัวอักษรในช่องวันแจ้งเตือน → ไม่รับหรือ error',
+        precondition: 'toggle การแจ้งเตือนเปิดอยู่',
+        steps: '1. พิมพ์ตัวอักษร เช่น "abc" ในช่องแจ้งเตือนล่วงหน้า\n2. ตรวจสอบผล',
+        expected: 'ช่องรับเฉพาะตัวเลข หรือแสดง error ว่าต้องเป็นตัวเลขเท่านั้น'
+      },
+      {
+        id: 'TC-034',
+        name: 'เลือก checkbox "อื่นๆ" → แสดงช่องกรอก email',
+        precondition: 'toggle การแจ้งเตือนเปิดอยู่',
+        steps: '1. ติ๊ก checkbox "อื่นๆ" ในส่วนแจ้งเตือนไปยัง\n2. ตรวจสอบว่ามีช่องกรอก email ปรากฏ',
+        expected: 'แสดงช่อง input สำหรับกรอก email ทันที'
+      },
+      {
+        id: 'TC-035',
+        name: 'กรอก email format ไม่ถูกต้อง → แสดง error',
+        precondition: 'เลือก checkbox "อื่นๆ" แล้ว',
+        steps: '1. กรอก email ที่ไม่ถูก format เช่น "notanemail"\n2. กด บันทึก',
+        expected: 'แสดง error format email ไม่ถูกต้อง และบล็อกการบันทึก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — บันทึกและผลลัพธ์',
+    tcs: [
+      {
+        id: 'TC-036',
+        name: 'กด ยกเลิก → กลับหน้ารายการ ไม่บันทึกข้อมูล',
+        precondition: 'เปิดฟอร์มและกรอกข้อมูลบางส่วน',
+        steps: '1. กรอกข้อมูลบางส่วนในฟอร์ม\n2. กดปุ่ม ยกเลิก',
+        expected: 'ระบบนำทางกลับหน้ารายการสัญญา ไม่บันทึกข้อมูลที่กรอกไว้'
+      },
+      {
+        id: 'TC-037',
+        name: 'กรอกข้อมูลครบถูกต้อง → บันทึกสำเร็จ Toast "สร้างเอกสารสัญญาสำเร็จ"',
+        precondition: 'มีพนักงาน Active ในระบบ',
+        steps: '1. เลือกพนักงาน\n2. กรอกประเภทสัญญา, เลขที่, วันที่เริ่ม\n3. กด บันทึกเอกสารสัญญา',
+        expected: 'บันทึกสำเร็จ แสดง toast "สร้างเอกสารสัญญาสำเร็จ" และนำทางไปหน้ารายการหรือ record ใหม่'
+      },
+      {
+        id: 'TC-038',
+        name: 'หลังบันทึกสำเร็จ สถานะสัญญาเป็น "มีผลบังคับใช้" ทันที',
+        precondition: 'บันทึกสัญญาสำเร็จแล้ว',
+        steps: '1. บันทึกสัญญาสำเร็จ\n2. เปิดดูรายการสัญญาที่เพิ่งสร้าง\n3. ตรวจสอบสถานะ',
+        expected: 'สถานะของสัญญาที่สร้างใหม่แสดงเป็น "มีผลบังคับใช้" ทันที'
+      },
+      {
+        id: 'TC-039',
+        name: 'หลังบันทึกสำเร็จ มี audit log บันทึกการกระทำ',
+        precondition: 'บันทึกสัญญาสำเร็จแล้ว และมีสิทธิ์ดู audit log',
+        steps: '1. บันทึกสัญญาสำเร็จ\n2. ตรวจสอบ audit log หรือประวัติการใช้งาน',
+        expected: 'มี audit log บันทึกว่าใคร สร้างสัญญาอะไร เมื่อไหร่'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-409.html': [
+  {
+    name: 'ส่วนที่ 1 — การโหลดข้อมูล',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดหน้าแก้ไขสัญญา → ฟอร์มโหลดสำเร็จ ไม่มี error',
+        precondition: 'มีเอกสารสัญญา ID 6 ในระบบ ที่บริษัทอรุณเบิกฟ้า',
+        steps: '1. เปิด URL /employee/contracts/6\n2. รอหน้าโหลด\n3. ตรวจสอบว่าฟอร์มแสดงขึ้นมา ไม่มี 404 หรือ error',
+        expected: 'หน้าฟอร์มแก้ไขโหลดสำเร็จ แสดงฟิลด์ข้อมูลครบ ไม่มี error'
+      },
+      {
+        id: 'TC-002',
+        name: 'รหัสพนักงาน / ชื่อ-สกุล แสดงค่าเดิมในฟอร์ม',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ดูฟิลด์รหัสพนักงาน\n2. ดูฟิลด์ชื่อ-สกุล\n3. ตรวจว่ามีค่าข้อมูลพนักงานแสดงอยู่',
+        expected: 'แสดงรหัสพนักงานและชื่อ-สกุลที่เชื่อมกับสัญญานี้'
+      },
+      {
+        id: 'TC-003',
+        name: 'เลขที่สัญญา แสดงค่าเดิมในฟอร์ม',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ดูฟิลด์เลขที่สัญญา\n2. ตรวจว่ามีค่าแสดงอยู่',
+        expected: 'แสดงเลขที่สัญญาที่ถูกต้องตรงกับ record นี้'
+      },
+      {
+        id: 'TC-004',
+        name: 'วันที่เริ่มสัญญา แสดงค่าเดิมในฟอร์ม',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ดูฟิลด์วันที่เริ่มสัญญา\n2. ตรวจว่ามีวันที่แสดงอยู่',
+        expected: 'แสดงวันที่เริ่มสัญญาเดิมที่ถูกบันทึกไว้'
+      },
+      {
+        id: 'TC-005',
+        name: 'ประเภทสัญญา / วันสิ้นสุด / เงื่อนไขสำคัญ / หมายเหตุ โหลดค่าเดิมมาครบ',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีข้อมูลครบ',
+        steps: '1. ตรวจสอบ dropdown ประเภทสัญญา — มีค่าเดิมถูกเลือกอยู่\n2. ตรวจสอบฟิลด์วันสิ้นสุด — มีวันที่เดิม\n3. ตรวจสอบ textarea เงื่อนไขสำคัญ\n4. ตรวจสอบ textarea หมายเหตุ',
+        expected: 'ทุกฟิลด์โหลดค่าเดิมมาแสดงก่อนแก้ไข'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ฟิลด์ Read-only',
+    tcs: [
+      {
+        id: 'TC-006',
+        name: 'รหัสพนักงาน — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. คลิกหรือพยายามพิมพ์ในฟิลด์รหัสพนักงาน\n2. สังเกตว่าสามารถแก้ไขได้หรือไม่',
+        expected: 'ฟิลด์รหัสพนักงานเป็น read-only หรือ disabled — ไม่สามารถพิมพ์หรือแก้ไขได้'
+      },
+      {
+        id: 'TC-007',
+        name: 'ชื่อ-สกุล — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. คลิกหรือพยายามพิมพ์ในฟิลด์ชื่อ-สกุล\n2. สังเกตว่าสามารถแก้ไขได้หรือไม่',
+        expected: 'ฟิลด์ชื่อ-สกุลเป็น read-only หรือ disabled — ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-008',
+        name: 'เลขที่สัญญา — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. คลิกหรือพยายามพิมพ์ในฟิลด์เลขที่สัญญา\n2. สังเกตว่าสามารถแก้ไขได้หรือไม่',
+        expected: 'ฟิลด์เลขที่สัญญาเป็น read-only หรือ disabled — ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-009',
+        name: 'วันที่เริ่มสัญญา — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. คลิกหรือพยายามแก้ไขฟิลด์วันที่เริ่มสัญญา\n2. สังเกตว่าสามารถแก้ไขได้หรือไม่',
+        expected: 'ฟิลด์วันที่เริ่มสัญญาเป็น read-only หรือ disabled — ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-010',
+        name: 'ผู้สร้าง / วันที่สร้าง — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ตรวจสอบฟิลด์ผู้สร้างและวันที่สร้าง\n2. พยายามคลิกแก้ไข',
+        expected: 'ฟิลด์ผู้สร้าง / วันที่สร้าง เป็น read-only หรือ disabled — แสดงข้อมูลอย่างเดียว'
+      },
+      {
+        id: 'TC-011',
+        name: 'สถานะ — ไม่สามารถเปลี่ยนได้ผ่านฟอร์มนี้ (ต้องใช้ฟังก์ชันยกเลิกสัญญา)',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ดูฟิลด์สถานะ\n2. พยายามคลิกหรือเปลี่ยนค่า',
+        expected: 'ฟิลด์สถานะเป็น read-only หรือ disabled — ไม่มี dropdown เปลี่ยนสถานะในฟอร์มนี้'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — แก้ไขฟิลด์ที่แก้ไขได้',
+    tcs: [
+      {
+        id: 'TC-012',
+        name: 'เปลี่ยนประเภทสัญญา → dropdown เลือกได้ ค่าเปลี่ยน',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ มีผลบังคับใช้',
+        steps: '1. คลิก dropdown ประเภทสัญญา\n2. เลือกประเภทอื่นที่แตกต่างจากเดิม\n3. ตรวจว่าค่าเปลี่ยน',
+        expected: 'dropdown ประเภทสัญญาเปิดได้ เลือกค่าใหม่ได้ ค่าที่แสดงเปลี่ยนตาม'
+      },
+      {
+        id: 'TC-013',
+        name: 'แก้ไขวันที่สิ้นสุดสัญญา → date picker เปลี่ยนได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ มีผลบังคับใช้',
+        steps: '1. คลิกฟิลด์วันที่สิ้นสุดสัญญา\n2. เปลี่ยนวันที่เป็นวันที่ในอนาคต\n3. ตรวจว่าค่าเปลี่ยน',
+        expected: 'ฟิลด์วันที่สิ้นสุดสัญญาเปลี่ยนได้ ค่าใหม่แสดงในฟิลด์'
+      },
+      {
+        id: 'TC-014',
+        name: 'แก้ไขเงื่อนไขสำคัญ → textarea พิมพ์ได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ มีผลบังคับใช้',
+        steps: '1. คลิกที่ textarea เงื่อนไขสำคัญ\n2. พิมพ์ข้อความใหม่หรือแก้ไขข้อความเดิม\n3. ตรวจว่าพิมพ์ได้',
+        expected: 'textarea เงื่อนไขสำคัญพิมพ์ได้ ข้อความที่พิมพ์แสดงใน field'
+      },
+      {
+        id: 'TC-015',
+        name: 'แก้ไขหมายเหตุ → textarea พิมพ์ได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. คลิกที่ textarea หมายเหตุ\n2. พิมพ์ข้อความใหม่\n3. ตรวจว่าพิมพ์ได้',
+        expected: 'textarea หมายเหตุพิมพ์ได้ ข้อความที่พิมพ์แสดงใน field'
+      },
+      {
+        id: 'TC-016',
+        name: 'ล้างค่าเงื่อนไขสำคัญ (ว่าง) → ไม่มี error บันทึกได้ (optional field)',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีเงื่อนไขสำคัญ',
+        steps: '1. ลบข้อความทั้งหมดออกจาก textarea เงื่อนไขสำคัญ\n2. กดบันทึก\n3. ตรวจสอบ error',
+        expected: 'ไม่มี error — เงื่อนไขสำคัญเป็น optional field บันทึกสำเร็จได้โดยไม่ต้องกรอก'
+      },
+      {
+        id: 'TC-017',
+        name: 'ล้างค่าหมายเหตุ (ว่าง) → ไม่มี error บันทึกได้ (optional field)',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีหมายเหตุ',
+        steps: '1. ลบข้อความทั้งหมดออกจาก textarea หมายเหตุ\n2. กดบันทึก\n3. ตรวจสอบ error',
+        expected: 'ไม่มี error — หมายเหตุเป็น optional field บันทึกสำเร็จได้โดยไม่ต้องกรอก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — Validation วันที่สิ้นสุด',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'วันที่สิ้นสุด < วันที่เริ่มต้น → error แสดง บันทึกไม่ได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญา ทราบวันที่เริ่มสัญญา',
+        steps: '1. เปลี่ยนวันที่สิ้นสุดให้ก่อนวันที่เริ่มสัญญา\n2. กดบันทึก\n3. ตรวจสอบ error message',
+        expected: 'มี error แสดงว่า "วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น" หรือใกล้เคียง บันทึกไม่ได้'
+      },
+      {
+        id: 'TC-019',
+        name: 'วันที่สิ้นสุด = วันที่เริ่มต้น → error แสดง',
+        precondition: 'เปิดหน้าแก้ไขสัญญา ทราบวันที่เริ่มสัญญา',
+        steps: '1. เปลี่ยนวันที่สิ้นสุดให้ตรงกับวันที่เริ่มสัญญา\n2. กดบันทึกหรือ blur จาก field\n3. ตรวจสอบ error',
+        expected: 'มี error แสดง — วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น (ไม่ใช่วันเดียวกัน)'
+      },
+      {
+        id: 'TC-020',
+        name: 'วันที่สิ้นสุด > วันที่เริ่มต้น → ไม่มี error',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. เปลี่ยนวันที่สิ้นสุดให้อยู่หลังวันที่เริ่มสัญญา\n2. กดบันทึก\n3. ตรวจสอบว่าไม่มี error',
+        expected: 'ไม่มี error validation — บันทึกสำเร็จ'
+      },
+      {
+        id: 'TC-021',
+        name: 'ลบวันที่สิ้นสุด (ว่าง) → error หรือ block save',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. ลบวันที่ออกจากฟิลด์วันที่สิ้นสุด\n2. กดบันทึก\n3. ตรวจสอบ error',
+        expected: 'มี error แสดงว่าต้องกรอกวันที่สิ้นสุด หรือ block save ไม่ให้บันทึกโดยไม่มีวันสิ้นสุด'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — เอกสารแนบ',
+    tcs: [
+      {
+        id: 'TC-022',
+        name: 'เพิ่มเอกสารแนบใหม่ → ไฟล์ขึ้นในรายการ',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. กดปุ่มเพิ่มเอกสารแนบ\n2. เลือกไฟล์จากเครื่อง\n3. ตรวจสอบว่าชื่อไฟล์ขึ้นในรายการ',
+        expected: 'ไฟล์ที่เลือกแสดงในรายการเอกสารแนบ ยังไม่ได้บันทึกจริง'
+      },
+      {
+        id: 'TC-023',
+        name: 'ลบเอกสารแนบที่มีอยู่ → รายการหายออกจาก list',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีเอกสารแนบอยู่แล้ว',
+        steps: '1. กดปุ่มลบบนเอกสารแนบที่ต้องการลบ\n2. ยืนยัน (ถ้ามี)\n3. ตรวจสอบว่ารายการหาย',
+        expected: 'เอกสารแนบที่กดลบหายออกจากรายการ'
+      },
+      {
+        id: 'TC-024',
+        name: 'แทนที่เอกสารแนบ → ชื่อไฟล์ใหม่แสดงแทน',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีเอกสารแนบ',
+        steps: '1. กดปุ่มแทนที่หรืออัปโหลดไฟล์ใหม่ทับ\n2. เลือกไฟล์ใหม่\n3. ตรวจสอบว่าชื่อเปลี่ยน',
+        expected: 'ชื่อไฟล์ใหม่แสดงแทนของเดิม'
+      },
+      {
+        id: 'TC-025',
+        name: 'อัปโหลดไฟล์ประเภทไม่รองรับ → error แสดง (ถ้ามี restriction)',
+        precondition: 'เปิดหน้าแก้ไขสัญญา ทราบประเภทไฟล์ที่รองรับ',
+        steps: '1. กดปุ่มเพิ่มเอกสารแนบ\n2. เลือกไฟล์ประเภทที่ไม่รองรับ (เช่น .exe)\n3. ตรวจสอบ error',
+        expected: 'แสดง error หรือ warning เกี่ยวกับประเภทไฟล์ที่ไม่รองรับ (ถ้ามี restriction)'
+      },
+      {
+        id: 'TC-026',
+        name: 'อัปโหลดไฟล์ขนาดเกิน limit → error แสดง (ถ้ามี limit)',
+        precondition: 'เปิดหน้าแก้ไขสัญญา ทราบขนาดไฟล์สูงสุด',
+        steps: '1. กดปุ่มเพิ่มเอกสารแนบ\n2. เลือกไฟล์ขนาดเกิน limit\n3. ตรวจสอบ error',
+        expected: 'แสดง error เกี่ยวกับขนาดไฟล์เกิน limit (ถ้ามีการกำหนด)'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — การตั้งค่าการแจ้งเตือน',
+    tcs: [
+      {
+        id: 'TC-027',
+        name: 'เปิด/ปิด toggle การแจ้งเตือน → state เปลี่ยน',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. หา toggle หรือ checkbox การแจ้งเตือน\n2. คลิก toggle เพื่อเปลี่ยน state\n3. ตรวจสอบว่า state เปลี่ยน',
+        expected: 'toggle เปิด/ปิดการแจ้งเตือนได้ state เปลี่ยนตามการคลิก'
+      },
+      {
+        id: 'TC-028',
+        name: 'ตั้งค่าจำนวนวันแจ้งเตือนล่วงหน้า → เปลี่ยนได้',
+        precondition: 'เปิด toggle การแจ้งเตือน',
+        steps: '1. กรอกจำนวนวันที่ต้องการแจ้งเตือนล่วงหน้า\n2. ตรวจสอบว่าค่าเปลี่ยน',
+        expected: 'ฟิลด์จำนวนวันแจ้งเตือนล่วงหน้าพิมพ์ได้ เปลี่ยนค่าได้'
+      },
+      {
+        id: 'TC-029',
+        name: 'manual — verify การแจ้งเตือนส่งจริงตามที่ตั้งค่า',
+        precondition: 'บันทึกการตั้งค่าการแจ้งเตือนแล้ว',
+        steps: '1. รอถึงวันที่ควรแจ้งเตือน\n2. ตรวจสอบว่ามีการแจ้งเตือน',
+        expected: 'ระบบส่งการแจ้งเตือนตามที่ตั้งค่า'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — สัญญาหมดอายุ / ยกเลิก',
+    tcs: [
+      {
+        id: 'TC-030',
+        name: 'สัญญาหมดอายุ → ประเภทสัญญา disabled ไม่สามารถแก้ไขได้',
+        precondition: 'มีสัญญาที่สถานะ "หมดอายุ" ในระบบ',
+        steps: '1. เปิดหน้าแก้ไขสัญญาที่มีสถานะ "หมดอายุ"\n2. ตรวจสอบ dropdown ประเภทสัญญา',
+        expected: 'dropdown ประเภทสัญญา disabled — ไม่สามารถคลิกเปลี่ยนได้'
+      },
+      {
+        id: 'TC-031',
+        name: 'สัญญาหมดอายุ → วันที่สิ้นสุดสัญญา disabled',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ "หมดอายุ"',
+        steps: '1. ตรวจสอบฟิลด์วันที่สิ้นสุดสัญญา\n2. พยายามแก้ไข',
+        expected: 'ฟิลด์วันที่สิ้นสุดสัญญา disabled — ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-032',
+        name: 'สัญญาหมดอายุ → เงื่อนไขสำคัญ disabled',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ "หมดอายุ"',
+        steps: '1. ตรวจสอบ textarea เงื่อนไขสำคัญ\n2. พยายามพิมพ์',
+        expected: 'textarea เงื่อนไขสำคัญ disabled — ไม่สามารถพิมพ์ได้'
+      },
+      {
+        id: 'TC-033',
+        name: 'สัญญาหมดอายุ → หมายเหตุ ยังแก้ไขได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ "หมดอายุ"',
+        steps: '1. คลิกที่ textarea หมายเหตุ\n2. พิมพ์ข้อความ\n3. ตรวจสอบว่าพิมพ์ได้',
+        expected: 'textarea หมายเหตุยังพิมพ์ได้ — เป็น field เดียวที่แก้ไขได้ (พร้อมเอกสารแนบ)'
+      },
+      {
+        id: 'TC-034',
+        name: 'สัญญาหมดอายุ / ยกเลิก → เอกสารแนบ ยังเพิ่ม/ลบได้',
+        precondition: 'เปิดหน้าแก้ไขสัญญาที่มีสถานะ "หมดอายุ" หรือ "ยกเลิก"',
+        steps: '1. ตรวจสอบส่วนเอกสารแนบ\n2. ลองเพิ่มหรือลบเอกสารแนบ',
+        expected: 'ส่วนเอกสารแนบยังใช้งานได้ — เพิ่ม/ลบเอกสารแนบได้'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — บันทึก',
+    tcs: [
+      {
+        id: 'TC-035',
+        name: 'กดบันทึกสำเร็จ → Toast "แก้ไขเอกสารสัญญาสำเร็จ" แสดง',
+        precondition: 'เปิดหน้าแก้ไขสัญญา แก้ไขค่าใดค่าหนึ่ง',
+        steps: '1. แก้ไขค่าใน field ที่แก้ไขได้\n2. กดปุ่มบันทึก\n3. รอ response\n4. ตรวจสอบ toast',
+        expected: 'Toast แสดง "แก้ไขเอกสารสัญญาสำเร็จ" หรือข้อความยืนยันในทำนองเดียวกัน'
+      },
+      {
+        id: 'TC-036',
+        name: 'บันทึกสำเร็จ → redirect กลับหน้า detail หรือ list',
+        precondition: 'กดบันทึกสำเร็จ',
+        steps: '1. กดบันทึก\n2. รอ redirect\n3. ตรวจสอบ URL ที่ redirect ไป',
+        expected: 'redirect กลับหน้า detail หรือรายการสัญญา URL เปลี่ยน'
+      },
+      {
+        id: 'TC-037',
+        name: 'manual — Audit log บันทึกวันที่ / ผู้แก้ไข',
+        precondition: 'บันทึกการแก้ไขสำเร็จ',
+        steps: '1. ไปที่หน้า audit log หรือ history ของสัญญานี้\n2. ตรวจสอบว่ามีรายการแก้ไขใหม่',
+        expected: 'Audit log บันทึกวันที่และผู้ใช้ที่ทำการแก้ไข'
+      },
+      {
+        id: 'TC-038',
+        name: 'manual — Audit log แสดงค่าก่อน / หลัง การแก้ไข',
+        precondition: 'บันทึกการแก้ไขสำเร็จ',
+        steps: '1. ดู audit log รายการล่าสุด\n2. ตรวจสอบว่าแสดงค่าเดิม (before) และค่าใหม่ (after)',
+        expected: 'Audit log แสดงค่า before และ after อย่างครบถ้วน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 9 — ปุ่มยกเลิก',
+    tcs: [
+      {
+        id: 'TC-039',
+        name: 'กดยกเลิก → redirect กลับหน้าก่อนหน้า / รายการสัญญา',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. กดปุ่มยกเลิก\n2. ตรวจสอบว่า redirect ไปที่ไหน',
+        expected: 'redirect กลับหน้าก่อนหน้า (detail หรือ list) โดยไม่บันทึกข้อมูล'
+      },
+      {
+        id: 'TC-040',
+        name: 'แก้ไขค่าแล้วกดยกเลิก → ค่าเดิมยังอยู่ ไม่ถูกบันทึก',
+        precondition: 'เปิดหน้าแก้ไขสัญญา',
+        steps: '1. แก้ไขค่าในฟิลด์ใดก็ได้\n2. กดยกเลิก (ไม่กดบันทึก)\n3. เปิดหน้าแก้ไขใหม่อีกครั้ง\n4. ตรวจสอบว่าค่าเป็นค่าเดิม',
+        expected: 'ค่าที่แก้ไขไม่ถูกบันทึก — เปิดใหม่ยังแสดงค่าเดิม'
+      },
+      {
+        id: 'TC-041',
+        name: 'กดยกเลิกเมื่อมีการแก้ไข → confirm dialog แสดง (ถ้า implement)',
+        precondition: 'เปิดหน้าแก้ไขสัญญา มีการแก้ไขข้อมูล',
+        steps: '1. แก้ไขค่าในฟิลด์\n2. กดยกเลิก\n3. สังเกตว่ามี confirm dialog หรือไม่',
+        expected: 'มี confirm dialog ถามว่า "ยืนยันการยกเลิก?" หรือออกโดยตรงโดยไม่ถาม (ขึ้นกับ spec)'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-416.html': [
+  {
+    name: 'ส่วนที่ 1 — การดึงรายการที่ถึงวันมีผล',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'Job ดึงเฉพาะรายการที่ effective_date = วันนี้ (ไม่ดึงวันอื่น)',
+        precondition: 'มีรายการ pending ที่ effective_date = วันนี้ และวันอื่น',
+        steps: '1. สร้าง test data: รายการ effective_date = วันนี้ (2 รายการ), effective_date = พรุ่งนี้ (1 รายการ)\n2. Trigger job หรือรอให้ทำงาน 00:01\n3. ตรวจสอบ log หรือผลลัพธ์',
+        expected: 'Job ประมวลผลเฉพาะรายการที่ effective_date = วันนี้ (2 รายการ) ไม่แตะรายการพรุ่งนี้'
+      },
+      {
+        id: 'TC-002',
+        name: 'รายการที่ effective_date < วันนี้ (ค้างจากวันก่อน) → Job ดึงมาประมวลผลด้วย',
+        precondition: 'มีรายการ pending ที่ effective_date = เมื่อวาน (ค้างไม่ได้ประมวลผล)',
+        steps: '1. สร้าง test data ที่ค้างจากเมื่อวาน\n2. Trigger job\n3. ตรวจสอบผลลัพธ์',
+        expected: 'Job ดึงและประมวลผลรายการที่ค้างด้วย ไม่ข้ามรายการที่เลยกำหนด'
+      },
+      {
+        id: 'TC-003',
+        name: 'ไม่มีรายการถึงวันมีผลวันนี้ → Job ทำงานเสร็จโดยไม่มี error',
+        precondition: 'ไม่มีรายการ pending ที่ effective_date = วันนี้',
+        steps: '1. ตรวจสอบว่าไม่มีรายการในวันนี้\n2. Trigger job\n3. ตรวจสอบ log',
+        expected: 'Job ทำงานเสร็จ exit code 0 ไม่มี error ใน log ไม่ crash'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — อัปเดตข้อมูลตามประเภท',
+    tcs: [
+      {
+        id: 'TC-004',
+        name: 'ประเภท "เปลี่ยนตำแหน่ง" → ข้อมูลตำแหน่งปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทเปลี่ยนตำแหน่ง effective_date = วันนี้',
+        steps: '1. บันทึก current position ของพนักงาน\n2. Trigger job\n3. ตรวจสอบ current position หลัง job',
+        expected: 'ตำแหน่งปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-005',
+        name: 'ประเภท "เปลี่ยนแผนก" → ข้อมูลแผนกปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทเปลี่ยนแผนก effective_date = วันนี้',
+        steps: '1. บันทึก current department\n2. Trigger job\n3. ตรวจสอบ current department',
+        expected: 'แผนกปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-006',
+        name: 'ประเภท "ปรับเงินเดือน" → ข้อมูลเงินเดือนปัจจุบันของพนักงานอัปเดตตามค่า After',
+        precondition: 'มีรายการประเภทปรับเงินเดือน effective_date = วันนี้',
+        steps: '1. บันทึก current salary\n2. Trigger job\n3. ตรวจสอบ current salary',
+        expected: 'เงินเดือนปัจจุบันของพนักงานเปลี่ยนเป็นค่า After ที่กำหนดไว้'
+      },
+      {
+        id: 'TC-007',
+        name: 'พนักงานหลายคนมีรายการในวันเดียวกัน → อัปเดตทุกคนครบ ไม่มีคนใดหลุด',
+        precondition: 'มีรายการของพนักงาน 3+ คน effective_date = วันนี้',
+        steps: '1. สร้าง test data สำหรับพนักงาน 3 คน\n2. Trigger job\n3. ตรวจสอบข้อมูลพนักงานทั้ง 3 คน',
+        expected: 'ข้อมูลพนักงานทุกคนอัปเดตครบ ไม่มีคนใดหลุด'
+      },
+      {
+        id: 'TC-008',
+        name: 'พนักงานคนเดียวมีหลายรายการในวันเดียวกัน → อัปเดตทุก field ครบ',
+        precondition: 'พนักงาน 1 คนมีรายการเปลี่ยนตำแหน่ง + เปลี่ยนแผนก effective_date = วันนี้',
+        steps: '1. สร้าง test data สำหรับพนักงาน 1 คน มี 2 รายการ\n2. Trigger job\n3. ตรวจสอบทั้งตำแหน่งและแผนก',
+        expected: 'ทั้งตำแหน่งและแผนกของพนักงานอัปเดตครบทั้ง 2 field'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — Sync เงินเดือนไปยัง 7.3',
+    tcs: [
+      {
+        id: 'TC-009',
+        name: 'ปรับเงินเดือน → ค่าใหม่ sync ไปยัง module 7.3 (Payroll) ด้วย',
+        precondition: 'มีรายการปรับเงินเดือน effective_date = วันนี้ และ module 7.3 เชื่อมต่ออยู่',
+        steps: '1. บันทึกเงินเดือนใน module 7.3\n2. Trigger job\n3. ตรวจสอบเงินเดือนใน module 7.3 หลัง job',
+        expected: 'เงินเดือนใน module 7.3 อัปเดตเป็นค่าใหม่โดยอัตโนมัติ ตรงกับค่า After'
+      },
+      {
+        id: 'TC-010',
+        name: 'ไม่ใช่การปรับเงินเดือน → ไม่มีการ sync ไปยัง 7.3',
+        precondition: 'มีรายการเปลี่ยนตำแหน่ง (ไม่ใช่เงินเดือน) effective_date = วันนี้',
+        steps: '1. Trigger job\n2. ตรวจสอบว่า module 7.3 ไม่มีการเปลี่ยนแปลง',
+        expected: 'module 7.3 ไม่มีการเปลี่ยนแปลงใดๆ สำหรับรายการที่ไม่ใช่เงินเดือน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — Badge "กำลังจะมีผล"',
+    tcs: [
+      {
+        id: 'TC-011',
+        name: 'รายการที่ยังไม่ถึง effective_date → แสดง Badge "กำลังจะมีผล" ใน UI',
+        precondition: 'มีรายการที่ effective_date = พรุ่งนี้',
+        steps: '1. เปิดหน้ารายการประวัติ\n2. ดู Badge ของรายการที่ effective_date = พรุ่งนี้',
+        expected: 'แสดง Badge "กำลังจะมีผล" ที่รายการนั้น'
+      },
+      {
+        id: 'TC-012',
+        name: 'หลัง Job ทำงาน → Badge "กำลังจะมีผล" หายไป (รายการมีผลแล้ว)',
+        precondition: 'มีรายการที่ effective_date = วันนี้ และมี Badge "กำลังจะมีผล"',
+        steps: '1. ตรวจสอบ Badge ก่อน job\n2. Trigger job\n3. ตรวจสอบ Badge หลัง job',
+        expected: 'Badge "กำลังจะมีผล" หายไป รายการแสดงสถานะ "มีผลแล้ว" หรือไม่มี Badge'
+      },
+      {
+        id: 'TC-013',
+        name: 'รายการที่มีผลแล้ว → ไม่แสดง Badge "กำลังจะมีผล"',
+        precondition: 'มีรายการเก่าที่ผ่าน effective_date ไปแล้ว',
+        steps: '1. เปิดดูรายการเก่าที่ผ่านมาแล้ว\n2. ตรวจสอบ Badge',
+        expected: 'ไม่แสดง Badge "กำลังจะมีผล" สำหรับรายการที่มีผลไปแล้ว'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — Audit Log',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'หลัง Job ทำงาน → มี audit log บันทึกว่า Job อัปเดตข้อมูล',
+        precondition: 'มีรายการถึงวันมีผล',
+        steps: '1. Trigger job\n2. ตรวจสอบ audit log ของรายการที่ถูกประมวลผล',
+        expected: 'มี audit log บันทึกการเปลี่ยนแปลงโดย system/cronjob แสดงค่าก่อน-หลัง และ timestamp'
+      },
+      {
+        id: 'TC-015',
+        name: 'Audit log แสดง actor เป็น "System" หรือ "Cronjob" (ไม่ใช่ user ใด)',
+        precondition: 'มี audit log หลัง job ทำงาน',
+        steps: '1. ดู audit log ที่บันทึกโดย job\n2. ตรวจสอบ field "ผู้แก้ไข" หรือ actor',
+        expected: 'แสดง actor เป็น "System", "Cronjob", หรือชื่อที่แสดงว่าเป็นระบบ ไม่ใช่ชื่อ user จริง'
+      },
+      {
+        id: 'TC-016',
+        name: 'Audit log บันทึกค่า Before และ After ถูกต้อง',
+        precondition: 'มี audit log หลัง job ทำงาน',
+        steps: '1. ดูค่า Before ใน audit log\n2. ดูค่า After ใน audit log\n3. เปรียบเทียบกับข้อมูลจริง',
+        expected: 'ค่า Before ตรงกับข้อมูลก่อน job และค่า After ตรงกับข้อมูลหลัง job'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — Edge Cases',
+    tcs: [
+      {
+        id: 'TC-017',
+        name: 'พนักงานที่ลาออกแล้ว → Job ข้ามรายการของพนักงานที่ inactive',
+        precondition: 'มีรายการ pending ของพนักงานที่ลาออก effective_date = วันนี้',
+        steps: '1. Trigger job\n2. ตรวจสอบว่าข้อมูลพนักงานที่ inactive เปลี่ยนหรือไม่',
+        expected: 'Job ข้ามหรือไม่ประมวลผลรายการของพนักงาน inactive ข้อมูลไม่เปลี่ยน ไม่มี error'
+      },
+      {
+        id: 'TC-018',
+        name: 'Job ทำงาน 2 ครั้งในวันเดียวกัน (idempotent) → ไม่อัปเดตซ้ำ',
+        precondition: 'มีรายการถึงวันมีผล และ job ทำงานครั้งแรกสำเร็จ',
+        steps: '1. Trigger job ครั้งแรก → ผ่าน\n2. Trigger job ครั้งที่สอง\n3. ตรวจสอบข้อมูลและ audit log',
+        expected: 'ครั้งที่สอง: ไม่มีการอัปเดตข้อมูลซ้ำ audit log ไม่มีรายการซ้ำ ระบบไม่ crash'
+      },
+      {
+        id: 'TC-019',
+        name: 'Database connection ล้มเหลวระหว่าง job → job rollback ไม่ทำข้อมูลเสียหาย',
+        precondition: 'จำลอง DB connection drop ระหว่าง job ทำงาน',
+        steps: '1. จำลอง DB ล้มเหลวระหว่าง job\n2. ตรวจสอบสถานะข้อมูลหลัง error',
+        expected: 'ข้อมูลไม่อยู่ในสถานะครึ่งกลาง (partial update) มีการ rollback อย่างถูกต้อง'
+      },
+      {
+        id: 'TC-020',
+        name: 'รายการ pending มีข้อมูล After ไม่ครบ → Job log error แต่ไม่ crash ข้ามไปรายการถัดไป',
+        precondition: 'มีรายการ pending ที่ข้อมูล After บางส่วนหายไป',
+        steps: '1. สร้าง test data ที่ข้อมูล After ไม่ครบ\n2. Trigger job\n3. ตรวจสอบ log และรายการอื่น',
+        expected: 'Job บันทึก error สำหรับรายการนั้น แต่ทำงานต่อกับรายการอื่น ไม่ crash ทั้ง job'
+      },
+      {
+        id: 'TC-021',
+        name: 'Job ทำงานเสร็จภายใน timeout ที่กำหนด (ไม่ hang)',
+        precondition: 'มีรายการหลายร้อยรายการรอประมวลผล',
+        steps: '1. สร้าง test data จำนวนมาก\n2. Trigger job\n3. จับเวลาที่ job ใช้',
+        expected: 'Job ทำงานเสร็จภายในเวลาที่กำหนด ไม่ timeout หรือ hang'
+      },
+      {
+        id: 'TC-022',
+        name: 'Log ของ Job บันทึกข้อมูลครบ: จำนวนรายการที่ประมวลผล / สำเร็จ / ล้มเหลว',
+        precondition: 'Trigger job ให้ทำงาน',
+        steps: '1. Trigger job\n2. ดู log ที่ได้',
+        expected: 'Log บันทึก: จำนวน records ที่ดึงมา, จำนวนที่ success, จำนวนที่ fail (ถ้ามี), เวลาที่ใช้'
+      }
+    ]
+  }
+],
+  'HR/Sprint-5/task-410.html': [
+  {
+    name: 'ส่วนที่ 1 — เงื่อนไขการแสดงปุ่มลบ',
+    tcs: [
+      { id: 'TC-001', name: 'user มีสิทธิ์ D → ปุ่ม "ลบ" แสดงในหน้า detail / รายการสัญญา', precondition: 'login ด้วย user ที่มีสิทธิ์ Delete (D)', steps: '1. เปิดหน้า detail สัญญาหรือรายการสัญญา\n2. สังเกตปุ่ม "ลบ"', expected: 'ปุ่ม "ลบ" แสดงให้เห็นและกดได้' },
+      { id: 'TC-002', name: 'user ไม่มีสิทธิ์ D → ปุ่ม "ลบ" ไม่แสดง', precondition: 'login ด้วย user ที่ไม่มีสิทธิ์ Delete', steps: '1. เปิดหน้า detail สัญญาหรือรายการสัญญา\n2. สังเกตว่ามีปุ่ม "ลบ" หรือไม่', expected: 'ไม่มีปุ่ม "ลบ" แสดง' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Modal ยืนยันแสดงข้อมูลครบ',
+    tcs: [
+      { id: 'TC-003', name: 'กดปุ่มลบสัญญา (สถานะ "ยกเลิก" หรือ "หมดอายุ") → Modal ยืนยันแสดง', precondition: 'login user มีสิทธิ์ D, มีสัญญาสถานะ "ยกเลิก" หรือ "หมดอายุ"', steps: '1. เปิดหน้า detail หรือรายการสัญญาที่ลบได้\n2. กดปุ่ม "ลบ"\n3. สังเกต Modal ที่ปรากฏ', expected: 'Modal ยืนยันการลบแสดงขึ้น' },
+      { id: 'TC-004', name: 'Modal แสดงชื่อพนักงานของสัญญานั้น', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. ดูข้อมูลใน Modal\n2. ตรวจสอบชื่อพนักงาน', expected: 'Modal แสดงชื่อ-สกุลพนักงานเจ้าของสัญญา' },
+      { id: 'TC-005', name: 'Modal แสดงเลขที่สัญญา', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. ดูข้อมูลใน Modal\n2. ตรวจสอบเลขที่สัญญา', expected: 'Modal แสดงเลขที่สัญญาถูกต้องตรงกับสัญญาที่กำลังลบ' },
+      { id: 'TC-006', name: 'Modal แสดงประเภทสัญญา', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. ดูข้อมูลใน Modal\n2. ตรวจสอบประเภทสัญญา', expected: 'Modal แสดงประเภทสัญญา เช่น "สัญญาจ้างรายปี" ถูกต้อง' },
+      { id: 'TC-007', name: 'Modal แสดงช่วงวันที่สัญญา (วันเริ่ม − วันสิ้นสุด)', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. ดูข้อมูลใน Modal\n2. ตรวจสอบช่วงวันที่', expected: 'Modal แสดงวันที่เริ่มสัญญาและวันที่สิ้นสุดสัญญาถูกต้อง' },
+      { id: 'TC-008', name: 'Modal แสดงข้อความเตือน "การลบเอกสารสัญญาจะไม่สามารถกู้คืนได้..." ครบถ้วน', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. อ่านข้อความเตือนใน Modal\n2. เปรียบเทียบกับข้อความที่กำหนด', expected: 'Modal แสดงข้อความ "การลบเอกสารสัญญาจะไม่สามารถกู้คืนได้ รวมถึงไฟล์แนบทั้งหมดในรายการนี้ ต้องการดำเนินการต่อหรือไม่?" ครบและถูกต้อง' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — บล็อกการลบสัญญา "มีผลบังคับใช้"',
+    tcs: [
+      { id: 'TC-009', name: 'สัญญาสถานะ "มีผลบังคับใช้" → ปุ่ม "ลบ" disabled หรือไม่แสดง', precondition: 'มีสัญญาสถานะ "มีผลบังคับใช้", login user มีสิทธิ์ D', steps: '1. เปิดหน้า detail สัญญาสถานะ "มีผลบังคับใช้"\n2. สังเกตปุ่ม "ลบ"', expected: 'ปุ่ม "ลบ" disabled (greyed out) กดไม่ได้ หรือไม่แสดงให้กด' },
+      { id: 'TC-010', name: 'กดลบสัญญา "มีผลบังคับใช้" (กรณีปุ่มไม่ disabled) → แสดง error', precondition: 'สัญญาสถานะ "มีผลบังคับใช้", ปุ่มลบยังกดได้', steps: '1. กดปุ่ม "ลบ" บนสัญญาสถานะ "มีผลบังคับใช้"\n2. ยืนยันการลบ\n3. สังเกต error', expected: 'ระบบแสดง error และไม่ลบสัญญา' },
+      { id: 'TC-011', name: 'Error message ถูกต้อง: "ไม่สามารถลบสัญญาที่ยังมีผลบังคับใช้อยู่ กรุณายกเลิกสัญญาก่อนดำเนินการ"', precondition: 'พยายามลบสัญญาสถานะ "มีผลบังคับใช้"', steps: '1. อ่าน error ที่แสดง\n2. เปรียบเทียบกับข้อความที่กำหนด', expected: 'Error แสดงข้อความ "ไม่สามารถลบสัญญาที่ยังมีผลบังคับใช้อยู่ กรุณายกเลิกสัญญาก่อนดำเนินการ" ครบถ้วน' },
+      { id: 'TC-012', name: 'ยกเลิกสัญญา (เปลี่ยนสถานะเป็น "ยกเลิก") ก่อน → ปุ่ม "ลบ" กดได้', precondition: 'มีสัญญาที่เคยสถานะ "มีผลบังคับใช้" และถูกยกเลิกแล้ว (สถานะ "ยกเลิก")', steps: '1. ยกเลิกสัญญาผ่านฟีเจอร์ยกเลิกสัญญา\n2. กลับมาที่ detail สัญญา\n3. สังเกตปุ่ม "ลบ"', expected: 'ปุ่ม "ลบ" กดได้ สามารถดำเนินการลบต่อได้' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — ลบสำเร็จ',
+    tcs: [
+      { id: 'TC-013', name: 'กด confirm ใน Modal → Toast "ลบเอกสารสัญญาสำเร็จ" แสดง', precondition: 'Modal ยืนยันการลบแสดงอยู่, สัญญาสถานะที่ลบได้', steps: '1. กดปุ่มยืนยันการลบใน Modal\n2. รอผลลัพธ์\n3. สังเกต Toast', expected: 'Toast แสดง "ลบเอกสารสัญญาสำเร็จ" Modal ปิด' },
+      { id: 'TC-014', name: 'หลังลบสำเร็จ — สัญญาหายออกจากรายการ', precondition: 'ลบสัญญาสำเร็จแล้ว', steps: '1. กลับไปที่หน้ารายการสัญญาของพนักงานคนนั้น\n2. ค้นหาสัญญาที่เพิ่งลบ', expected: 'สัญญาที่ลบไม่ปรากฏในรายการอีกต่อไป' },
+      { id: 'TC-015', name: 'ไฟล์แนบทั้งหมดของสัญญาถูกลบพร้อมกัน', precondition: 'สัญญาที่ลบมีเอกสารแนบอยู่ก่อนลบ', steps: '1. ลบสัญญาที่มีไฟล์แนบ\n2. ตรวจสอบว่าไฟล์แนบหายไปด้วย (ผ่าน API หรือ storage)', expected: 'ไฟล์แนบทุกไฟล์ในสัญญานั้นถูกลบออกจากระบบพร้อมกัน' },
+      { id: 'TC-016', name: 'ระบบบันทึก Audit Log การลบ', precondition: 'ลบสัญญาสำเร็จแล้ว', steps: '1. ตรวจสอบ Audit Log ของระบบ หรือหน้าประวัติการแก้ไข\n2. ค้นหา record การลบสัญญา', expected: 'มี Audit Log บันทึกว่า: ใครลบ, เมื่อไหร่, สัญญาไหน' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — ยกเลิกการลบ',
+    tcs: [
+      { id: 'TC-017', name: 'กด cancel / ยกเลิก ใน Modal → Modal ปิด สัญญายังอยู่ในระบบ', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. กดปุ่ม "ยกเลิก" หรือ "Cancel" ใน Modal\n2. ตรวจสอบรายการสัญญา', expected: 'Modal ปิด สัญญายังอยู่ในระบบ ไม่มีการลบเกิดขึ้น' },
+      { id: 'TC-018', name: 'กด X หรือ Escape ปิด Modal → Modal ปิด สัญญาไม่ถูกลบ', precondition: 'Modal ยืนยันการลบแสดงอยู่', steps: '1. กด X หรือกด Escape เพื่อปิด Modal\n2. ตรวจสอบรายการสัญญา', expected: 'Modal ปิด สัญญายังอยู่ในระบบ ไม่มีการลบเกิดขึ้น' }
+    ]
+  }
+],
+  'HR/Sprint-5/task-417.html': [
+  { name: 'ส่วนที่ 1 — หน้ารายการสัญญาโหลดได้ปกติ', tcs: [
+    { id: 'TC-001', name: 'เปิดหน้า /employee/contracts → โหลดสำเร็จ ไม่มี error', precondition: 'login แล้ว อยู่ที่บริษัทอรุณเบิกฟ้า', steps: '1. เปิด URL /employee/contracts\n2. รอหน้าโหลด\n3. ตรวจสอบว่าหน้าแสดงขึ้นมา', expected: 'หน้ารายการสัญญาโหลดสำเร็จ แสดงรายการสัญญา ไม่มี error / 404' },
+    { id: 'TC-002', name: 'หน้าแสดง badge สถานะสัญญาแต่ละรายการ', precondition: 'มีสัญญาหลายสถานะในระบบ', steps: '1. ดูรายการสัญญาในหน้า\n2. สังเกต badge สถานะ', expected: 'แต่ละสัญญามี badge แสดงสถานะ เช่น "มีผลบังคับใช้", "ใกล้หมดอายุ", "หมดอายุ", "ยกเลิก"' }
+  ]},
+  { name: 'ส่วนที่ 2 — Badge สีแสดงถูกต้อง', tcs: [
+    { id: 'TC-003', name: 'สัญญาสถานะ "มีผลบังคับใช้" → badge สีเขียว', precondition: 'มีสัญญาสถานะ "มีผลบังคับใช้" (วันที่เหลือ > 30 วัน)', steps: '1. หาสัญญาสถานะ "มีผลบังคับใช้"\n2. สังเกตสี badge', expected: 'Badge แสดงข้อความ "มีผลบังคับใช้" สีเขียว' },
+    { id: 'TC-004', name: 'สัญญาสถานะ "ใกล้หมดอายุ" → badge สีส้ม', precondition: 'มีสัญญาที่ Cronjob เปลี่ยนสถานะเป็น "ใกล้หมดอายุ" แล้ว (เหลือ ≤ 30 วัน)', steps: '1. หาสัญญาสถานะ "ใกล้หมดอายุ"\n2. สังเกตสี badge', expected: 'Badge แสดงข้อความ "ใกล้หมดอายุ" สีส้ม' },
+    { id: 'TC-005', name: 'สัญญาสถานะ "หมดอายุ" → badge สีแดง', precondition: 'มีสัญญาที่ Cronjob เปลี่ยนสถานะเป็น "หมดอายุ" แล้ว', steps: '1. หาสัญญาสถานะ "หมดอายุ"\n2. สังเกตสี badge', expected: 'Badge แสดงข้อความ "หมดอายุ" สีแดง' },
+    { id: 'TC-006', name: 'สัญญาสถานะ "ยกเลิก" → badge ไม่เปลี่ยน (Cronjob ข้ามไป)', precondition: 'มีสัญญาสถานะ "ยกเลิก" ที่ผ่านวันสิ้นสุดแล้ว', steps: '1. หาสัญญาสถานะ "ยกเลิก"\n2. ตรวจว่า badge ยังเป็น "ยกเลิก" ไม่เปลี่ยนเป็น "หมดอายุ"', expected: 'Badge ยังคงเป็น "ยกเลิก" — Cronjob ไม่เปลี่ยนสถานะนี้' }
+  ]},
+  { name: 'ส่วนที่ 3 — คอลัมน์ "วันที่เหลือ" แสดงถูกต้อง', tcs: [
+    { id: 'TC-007', name: 'สัญญา active (> 30 วัน) → แสดงจำนวนวันที่เหลือปกติ', precondition: 'มีสัญญาสถานะ "มีผลบังคับใช้" เหลือมากกว่า 30 วัน', steps: '1. ดูคอลัมน์ "วันที่เหลือ" ของสัญญา active\n2. สังเกตค่าและสี', expected: 'แสดงจำนวนวันที่เหลือ เช่น "120 วัน" สีปกติ (ไม่แดง)' },
+    { id: 'TC-008', name: 'สัญญาใกล้หมดอายุ (≤ 30 วัน) → แสดงวันที่เหลือและ badge ส้ม', precondition: 'มีสัญญาสถานะ "ใกล้หมดอายุ"', steps: '1. ดูคอลัมน์ "วันที่เหลือ" ของสัญญาใกล้หมดอายุ\n2. ตรวจค่าวันและ badge', expected: 'แสดงวันที่เหลือ ≤ 30 วัน, badge สีส้ม "ใกล้หมดอายุ"' },
+    { id: 'TC-009', name: 'สัญญาหมดอายุ → คอลัมน์แสดง "หมดอายุแล้ว X วัน" สีแดง', precondition: 'มีสัญญาสถานะ "หมดอายุ"', steps: '1. ดูคอลัมน์ "วันที่เหลือ" ของสัญญาหมดอายุ\n2. ตรวจข้อความและสี', expected: 'แสดงข้อความ "หมดอายุแล้ว X วัน" สีแดง โดย X = จำนวนวันที่เลยกำหนด' },
+    { id: 'TC-010', name: 'สัญญาไม่มีวันสิ้นสุด → คอลัมน์แสดง "-" หรือว่าง ไม่ถูก Cronjob แตะ', precondition: 'มีสัญญาที่ไม่ได้กำหนดวันสิ้นสุด', steps: '1. ดูคอลัมน์ "วันที่เหลือ" ของสัญญาที่ไม่มีวันสิ้นสุด\n2. ตรวจสถานะ', expected: 'แสดง "-" หรือว่าง สถานะไม่เปลี่ยน — Cronjob ข้ามสัญญาประเภทนี้' }
+  ]},
+  { name: 'ส่วนที่ 4 — การกรองสถานะในหน้ารายการ', tcs: [
+    { id: 'TC-011', name: 'กรองสถานะ "มีผลบังคับใช้" → แสดงเฉพาะสัญญา active', precondition: 'หน้ารายการสัญญาเปิดอยู่ มีสัญญาหลายสถานะ', steps: '1. กดกรองสถานะ "มีผลบังคับใช้"\n2. ดูผลลัพธ์', expected: 'แสดงเฉพาะสัญญาสถานะ "มีผลบังคับใช้" ไม่มีสถานะอื่นปน' },
+    { id: 'TC-012', name: 'กรองสถานะ "ใกล้หมดอายุ" → แสดงเฉพาะสัญญาใกล้หมดอายุ', precondition: 'มีสัญญาสถานะ "ใกล้หมดอายุ" ในระบบ', steps: '1. กดกรองสถานะ "ใกล้หมดอายุ"\n2. ดูผลลัพธ์', expected: 'แสดงเฉพาะสัญญาสถานะ "ใกล้หมดอายุ" badge สีส้ม' },
+    { id: 'TC-013', name: 'กรองสถานะ "หมดอายุ" → แสดงเฉพาะสัญญาหมดอายุ', precondition: 'มีสัญญาสถานะ "หมดอายุ" ในระบบ', steps: '1. กดกรองสถานะ "หมดอายุ"\n2. ดูผลลัพธ์', expected: 'แสดงเฉพาะสัญญาสถานะ "หมดอายุ" badge สีแดง' },
+    { id: 'TC-014', name: 'ล้างตัวกรอง → แสดงสัญญาทั้งหมดทุกสถานะ', precondition: 'กำลังกรองสถานะอยู่', steps: '1. กดล้างตัวกรองหรือเลือก "ทั้งหมด"\n2. ดูผลลัพธ์', expected: 'แสดงสัญญาทุกสถานะรวมกัน' }
+  ]},
+  { name: 'ส่วนที่ 5 — Idempotency (รัน Cronjob ซ้ำ)', tcs: [
+    { id: 'TC-015', name: 'รัน Cronjob ซ้ำ → สัญญา "ใกล้หมดอายุ" ที่อัปเดตแล้วไม่เปลี่ยนกลับ', precondition: 'Cronjob รันแล้วรอบหนึ่ง มีสัญญาสถานะ "ใกล้หมดอายุ"', steps: '1. จด list สัญญาสถานะ "ใกล้หมดอายุ" ก่อนรัน\n2. Trigger Cronjob รอบสอง\n3. เปรียบเทียบ list', expected: 'สัญญา "ใกล้หมดอายุ" ยังคงสถานะ "ใกล้หมดอายุ" ไม่เปลี่ยนกลับเป็น "มีผลบังคับใช้"' },
+    { id: 'TC-016', name: 'รัน Cronjob ซ้ำ → สัญญา "หมดอายุ" ที่อัปเดตแล้วไม่ถูกเปลี่ยนซ้ำ', precondition: 'Cronjob รันแล้วรอบหนึ่ง มีสัญญาสถานะ "หมดอายุ"', steps: '1. จด list สัญญาสถานะ "หมดอายุ" ก่อนรัน\n2. Trigger Cronjob รอบสอง\n3. เปรียบเทียบ list และ AuditLog', expected: 'สัญญา "หมดอายุ" ยังคงสถานะเดิม ไม่มี AuditLog รายการใหม่สำหรับสัญญาเหล่านี้' }
+  ]},
+  { name: 'ส่วนที่ 6 — AuditLog', tcs: [
+    { id: 'TC-017', name: 'Cronjob เปลี่ยน "มีผลบังคับใช้" → "ใกล้หมดอายุ" → บันทึก AuditLog ถูกต้อง', precondition: 'มีสัญญาที่ Cronjob เปลี่ยนสถานะเป็น "ใกล้หมดอายุ" แล้ว', steps: '1. เปิด AuditLog หรือ log ระบบ\n2. หา record สัญญาที่เปลี่ยนสถานะ', expected: 'AuditLog มี: action=UPDATE, entity_type=Contract, changes=[{field:"status", old:"Active", new:"NearExpiry"}]' },
+    { id: 'TC-018', name: 'Cronjob เปลี่ยน "มีผลบังคับใช้"/"ใกล้หมดอายุ" → "หมดอายุ" → บันทึก AuditLog ถูกต้อง', precondition: 'มีสัญญาที่ Cronjob เปลี่ยนสถานะเป็น "หมดอายุ" แล้ว', steps: '1. เปิด AuditLog\n2. หา record สัญญาที่เปลี่ยนเป็น "หมดอายุ"', expected: 'AuditLog มี: action=UPDATE, entity_type=Contract, changes=[{field:"status", old:"Active"/"NearExpiry", new:"Expired"}]' },
+    { id: 'TC-019', name: 'สัญญาที่ Cronjob ข้าม (ไม่มีวันสิ้นสุด / สถานะ "ยกเลิก") → ไม่มี AuditLog', precondition: 'มีสัญญาที่ไม่มีวันสิ้นสุด และสัญญาสถานะ "ยกเลิก"', steps: '1. หลัง Cronjob รัน เปิด AuditLog\n2. ค้นหา record ของสัญญาที่ควรข้ามไป', expected: 'ไม่มี AuditLog สำหรับสัญญาที่ไม่มีวันสิ้นสุด และสัญญา "ยกเลิก"' }
+  ]}
+],
+  'HR/Sprint-5/task-411.html': [
+  {
+    name: 'ส่วนที่ 1 — การโหลดข้อมูล',
+    tcs: [
+      { id: 'TC-001', name: 'เปิดหน้า view สัญญา → โหลดสำเร็จ ไม่มี error / 404', precondition: 'มีเอกสารสัญญา ID 6 ในระบบ ที่บริษัทอรุณเบิกฟ้า', steps: '1. เปิด URL /employee/contracts/6/view\n2. รอหน้าโหลด\n3. ตรวจสอบว่าหน้าแสดงขึ้นมา ไม่มี 404 หรือ error', expected: 'หน้า detail โหลดสำเร็จ แสดงข้อมูลสัญญา ไม่มี error' },
+      { id: 'TC-002', name: 'ข้อมูลทุกฟิลด์แสดงครบ ไม่มีช่องว่างโดยไม่มีเหตุผล', precondition: 'เปิดหน้า view สัญญาที่มีข้อมูลครบ', steps: '1. ตรวจสอบครบทุกฟิลด์: เลขที่สัญญา, รหัส/ชื่อพนักงาน, ตำแหน่ง/แผนก, ประเภทสัญญา, วันที่เริ่ม, วันที่สิ้นสุด, วันที่เหลือ, สถานะ, เงื่อนไขสำคัญ, หมายเหตุ, ผู้สร้าง/วันที่สร้าง', expected: 'ทุกฟิลด์แสดงค่าถูกต้อง ไม่มีฟิลด์ที่ว่างโดยไม่มีเหตุผล' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Read-only ทุกฟิลด์',
+    tcs: [
+      { id: 'TC-003', name: 'เลขที่สัญญา — แสดงเป็น text ไม่มี input ให้แก้ไข', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์เลขที่สัญญา\n2. พยายามคลิกหรือแก้ไข', expected: 'แสดงเป็น read-only text ไม่มี input field ให้พิมพ์' },
+      { id: 'TC-004', name: 'รหัสพนักงาน / ชื่อ-สกุล — read-only', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์รหัสพนักงานและชื่อ-สกุล\n2. พยายามคลิกหรือแก้ไข', expected: 'แสดงเป็น read-only ไม่สามารถแก้ไขได้' },
+      { id: 'TC-005', name: 'ตำแหน่ง / แผนก (ณ วันที่สร้างสัญญา) — read-only', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์ตำแหน่งและแผนก\n2. พยายามคลิกหรือแก้ไข', expected: 'แสดงเป็น read-only ข้อมูล ณ วันที่สร้างสัญญา ไม่ใช่ปัจจุบัน' },
+      { id: 'TC-006', name: 'ประเภทสัญญา — read-only (ไม่มี dropdown)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์ประเภทสัญญา\n2. พยายามคลิก', expected: 'แสดงเป็น text ไม่มี dropdown ให้เปลี่ยนค่า' },
+      { id: 'TC-007', name: 'วันที่เริ่มสัญญา — read-only (ไม่มี date picker)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์วันที่เริ่มสัญญา\n2. พยายามคลิก', expected: 'แสดงเป็น text ไม่มี date picker ให้เปลี่ยนวัน' },
+      { id: 'TC-008', name: 'วันที่สิ้นสุดสัญญา — read-only (ไม่มี date picker)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์วันที่สิ้นสุดสัญญา\n2. พยายามคลิก', expected: 'แสดงเป็น text ไม่มี date picker ให้เปลี่ยนวัน' },
+      { id: 'TC-009', name: 'เงื่อนไขสำคัญ — read-only (ไม่มี textarea แก้ไขได้)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูส่วนเงื่อนไขสำคัญ\n2. พยายามคลิกหรือพิมพ์', expected: 'แสดงเป็น read-only text ไม่สามารถพิมพ์หรือแก้ไขได้' },
+      { id: 'TC-010', name: 'หมายเหตุ — read-only (ไม่มี textarea แก้ไขได้)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูส่วนหมายเหตุ\n2. พยายามคลิกหรือพิมพ์', expected: 'แสดงเป็น read-only text ไม่สามารถพิมพ์หรือแก้ไขได้' },
+      { id: 'TC-011', name: 'การตั้งค่าการแจ้งเตือน — read-only (ไม่มี toggle / input แก้ไขได้)', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูส่วนการตั้งค่าการแจ้งเตือน\n2. พยายามคลิก toggle หรือ input', expected: 'แสดงค่าเป็น read-only toggle / text ไม่สามารถเปลี่ยนค่าได้' },
+      { id: 'TC-012', name: 'ผู้สร้าง / วันที่สร้าง — read-only', precondition: 'เปิดหน้า view สัญญา', steps: '1. ดูฟิลด์ผู้สร้างและวันที่สร้าง\n2. พยายามคลิกหรือแก้ไข', expected: 'แสดงเป็น read-only text ไม่สามารถแก้ไขได้' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — วันที่เหลือ',
+    tcs: [
+      { id: 'TC-013', name: 'วันที่เหลือคำนวณถูกต้อง = วันสิ้นสุด − วันนี้', precondition: 'เปิดหน้า view สัญญาที่ยังไม่หมดอายุ ทราบวันที่สิ้นสุดสัญญา', steps: '1. ดูค่า "วันที่เหลือ" ที่แสดง\n2. คำนวณเอง: วันสิ้นสุด − วันนี้\n3. เปรียบเทียบ', expected: 'ตัวเลขวันที่เหลือตรงกับ วันสิ้นสุด − วันนี้' },
+      { id: 'TC-014', name: 'วันที่เหลืออัปเดตทุกครั้งที่เปิดหน้า (ไม่ใช่ค่าตอน save)', precondition: 'เปิดหน้า view สัญญาในวันที่ต่างกัน', steps: '1. บันทึกค่าวันที่เหลือวันนี้\n2. เปิดหน้าใหม่ในวันถัดไป\n3. ตรวจว่าค่าเปลี่ยน', expected: 'ค่าวันที่เหลือลดลง 1 เมื่อเปิดหน้าในวันถัดไป' },
+      { id: 'TC-015', name: 'สัญญาหมดอายุแล้ว → วันที่เหลือ = 0 หรือแสดงข้อความหมดอายุ', precondition: 'มีสัญญาที่วันสิ้นสุดผ่านมาแล้ว', steps: '1. เปิดหน้า view ของสัญญาที่หมดอายุ\n2. ดูค่าวันที่เหลือ', expected: 'แสดง 0 วัน หรือ "-X วัน" หรือข้อความ "หมดอายุแล้ว" ไม่แสดงค่าติดลบโดยไม่มีคำอธิบาย' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — เอกสารแนบ',
+    tcs: [
+      { id: 'TC-016', name: 'แสดงรายการเอกสารแนบทั้งหมด พร้อมชื่อไฟล์', precondition: 'สัญญามีเอกสารแนบอยู่อย่างน้อย 1 ไฟล์', steps: '1. เลื่อนดูส่วนเอกสารแนบ\n2. ตรวจสอบว่าแสดงรายการไฟล์', expected: 'แสดงชื่อไฟล์เอกสารแนบทั้งหมด ครบตามที่บันทึกไว้' },
+      { id: 'TC-017', name: 'กดปุ่มดูเอกสาร → เปิดในหน้าต่างใหม่', precondition: 'มีเอกสารแนบในสัญญา', steps: '1. กดปุ่มดู / เปิดเอกสารแนบ\n2. สังเกตพฤติกรรม', expected: 'เปิดไฟล์ในหน้าต่างหรือ tab ใหม่ ไม่ redirect หน้าปัจจุบัน' },
+      { id: 'TC-018', name: 'กดปุ่มดาวน์โหลด → ดาวน์โหลดไฟล์สำเร็จ', precondition: 'มีเอกสารแนบในสัญญา', steps: '1. กดปุ่มดาวน์โหลดเอกสารแนบ\n2. ตรวจสอบว่าไฟล์ถูกดาวน์โหลด', expected: 'ไฟล์ดาวน์โหลดสำเร็จ ชื่อไฟล์ถูกต้อง' },
+      { id: 'TC-019', name: 'สัญญาไม่มีเอกสารแนบ → แสดงข้อความแจ้ง', precondition: 'มีสัญญาที่ไม่มีเอกสารแนบ', steps: '1. เปิดหน้า view ของสัญญาที่ไม่มีเอกสารแนบ\n2. ดูส่วนเอกสารแนบ', expected: 'แสดงข้อความ "ไม่มีเอกสารแนบ" หรือ section ว่าง ไม่ขึ้น error' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — ประวัติการแก้ไข (Audit Log)',
+    tcs: [
+      { id: 'TC-020', name: 'ประวัติการแก้ไขเรียงจากล่าสุดไปเก่าสุด', precondition: 'สัญญามีประวัติการแก้ไขมากกว่า 1 ครั้ง', steps: '1. ดูส่วนประวัติการแก้ไข\n2. ตรวจสอบลำดับวันที่', expected: 'รายการเรียงจากล่าสุด (วันที่ใหม่กว่า) ไปหาเก่าสุดด้านล่าง' },
+      { id: 'TC-021', name: 'แต่ละรายการแสดง: วันที่, ผู้แก้ไข, ฟิลด์ที่เปลี่ยน, ค่าก่อน/หลัง', precondition: 'มีประวัติการแก้ไขอย่างน้อย 1 รายการ', steps: '1. ดูรายการล่าสุดในประวัติการแก้ไข\n2. ตรวจสอบข้อมูลที่แสดง', expected: 'แสดงครบ: วันที่และเวลา, ชื่อผู้แก้ไข, ฟิลด์ที่เปลี่ยน, ค่าก่อนแก้ (Before), ค่าหลังแก้ (After)' },
+      { id: 'TC-022', name: 'ยังไม่มีประวัติการแก้ไข → แสดงข้อความแจ้ง ไม่ขึ้น error', precondition: 'มีสัญญาที่ไม่เคยถูกแก้ไขหลังสร้าง', steps: '1. เปิดหน้า view สัญญาที่ไม่เคยแก้ไข\n2. ดูส่วนประวัติการแก้ไข', expected: 'แสดงข้อความ "ยังไม่มีประวัติการแก้ไข" หรือ section ว่าง ไม่มี error' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — ปุ่ม "แก้ไข" (Permission U)',
+    tcs: [
+      { id: 'TC-023', name: 'user มีสิทธิ์ U → ปุ่ม "แก้ไข" แสดงที่มุมขวาบน', precondition: 'login ด้วย user ที่มีสิทธิ์ Update (U)', steps: '1. เปิดหน้า view สัญญา\n2. สังเกตมุมขวาบน', expected: 'ปุ่ม "แก้ไข" แสดงที่มุมขวาบน สามารถกดได้' },
+      { id: 'TC-024', name: 'user ไม่มีสิทธิ์ U → ปุ่ม "แก้ไข" ไม่แสดง', precondition: 'login ด้วย user ที่ไม่มีสิทธิ์ Update', steps: '1. เปิดหน้า view สัญญา\n2. สังเกตมุมขวาบน', expected: 'ไม่มีปุ่ม "แก้ไข" แสดง' },
+      { id: 'TC-025', name: 'กดปุ่ม "แก้ไข" → นำทางไปหน้าฟอร์มแก้ไขสัญญา', precondition: 'login ด้วย user ที่มีสิทธิ์ U', steps: '1. กดปุ่ม "แก้ไข"\n2. สังเกต URL และหน้าที่เปิด', expected: 'นำทางไปหน้าฟอร์มแก้ไขสัญญา (/contracts/6 หรือ /edit) โหลดข้อมูลเดิมครบ' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — ปุ่ม "ลบ" (Permission D)',
+    tcs: [
+      { id: 'TC-026', name: 'user มีสิทธิ์ D → ปุ่ม "ลบ" แสดงที่มุมขวาบน', precondition: 'login ด้วย user ที่มีสิทธิ์ Delete (D)', steps: '1. เปิดหน้า view สัญญา\n2. สังเกตมุมขวาบน', expected: 'ปุ่ม "ลบ" แสดงที่มุมขวาบน' },
+      { id: 'TC-027', name: 'user ไม่มีสิทธิ์ D → ปุ่ม "ลบ" ไม่แสดง', precondition: 'login ด้วย user ที่ไม่มีสิทธิ์ Delete', steps: '1. เปิดหน้า view สัญญา\n2. สังเกตมุมขวาบน', expected: 'ไม่มีปุ่ม "ลบ" แสดง' },
+      { id: 'TC-028', name: 'สัญญาสถานะ "มีผลบังคับใช้" + มีสิทธิ์ D → ปุ่ม "ลบ" disabled', precondition: 'login ด้วย user มีสิทธิ์ D, สัญญาสถานะ "มีผลบังคับใช้"', steps: '1. เปิดหน้า view สัญญาสถานะ "มีผลบังคับใช้"\n2. สังเกตปุ่ม "ลบ"\n3. พยายามกด', expected: 'ปุ่ม "ลบ" แสดงแต่ disabled / greyed out กดไม่ได้' },
+      { id: 'TC-029', name: 'สัญญาสถานะอื่น (หมดอายุ/ยกเลิก) + มีสิทธิ์ D → ปุ่ม "ลบ" กดได้ แสดง confirm', precondition: 'login ด้วย user มีสิทธิ์ D, สัญญาสถานะ "หมดอายุ" หรือ "ยกเลิก"', steps: '1. เปิดหน้า view สัญญาสถานะ "หมดอายุ"\n2. กดปุ่ม "ลบ"\n3. สังเกตพฤติกรรม', expected: 'ปุ่ม "ลบ" กดได้ แสดง confirm dialog ยืนยันก่อนลบ' }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — ปุ่ม "ยกเลิกสัญญา"',
+    tcs: [
+      { id: 'TC-030', name: 'สถานะ "มีผลบังคับใช้" + user มีสิทธิ์ U → ปุ่ม "ยกเลิกสัญญา" แสดง', precondition: 'login ด้วย user มีสิทธิ์ U, สัญญาสถานะ "มีผลบังคับใช้"', steps: '1. เปิดหน้า view สัญญาสถานะ "มีผลบังคับใช้"\n2. สังเกตหน้า', expected: 'ปุ่ม "ยกเลิกสัญญา" แสดงให้เห็น สามารถกดได้' },
+      { id: 'TC-031', name: 'สัญญาสถานะอื่น (หมดอายุ/ยกเลิก) → ปุ่ม "ยกเลิกสัญญา" ไม่แสดง', precondition: 'เปิดหน้า view สัญญาสถานะ "หมดอายุ" หรือ "ยกเลิก"', steps: '1. เปิดหน้า view สัญญาที่ไม่ได้สถานะ "มีผลบังคับใช้"\n2. สังเกตหน้า', expected: 'ไม่มีปุ่ม "ยกเลิกสัญญา" แสดง' },
+      { id: 'TC-032', name: 'user ไม่มีสิทธิ์ U → ปุ่ม "ยกเลิกสัญญา" ไม่แสดง (แม้สัญญา active)', precondition: 'login ด้วย user ที่ไม่มีสิทธิ์ U, สัญญาสถานะ "มีผลบังคับใช้"', steps: '1. เปิดหน้า view สัญญา active\n2. สังเกตหน้า', expected: 'ไม่มีปุ่ม "ยกเลิกสัญญา" แสดง เนื่องจากไม่มีสิทธิ์' },
+      { id: 'TC-033', name: 'กดปุ่ม "ยกเลิกสัญญา" → Modal แสดง มี input เหตุผล (บังคับ)', precondition: 'login ด้วย user มีสิทธิ์ U, สัญญาสถานะ "มีผลบังคับใช้"', steps: '1. กดปุ่ม "ยกเลิกสัญญา"\n2. สังเกต Modal ที่ปรากฏ', expected: 'Modal แสดงขึ้น มีช่อง input หรือ textarea สำหรับกรอกเหตุผล มีปุ่มยืนยันและยกเลิก' },
+      { id: 'TC-034', name: 'กด confirm ใน Modal โดยไม่กรอกเหตุผล → error required แสดง บล็อกการยืนยัน', precondition: 'Modal ยกเลิกสัญญาแสดงอยู่', steps: '1. ปล่อยช่องเหตุผลว่าง\n2. กดปุ่มยืนยัน\n3. สังเกต error', expected: 'แสดง error "กรุณากรอกเหตุผล" หรือ highlight ช่อง ไม่ยืนยันการยกเลิก' },
+      { id: 'TC-035', name: 'กรอกเหตุผลและกด confirm → สัญญาเปลี่ยนสถานะ "ยกเลิก" + Toast แจ้ง', precondition: 'Modal ยกเลิกสัญญาแสดงอยู่', steps: '1. กรอกเหตุผลการยกเลิก\n2. กดปุ่มยืนยัน\n3. รอผลลัพธ์', expected: 'Modal ปิด แสดง Toast "ยกเลิกสัญญาสำเร็จ" สถานะสัญญาเปลี่ยนเป็น "ยกเลิก" ในหน้า' },
+      { id: 'TC-036', name: 'กด cancel ใน Modal → Modal ปิด สถานะสัญญาไม่เปลี่ยน', precondition: 'Modal ยกเลิกสัญญาแสดงอยู่', steps: '1. กดปุ่มยกเลิก / ปิด Modal\n2. ตรวจสอบสถานะสัญญาในหน้า', expected: 'Modal ปิด สถานะสัญญายังเป็น "มีผลบังคับใช้" ไม่เปลี่ยนแปลง' }
+    ]
+  }
+],
+}
+
+function loadSections(t) {
+  const db = SECTIONS_DB[t.file]
+  if (db) return Promise.resolve(db)
+  try {
+    const tcs = JSON.parse(localStorage.getItem(t.storageKey + '_tcs') || '[]')
+    if (tcs.length) return Promise.resolve([{ name: '', tcs }])
+  } catch(e) {}
+  return Promise.resolve([])
+}
+
+// ── State ──
+let curProject = PROJECTS[0].id
+let curSprint  = PROJECTS[0].sprints[0].id
+let currentView = 'home', activeTask = null
+let currentSections = []
+let tcFilter = 'all', allOpen = false
+
+// ── Navigation ──
+function go(view, tid) {
+  currentView = view
+  const ovEl   = document.getElementById('view-overview')
+  const dashEl = document.getElementById('view-dash')
+  const tcEl   = document.getElementById('view-tc')
+  const homBtn = document.getElementById('home-btn')
+
+  if (view === 'home') {
+    ovEl.classList.remove('hide')
+    dashEl.classList.add('hide')
+    tcEl.classList.add('hide')
+    homBtn.classList.add('on')
+    activeTask = null; currentSections = []
+    renderOverview()
+  } else if (view === 'dash') {
+    ovEl.classList.add('hide')
+    dashEl.classList.remove('hide')
+    tcEl.classList.add('hide')
+    homBtn.classList.remove('on')
+    activeTask = null; currentSections = []
+    renderDash()
+  } else {
+    ovEl.classList.add('hide')
+    dashEl.classList.add('hide')
+    tcEl.classList.remove('hide')
+    homBtn.classList.remove('on')
+    renderTask(tid)
+  }
+  document.getElementById('main').scrollTop = 0
+  renderSidebar()
+}
+
+// ── Selectors ──
+function renderSelectors() {
+  document.getElementById('sel-project').innerHTML = PROJECTS.map(p => `<option value="${p.id}" ${p.id===curProject?'selected':''}>${p.name}</option>`).join('')
+  document.getElementById('sel-sprint').innerHTML = project().sprints.map(s => `<option value="${s.id}" ${s.id===curSprint?'selected':''}>${s.name}</option>`).join('')
+}
+function onProjectChange() { curProject=document.getElementById('sel-project').value; curSprint=project().sprints[0].id; renderSelectors(); go('dash') }
+function onSprintChange()  { curSprint=document.getElementById('sel-sprint').value; go('dash') }
+
+// ── Sidebar ──
+function goToTask(pid, sid, tid) {
+  curProject = pid; curSprint = sid
+  document.getElementById('search').value = ''
+  renderSelectors(); go('task', tid)
+}
+
+function renderSidebar() {
+  const q = document.getElementById('search').value.toLowerCase().trim()
+
+  if (q) {
+    // Global search across all projects/sprints
+    const results = []
+    PROJECTS.forEach(proj => proj.sprints.forEach(spr => spr.tasks.forEach(t => {
+      if ((`#${t.id} ${t.title}`).toLowerCase().includes(q))
+        results.push({ proj, spr, t })
+    })))
+    document.getElementById('sb-sprintlabel').textContent = 'ผลการค้นหา'
+    document.getElementById('sb-count').textContent = results.length
+    document.getElementById('sb-list').innerHTML = results.length ? results.map(({ proj, spr, t }) => {
+      const p = getProgress(t.storageKey)
+      const sel = currentView==='task' && activeTask===t.id && curProject===proj.id && curSprint===spr.id
+      const hasFail = p.fail > 0
+      let badge = p.fail>0
+        ? `<span class="sb-badge fail">${p.fail} Fail</span>`
+        : p.total>0 ? `<span class="sb-badge pass">${p.pass===p.total?'Done':p.pass+'/'+p.total}</span>`
+        : `<span class="sb-badge empty">—</span>`
+      return `<div class="sb-item" style="flex-direction:column;align-items:stretch;gap:2px" onclick="goToTask('${proj.id}','${spr.id}','${t.id}')">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="sid" style="flex:1">#${t.id}</span>
+          ${badge}
+          <a class="sb-open" href="index.html?p=${proj.id}&s=${spr.id}&standalone=1#task=${t.id}" target="_blank" rel="noopener" title="เปิด Testcase" onclick="event.stopPropagation()">↗</a>
+        </div>
+        <div class="sb-title">${t.title}</div>
+        <div class="sb-item-meta">${proj.name} › ${spr.name}</div>
+      </div>`
+    }).join('') : '<div style="padding:12px 8px;font-size:13px;color:var(--faint)">ไม่พบ task ที่ตรงกัน</div>'
+    return
+  }
+
+  // Normal mode — current sprint only
+  document.getElementById('sb-sprintlabel').textContent = sprint().name.toUpperCase() + ' · TASKS'
+  const filtered = sprint().tasks
+  document.getElementById('sb-count').textContent = filtered.length
+  document.getElementById('sb-list').innerHTML = filtered.map(t => {
+    const p = getProgress(t.storageKey)
+    const sel = currentView==='task' && activeTask===t.id
+    const hasFail = p.fail > 0
+    let badge = p.fail>0
+      ? `<span class="sb-badge fail">${p.fail} Fail</span>`
+      : p.total>0 ? `<span class="sb-badge pass">${p.pass===p.total?'Done':p.pass+'/'+p.total}</span>`
+      : `<span class="sb-badge empty">—</span>`
+    return `<div class="sb-item ${sel?'sel':''}" onclick="go('task','${t.id}')">
+      <span class="sid" style="flex:1">#${t.id}</span>
+      ${badge}
+      <a class="sb-open" href="index.html?p=${curProject}&s=${curSprint}&standalone=1#task=${t.id}" target="_blank" rel="noopener" title="เปิด Testcase" onclick="event.stopPropagation()">↗</a>
+    </div>`
+  }).join('')
+}
+
+// ── Overview ──
+function renderOverview() {
+  const tot = { pass:0, fail:0, skip:0, n:0, total:0, tasks:0 }
+  PROJECTS.forEach(p => p.sprints.forEach(s => s.tasks.forEach(t => {
+    const c = getProgress(t.storageKey)
+    tot.pass+=c.pass; tot.fail+=c.fail; tot.skip+=c.skip; tot.n+=c.n; tot.total+=c.total
+    tot.tasks++
+  })))
+
+  const rate = tot.total ? Math.round(tot.pass/tot.total*100) : null
+  const rv = document.getElementById('ov-rate')
+  rv.textContent = rate !== null ? rate+'%' : '—'
+  rv.style.color = rate===null?'var(--text)':rate>=80?'var(--pass)':tot.fail>0?'#d97706':'var(--text)'
+  document.getElementById('ov-bar').innerHTML = barHTML(tot)
+  document.getElementById('ov-legend').innerHTML = [['pass','Pass'],['fail','Fail'],['skip','Skip'],['n','Pending']].map(([k,l]) => {
+    const col = {pass:'var(--pass)',fail:'var(--fail)',skip:'var(--skip)',n:'var(--pending)'}[k]
+    return `<div class="lg"><span class="d" style="background:${col}"></span><span class="n num">${tot[k]}</span><span class="t">${l}</span></div>`
+  }).join('')
+  document.getElementById('ov-total').textContent = tot.total
+  document.getElementById('ov-fail').textContent = tot.fail
+  document.getElementById('ov-fail').style.color = tot.fail>0?'var(--fail)':'var(--faint)'
+  document.getElementById('ov-tasks').textContent = tot.tasks
+  document.getElementById('ov-projs').textContent = PROJECTS.length
+  document.getElementById('ov-sub').textContent = PROJECTS.length+' projects · '+tot.tasks+' tasks'
+
+  document.getElementById('ov-projects').innerHTML = PROJECTS.map(proj => {
+    const projTot = { pass:0, fail:0, skip:0, n:0, total:0 }
+    proj.sprints.forEach(s => s.tasks.forEach(t => {
+      const c = getProgress(t.storageKey)
+      projTot.pass+=c.pass; projTot.fail+=c.fail; projTot.skip+=c.skip; projTot.n+=c.n; projTot.total+=c.total
+    }))
+    const totalTasks = proj.sprints.reduce((a,s) => a+s.tasks.length, 0)
+    const projRate = projTot.total ? Math.round(projTot.pass/projTot.total*100) : null
+
+    const projBadge = projTot.fail>0
+      ? `<span class="sb-badge fail">${projTot.fail} Fail</span>`
+      : projRate!==null ? `<span class="sb-badge pass">${projRate}%</span>` : ''
+
+    const sprintsHtml = proj.sprints.map(spr => {
+      const sprTot = { pass:0, fail:0, skip:0, n:0, total:0 }
+      spr.tasks.forEach(t => {
+        const c = getProgress(t.storageKey)
+        sprTot.pass+=c.pass; sprTot.fail+=c.fail; sprTot.skip+=c.skip; sprTot.n+=c.n; sprTot.total+=c.total
+      })
+      const sprRate = sprTot.total ? Math.round(sprTot.pass/sprTot.total*100) : null
+      const rateCol = sprTot.fail>0?'var(--fail)':sprRate>=80?'var(--pass)':'var(--text)'
+
+      const chips = spr.tasks.map(t => {
+        const tc = getProgress(t.storageKey)
+        let cls = ''
+        if (tc.total===0)          cls = ''
+        else if (tc.fail>0)        cls = 'chip-fail'
+        else if (tc.pass===tc.total) cls = 'chip-pass'
+        else if (tc.n>0)           cls = 'chip-wip'
+        else if (tc.skip>0)        cls = 'chip-skip'
+        return `<span class="ov-chip ${cls}" onclick="goToTask('${proj.id}','${spr.id}','${t.id}');event.stopPropagation()" title="${t.title}">#${t.id}</span>`
+      }).join('')
+
+      return `<div class="ov-sprint-row" onclick="curProject='${proj.id}';curSprint='${spr.id}';renderSelectors();go('dash')">
+        <div class="ov-sprint-name">${spr.name}</div>
+        <div class="ov-sprint-barwrap">
+          <div class="bar" style="height:7px">${barHTML(sprTot)||'<span style="width:100%;background:var(--line2)"></span>'}</div>
+          <div class="ov-sprint-mini">
+            <span class="ov-mini-stat"><span class="dot" style="background:var(--pass)"></span>${sprTot.pass} pass</span>
+            <span class="ov-mini-stat"><span class="dot" style="background:var(--fail)"></span>${sprTot.fail} fail</span>
+            <span class="ov-mini-stat"><span class="dot" style="background:var(--pending)"></span>${sprTot.n} pending</span>
+            <span class="ov-mini-stat" style="color:var(--faint)">${spr.tasks.length} tasks</span>
+          </div>
+        </div>
+        <div class="ov-sprint-rate" style="color:${rateCol}">${sprRate!==null?sprRate+'%':'—'}</div>
+        <button class="ov-sprint-btn">ดู Sprint →</button>
+      </div>`
+    }).join('')
+
+    return `<div class="ov-proj-card">
+      <div class="ov-proj-hd" onclick="toggleOvProject(this)">
+        <div class="ov-proj-name">${proj.name}</div>
+        <div class="ov-proj-meta">${proj.sprints.length} sprint${proj.sprints.length>1?'s':''} · ${totalTasks} tasks · ${projTot.total} TC</div>
+        ${projBadge}
+        <div class="ov-expand-btn">▸</div>
+      </div>
+      <div class="ov-sprints">${sprintsHtml}</div>
+    </div>`
+  }).join('')
+
+  renderSidebar()
+}
+
+function toggleOvProject(hd) {
+  const body = hd.nextElementSibling
+  const btn  = hd.querySelector('.ov-expand-btn')
+  const open = body.classList.toggle('open')
+  btn.textContent = open ? '▾' : '▸'
+  btn.style.color = open ? 'var(--accent)' : ''
+}
+
+// ── Dashboard (Sprint-level) ──
+function renderDash() {
+  const c = sprintTally()
+  const rate = c.total ? Math.round(c.pass/c.total*100) : 0
+  document.getElementById('dash-crumb').innerHTML = `<b>${project().name}</b><span class="sep">›</span><b>${sprint().name}</b>`
+  document.getElementById('d-eyebrow').textContent = project().name.toUpperCase()
+  document.getElementById('d-sprintname').textContent = sprint().name
+  document.getElementById('d-tasks').textContent = sprint().tasks.length
+  document.getElementById('d-total').textContent = c.total
+  const rv = document.getElementById('d-rate')
+  rv.innerHTML = rate+'<span style="font-size:.42em;color:var(--faint)">%</span>'
+  rv.style.color = rate>=80?'var(--pass)':(c.fail>0?'#d97706':'var(--text)')
+  document.getElementById('d-bar').innerHTML = barHTML(c)
+  document.getElementById('d-legend').innerHTML =
+    [['pass','Pass'],['fail','Fail'],['skip','Skip'],['n','Pending']].map(([k,l]) => {
+      const col = {pass:'var(--pass)',fail:'var(--fail)',skip:'var(--skip)',n:'var(--pending)'}[k]
+      return `<div class="lg"><span class="d" style="background:${col}"></span><span class="n num">${c[k]}</span><span class="t">${l}</span></div>`
+    }).join('')
+  const failTasks = sprint().tasks.filter(t=>getProgress(t.storageKey).fail>0).length
+  document.getElementById('d-metrics').innerHTML =
+    [['Pass rate',rate+'%'],['Test cases',c.total],['Tasks with fail',failTasks+'/'+sprint().tasks.length],['Pending',c.n]]
+    .map(([l,v]) => `<div class="metric"><div class="ml">${l}</div><div class="mv num">${v}</div></div>`).join('')
+  document.getElementById('d-taskcount').textContent = sprint().tasks.length
+  document.getElementById('d-tasklist').innerHTML = sprint().tasks.map(t => {
+    const tc = getProgress(t.storageKey)
+    const r = tc.total ? Math.round(tc.pass/tc.total*100) : 0
+    return `<button class="taskrow ${tc.fail>0?'fail':''}" onclick="go('task','${t.id}')">
+      <span class="tid mono">#${t.id}</span>
+      <span class="ttitle">${t.title}</span>
+      <span class="tbar"><span class="bar" style="height:6px">${barHTML(tc)}</span><span class="meta">${tc.pass}/${tc.total} passed${tc.n?' · '+tc.n+' pending':''}</span></span>
+      <span class="tstat" style="color:${tc.fail>0?'var(--fail)':'var(--pass)'}">${tc.fail>0?tc.fail+' Fail':r+'%'}</span>
+    </button>`
+  }).join('')
+  renderSelectors(); renderSidebar()
+}
+
+// ── TC View ──
+async function renderTask(tid) {
+  activeTask = tid
+  const t = task(tid)
+  document.getElementById('tc-crumb').innerHTML = `<b>${project().name}</b><span class="sep">›</span><b>${sprint().name}</b><span class="sep">›</span>#${t.id}`
+  document.getElementById('tc-tid').textContent = '#' + t.id
+  document.getElementById('tc-title').textContent = t.title
+  document.getElementById('tc-link').href = boardUrl(t.id, t)
+  const note = document.getElementById('tc-note')
+  note.classList.add('hide')
+  tcFilter = 'all'; allOpen = false
+  document.querySelectorAll('#tc-filter button').forEach(x => x.classList.toggle('on', x.dataset.f==='all'))
+  document.getElementById('toggle-all').textContent = 'Expand all'
+  document.getElementById('bug-out').classList.remove('open')
+  document.getElementById('export-btn').style.display = 'none'
+  document.getElementById('send-btn').style.display = 'none'
+  document.getElementById('tc-bar').innerHTML = ''
+  document.getElementById('tc-legend').innerHTML = ''
+  document.getElementById('tc-list').innerHTML = '<div class="loading-state">กำลังโหลด test cases...</div>'
+
+  const sections = await loadSections(t)
+  currentSections = sections
+  const isDynamic = !SECTIONS_DB[t.file]
+
+  if (!sections.length) {
+    document.getElementById('tc-list').innerHTML =
+      `<div class="loading-state" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:60px 20px">
+        <div style="font-size:32px;opacity:.2">📋</div>
+        <div style="color:var(--dim);font-size:13px">ยังไม่มี Test Case</div>
+        ${isDynamic
+          ? `<button onclick="addTcDynamic()" style="font-size:13px;padding:7px 20px;border-radius:999px;background:var(--panel2);color:var(--dim);border:1px solid var(--line2);cursor:pointer;font-family:inherit">+ เพิ่ม Test Case</button>`
+          : `<a href="${t.file}" target="_blank" style="font-size:13px;padding:7px 16px;border-radius:999px;background:var(--panel2);color:var(--dim);text-decoration:none;border:1px solid var(--line2)">↗ เปิด Testcase</a>`
+        }
+      </div>`
+    return
+  }
+
+  document.getElementById('tc-list').innerHTML = sections.map((sec, si) =>
+    `<div class="section" id="sec-${si}">
+      ${sec.name ? `<div class="section-hd">${sec.name}<span class="count num">${sec.tcs.length} TC</span></div>` : ''}
+      ${sec.tcs.map(tc => `
+        <div class="tc" id="row-${tc.id}">
+          <div class="tc-head">
+            <div class="tc-meta">
+              <div class="tc-idline">
+                <span class="tc-id mono">${tc.id}</span>
+                <span class="tc-statustag pass">Pass</span>
+                <span class="tc-statustag fail">Fail</span>
+                <span class="tc-statustag skip">Skip</span>
+              </div>
+              <div class="tc-name">${tc.name}</div>
+            </div>
+            <div class="tc-btns">
+              <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+              <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+              <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+              ${isDynamic ? `<button class="tbtn del" onclick="deleteTcDynamic('${tc.id}')" title="ลบ TC นี้">✕</button>` : ''}
+            </div>
+          </div>
+          <button class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</button>
+          <div class="tc-detail" id="detail-${tc.id}">
+            ${tc.precondition?`<div class="dlabel">Precondition</div><div class="dval">${tc.precondition}</div>`:''}
+            <div class="dlabel">Steps</div><div class="dval">${tc.steps?tc.steps.replace(/\n/g,'<br>'):'<span style="color:var(--faint)">—</span>'}</div>
+            <div class="dlabel">Expected</div><div class="dval expected">${tc.expected||'<span style="color:var(--faint)">—</span>'}</div>
+            <div class="dlabel">Actual Result (จากผลเทส)</div>
+            <div class="actual-editor" id="actual-${tc.id}" contenteditable="true" data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+            <div class="save-row"><button class="save-btn" onclick="saveActual('${tc.id}')">บันทึก Actual</button></div>
+          </div>
+        </div>`
+      ).join('')}
+    </div>`
+  ).join('') + (isDynamic ? `<button class="add-tc-btn-idx" onclick="addTcDynamic()">+ เพิ่ม Test Case</button>` : '')
+
+  sections.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+  applyTaskStateToUI(); updateTaskStats(); applyTcFilter()
+  renderSelectors(); renderSidebar()
+}
+
+function addTcDynamic() {
+  const t = task(activeTask)
+  const tcsKey = t.storageKey + '_tcs'
+  let tcs = []
+  try { tcs = JSON.parse(localStorage.getItem(tcsKey) || '[]') } catch(e) {}
+  const nums = tcs.map(tc => parseInt(tc.id.replace('TC-',''), 10)).filter(n => !isNaN(n))
+  const next = nums.length ? Math.max(...nums) + 1 : 1
+  const id = 'TC-' + String(next).padStart(3, '0')
+  tcs.push({ id, name: id, precondition: '', steps: '', expected: '' })
+  localStorage.setItem(tcsKey, JSON.stringify(tcs))
+  renderTask(activeTask)
+}
+
+function deleteTcDynamic(tcId) {
+  if (!confirm('ลบ ' + tcId + '?')) return
+  const t = task(activeTask)
+  const tcsKey = t.storageKey + '_tcs'
+  let tcs = []
+  try { tcs = JSON.parse(localStorage.getItem(tcsKey) || '[]') } catch(e) {}
+  tcs = tcs.filter(tc => tc.id !== tcId)
+  localStorage.setItem(tcsKey, JSON.stringify(tcs))
+  const data = getTaskData(t.storageKey)
+  delete data[tcId]
+  setTaskData(t.storageKey, data)
+  renderTask(activeTask)
+}
+
+function applyTaskStateToUI() {
+  const data = getTaskData(task(activeTask).storageKey)
+  allTcIds().forEach(id => {
+    const s = data[id]
+    if (!s) return
+    if (s.status) {
+      const row = document.getElementById('row-' + id)
+      if (row) row.className = 'tc s-' + s.status
+      const map = {pass:'p',fail:'f',skip:'s'}
+      Object.entries(map).forEach(([st,k]) => {
+        const b = document.getElementById(k+'-'+id)
+        if (b) b.className = 'tbtn' + (s.status===st ? ' a'+k : '')
+      })
+    }
+    if (s.note) {
+      const ed = document.getElementById('actual-'+id)
+      if (ed) ed.innerHTML = s.note
+    }
+  })
+}
+
+function updateTaskStats() {
+  const c = getProgress(task(activeTask).storageKey)
+  document.getElementById('tc-bar').innerHTML = barHTML(c)
+  const rate = c.total ? Math.round(c.pass/c.total*100) : 0
+  const col = rate>=80?'var(--pass)':(c.fail>0?'#d97706':'var(--text)')
+  document.getElementById('tc-legend').innerHTML =
+    [['pass','var(--pass)','Pass'],['fail','var(--fail)','Fail'],['skip','var(--skip)','Skip'],['n','var(--pending)','Pending']].map(([k,clr,l]) =>
+      `<div class="lg"><span class="d" style="background:${clr}"></span><span class="n num">${c[k]}</span><span class="t">${l}</span></div>`
+    ).join('') +
+    `<div class="lg" style="margin-left:8px;border-left:1px solid var(--line2);padding-left:12px"><span class="n num" style="color:var(--dim)">${c.total}</span><span class="t">Total TC</span></div>` +
+    `<div class="rate"><span class="v" style="color:${col}">${rate}<span style="font-size:.6em;color:var(--faint)">%</span></span><span class="lb">Pass Rate</span></div>`
+  document.getElementById('ab-summary').textContent = `${c.pass}/${c.total} passed · ${c.fail} fail`
+}
+
+function setStatus(tcId, st) {
+  const key = task(activeTask).storageKey
+  const data = getTaskData(key)
+  if (!data[tcId]) data[tcId] = {status:null,note:''}
+  data[tcId].status = data[tcId].status===st ? null : st
+  setTaskData(key, data)
+  const row = document.getElementById('row-'+tcId)
+  if (row) row.className = 'tc' + (data[tcId].status ? ' s-'+data[tcId].status : '')
+  const map = {pass:'p',fail:'f',skip:'s'}
+  Object.entries(map).forEach(([full,k]) => {
+    const b = document.getElementById(k+'-'+tcId)
+    if (b) b.className = 'tbtn' + (data[tcId].status===full ? ' a'+k : '')
+  })
+  updateTaskStats(); applyTcFilter(); renderSidebar()
+}
+
+function toggleDetail(id, el) {
+  const open = document.getElementById('detail-'+id).classList.toggle('open')
+  el.innerHTML = open ? '▾ Hide details' : '▸ ดูรายละเอียด'
+}
+
+function setupEditor(id) {
+  const ed = document.getElementById('actual-'+id)
+  if (!ed) return
+  ed.addEventListener('paste', e => {
+    const it = Array.from(e.clipboardData?.items||[]).find(i => i.type.startsWith('image/'))
+    if (!it) return
+    e.preventDefault()
+    const r = new FileReader()
+    r.onload = ev => {
+      const img = document.createElement('img'); img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img); showToast('วางรูปแล้ว')
+    }
+    r.readAsDataURL(it.getAsFile())
+  })
+  ed.addEventListener('dragover', e => e.preventDefault())
+  ed.addEventListener('drop', e => {
+    e.preventDefault()
+    const f = Array.from(e.dataTransfer.files).find(x => x.type.startsWith('image/'))
+    if (!f) return
+    const r = new FileReader()
+    r.onload = ev => {
+      const img = document.createElement('img'); img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src); ed.focus()
+      insertAtCursor(img); showToast('วางรูปแล้ว')
+    }
+    r.readAsDataURL(f)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel||!sel.rangeCount) return
+  const r = sel.getRangeAt(0); r.deleteContents(); r.insertNode(node)
+  r.setStartAfter(node); r.collapse(true); sel.removeAllRanges(); sel.addRange(r)
+}
+
+function saveActual(id) {
+  const key = task(activeTask).storageKey
+  const data = getTaskData(key)
+  if (!data[id]) data[id] = {status:null,note:''}
+  const ed = document.getElementById('actual-'+id)
+  data[id].note = ed ? ed.innerHTML : ''
+  setTaskData(key, data)
+  showToast('บันทึกแล้ว')
+}
+
+function applyTcFilter() {
+  currentSections.forEach((sec, si) => {
+    const data = getTaskData(task(activeTask).storageKey)
+    let shown = 0
+    sec.tcs.forEach(tc => {
+      const row = document.getElementById('row-'+tc.id)
+      const s = data[tc.id]?.status
+      let vis = true
+      if (tcFilter==='fail') vis = s==='fail'
+      else if (tcFilter==='pending') vis = !s
+      if (row) row.style.display = vis ? '' : 'none'
+      if (vis) shown++
+    })
+    const el = document.getElementById('sec-'+si)
+    if (el) el.style.display = shown ? '' : 'none'
+  })
+}
+
+function resetTask() {
+  if (!confirm('รีเซ็ตผลทดสอบของ task นี้?')) return
+  const key = task(activeTask).storageKey
+  const data = {}
+  allTcIds().forEach(id => data[id] = {status:null,note:''})
+  setTaskData(key, data)
+  allTcIds().forEach(id => {
+    const row = document.getElementById('row-'+id)
+    if (row) row.className = 'tc'
+    const map = {pass:'p',fail:'f',skip:'s'}
+    Object.values(map).forEach(k => { const b=document.getElementById(k+'-'+id); if(b) b.className='tbtn' })
+    const ed = document.getElementById('actual-'+id)
+    if (ed) ed.innerHTML = ''
+  })
+  updateTaskStats(); applyTcFilter()
+  document.getElementById('bug-out').classList.remove('open')
+  document.getElementById('export-btn').style.display = 'none'
+  document.getElementById('send-btn').style.display = 'none'
+  renderSidebar()
+}
+
+function showBugReport() {
+  const t = task(activeTask)
+  const data = getTaskData(t.storageKey)
+  const fails = []; let num = 1
+  currentSections.forEach(sec => sec.tcs.forEach(tc => {
+    if (data[tc.id]?.status==='fail') {
+      const ed = document.getElementById('actual-'+tc.id)
+      fails.push({...tc, section:sec.name, actualHtml:ed?ed.innerHTML.trim():'', num:num++})
+    }
+  }))
+  const out=document.getElementById('bug-out'), list=document.getElementById('bug-list'), title=document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'inline-block' : 'none'
+  document.getElementById('send-btn').style.display   = fails.length ? 'inline-block' : 'none'
+  if (!fails.length) {
+    title.textContent=''; list.innerHTML='<div class="no-fail"><span style="width:9px;height:9px;border-radius:3px;background:var(--pass);display:inline-block"></span>ไม่มี Test Case ที่ Fail — ผ่านทั้งหมด</div>'
+    out.scrollIntoView({behavior:'smooth',block:'start'}); return
+  }
+  title.textContent = 'พบ '+fails.length+' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `<div class="bug-item">
+    <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+    <div class="bug-name">${f.name}</div>
+    ${f.precondition?`<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>`:''}
+    <div class="bug-line"><b>Steps:</b> ${f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;')}</div>
+    <div class="bug-line"><b>Expected:</b> ${f.expected}</div>
+    <div class="bug-line"><b>Actual result:</b></div>
+    <div class="bug-actual">${f.actualHtml||'<span style="color:var(--faint)">ยังไม่ได้ระบุ</span>'}</div>
+  </div>`).join('')
+  out.scrollIntoView({behavior:'smooth',block:'start'})
+}
+
+function buildPayload() {
+  const t = task(activeTask)
+  const data = getTaskData(t.storageKey)
+  const fails = []
+  currentSections.forEach(sec => sec.tcs.forEach(tc => {
+    if (data[tc.id]?.status==='fail') {
+      const ed = document.getElementById('actual-'+tc.id)
+      const images = []; if (ed) ed.querySelectorAll('img').forEach(i => images.push(i.src))
+      fails.push({tc_id:tc.id,name:tc.name,section:sec.name,precondition:tc.precondition||'',steps:tc.steps,expected:tc.expected,actual:ed?ed.innerText.trim():'ยังไม่ได้ระบุ',images})
+    }
+  }))
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  const c = getProgress(t.storageKey)
+  return {task_url:boardUrl(t.id,t),task_number:t.id,task_name:t.title,project:project().name,sprint:sprint().name,total_pass:c.pass,total_fail:fails.length,total_skip:c.skip,total_tc:c.total,bugs:fails}
+}
+
+function exportBugJSON() {
+  const p = buildPayload(); if (!p) return
+  const blob = new Blob([JSON.stringify(p,null,2)],{type:'application/json'})
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bug-report-'+p.task_number+'.json'; a.click()
+  showToast('ดาวน์โหลด bug-report-'+p.task_number+'.json แล้ว')
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div'); progressEl.className='send-progress'
+  progressEl.innerHTML='<div class="send-progress-title">กำลังส่ง Bug Report...</div><div class="send-step" id="sp-0">→ ส่งไป proxy...</div>'
+  document.body.appendChild(progressEl)
+}
+function showSendDone(m) { if(!progressEl)return; const s=progressEl.querySelector('#sp-0'); s.className='send-step done'; s.textContent='✓ '+m; setTimeout(()=>{progressEl?.remove();progressEl=null},3000) }
+function showSendErr(m)  { if(!progressEl)return; const s=progressEl.querySelector('#sp-0'); s.className='send-step err';  s.textContent='✗ '+m; setTimeout(()=>{progressEl?.remove();progressEl=null},5000) }
+
+async function sendToBoard() {
+  const p = buildPayload(); if (!p) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})
+    const d = await r.json()
+    if (d.ok) { showSendDone(`ส่ง ${p.total_fail} bugs สำเร็จ!`); showToast(`ส่ง ${p.total_fail} bugs เข้า Task #${p.task_number} แล้ว`) }
+    else       { showSendErr(d.error||'ส่งไม่สำเร็จ'); showToast(d.error||'ส่งไม่สำเร็จ') }
+  } catch(e) { showSendErr('เปิด proxy ก่อน'); showToast('ไม่พบ proxy — รัน: python proxy.py'); console.error(e) }
+}
+
+function openLightbox(src) {
+  const o=document.createElement('div'); o.className='lb-overlay'
+  const img=document.createElement('img'); img.src=src
+  const c=document.createElement('button'); c.className='lb-close'; c.textContent='✕'
+  o.appendChild(img); o.appendChild(c); document.body.appendChild(o)
+  const rm=()=>o.remove()
+  c.onclick=e=>{e.stopPropagation();rm()}; o.onclick=rm; img.onclick=e=>e.stopPropagation()
+  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){rm();document.removeEventListener('keydown',esc)}})
+}
+document.getElementById('bug-list').addEventListener('click',e=>{if(e.target.tagName==='IMG')openLightbox(e.target.src)})
+
+function showToast(m) {
+  const t=document.createElement('div'); t.className='toast'; t.textContent=m
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2200)
+}
+
+// ── Event listeners ──
+document.getElementById('sel-project').addEventListener('change', onProjectChange)
+document.getElementById('sel-sprint').addEventListener('change', onSprintChange)
+document.getElementById('back-btn').onclick = () => go('home')
+document.getElementById('search').addEventListener('input', renderSidebar)
+document.getElementById('tc-filter').addEventListener('click', e => {
+  const b = e.target.closest('button[data-f]'); if (!b) return
+  tcFilter = b.dataset.f
+  document.querySelectorAll('#tc-filter button').forEach(x => x.classList.toggle('on', x===b))
+  applyTcFilter()
+})
+document.getElementById('toggle-all').addEventListener('click', e => {
+  allOpen = !allOpen
+  document.querySelectorAll('.tc-detail').forEach(d => d.classList.toggle('open', allOpen))
+  document.querySelectorAll('.tc-toggle').forEach(t => t.innerHTML = allOpen ? '▾ Hide details' : '▸ ดูรายละเอียด')
+  e.target.textContent = allOpen ? 'Collapse all' : 'Expand all'
+})
+
+// ── Init ──
+;(function() {
+  const params = new URLSearchParams(location.search)
+  const hashStr = location.hash.slice(1)               // e.g. "task=403"
+  const hashTask = hashStr.startsWith('task=') ? hashStr.replace('task=','') : hashStr
+
+  // standalone mode
+  if (params.get('standalone') === '1') {
+    document.querySelector('.app').classList.add('standalone')
+  }
+
+  // set project / sprint from URL params
+  const pParam = params.get('p'), sParam = params.get('s')
+  if (pParam) {
+    const proj = PROJECTS.find(p => p.id === pParam)
+    if (proj) {
+      curProject = proj.id
+      const spr = sParam ? proj.sprints.find(s => s.id === sParam) : proj.sprints[0]
+      if (spr) curSprint = spr.id
+    }
+  }
+
+  renderSelectors()
+
+  // navigate to task from hash
+  if (hashTask) {
+    const found = sprint().tasks.find(t => t.id === hashTask)
+    if (found) { go('task', found.id); return }
+  }
+  go('home')
+})()
+</script>
+</body>
+</html>

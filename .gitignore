@@ -1,0 +1,20 @@
+# Credentials & secrets — ห้าม push เด็ดขาด
+.env
+session.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Playwright screenshots (generated automatically)
+screenshots/
+
+# Logs & temp
+err.txt
+New Text Document.txt
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

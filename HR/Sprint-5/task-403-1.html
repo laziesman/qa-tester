@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 403 — ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงานของพนักงาน</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#f8f8f7;color:#F8FAFC;font-size:15px}
+
+/* Topbar */
+.topbar{background:#1E293B;border-bottom:0.5px solid #e8e8e8;padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.back-btn{font-size:13px;color:rgba(248,250,252,0.5);border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:4px 10px;cursor:pointer;background:#fafafa;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.back-btn:hover{background:#f0f0f0}
+.topbar-title{font-size:15px;font-weight:500;color:#F8FAFC;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:13px;color:rgba(248,250,252,0.35);white-space:nowrap}
+.task-link{color:#F8FAFC;text-decoration:none}
+.task-link:hover{text-decoration:underline;color:rgba(248,250,252,0.65)}
+
+/* Stats */
+.stats-bar{background:#1E293B;border-bottom:0.5px solid #e8e8e8;padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(52,168,105,0.18);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.18);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.18);color:#f6a942}
+.pl-pend{background:#f0f0f0;color:rgba(248,250,252,0.4)}
+
+/* Body */
+.body{padding:12px 14px;max-width:900px;margin:0 auto}
+.section-hd{font-size:11px;font-weight:500;color:rgba(248,250,252,0.35);letter-spacing:0.08em;padding:12px 0 6px;text-transform:uppercase}
+
+/* TC Row */
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.4)}
+
+/* Detail */
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+
+/* Rich editor */
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:inline-block;margin:4px 2px;cursor:pointer;vertical-align:middle}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+
+/* Bottom bar */
+.bottom-bar{display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:0.5px solid #e8e8e8}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+
+/* Bug output */
+.bug-out{margin-top:16px;display:none}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+
+/* Lightbox */
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+.file-badge{font-size:12px;color:#7ec87e;background:rgba(52,168,105,0.18);padding:3px 10px;border-radius:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="../../index.html">← กลับ</a>
+  <div class="topbar-title"><a class="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/403" target="_blank">#403 — ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงานของพนักงาน</a></div>
+  <div class="topbar-meta">HR · Sprint 5</div>
+</div>
+
+<div class="stats-bar">
+  <span class="pill pl-pass" id="sp">Pass 0</span>
+  <span class="pill pl-fail" id="sf">Fail 0</span>
+  <span class="pill pl-skip" id="ss">Skip 0</span>
+  <span class="pill pl-pend" id="sn">Pending 0</span>
+</div>
+
+<div class="body">
+  <div id="tc-list"></div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn" id="btn-file" onclick="connectFile()">📁 เชื่อมต่อไฟล์</button>
+    <span id="file-badge" class="file-badge" style="display:none"></span>
+    <div style="flex:1"></div>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'qa_task_403'
+const FILE_NAME = 'task-403-results.json'
+let fileHandle = null
+
+const SECTIONS = [
+  {
+    name: 'ส่วนที่ 1 — เลือกพนักงาน',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'Happy Path — ค้นหาพนักงาน Active ด้วยรหัส dropdown แสดงผลถูกต้อง',
+        precondition: 'มีพนักงานสถานะ Active อยู่ในระบบ',
+        steps: '1. เปิดฟอร์มบันทึกการเปลี่ยนแปลง\n2. พิมพ์รหัสพนักงาน Active ใน field รหัสพนักงาน\n3. สังเกต dropdown ที่แสดงขึ้น',
+        expected: 'Dropdown แสดงชื่อพนักงานที่ตรงกับรหัสที่พิมพ์ สามารถเลือกได้'
+      },
+      {
+        id: 'TC-002',
+        name: 'ชื่อ-สกุล auto-fill และ read-only หลังเลือกพนักงาน',
+        precondition: 'เปิดฟอร์มและค้นหาพนักงานแล้ว',
+        steps: '1. เลือกพนักงานจาก dropdown\n2. สังเกต field ชื่อ-สกุล\n3. พยายามพิมพ์ใน field ชื่อ-สกุล',
+        expected: 'ชื่อ-สกุล auto-fill ตรงกับพนักงานที่เลือก และเป็น read-only ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-003',
+        name: 'Dropdown แสดงเฉพาะพนักงานสถานะ Active เท่านั้น',
+        precondition: 'มีพนักงานทั้งสถานะ Active และ Inactive / Resigned ในระบบ',
+        steps: '1. พิมพ์คำค้นหาที่ตรงกับทั้งพนักงาน Active และ Inactive\n2. สังเกตผลลัพธ์ใน dropdown',
+        expected: 'Dropdown แสดงเฉพาะพนักงาน Active ไม่แสดงพนักงาน Inactive หรือ Resigned'
+      },
+      {
+        id: 'TC-004',
+        name: 'ค้นหาด้วยรหัสที่ไม่มีในระบบ — dropdown ไม่แสดงผล',
+        precondition: 'เปิดฟอร์ม',
+        steps: '1. พิมพ์รหัสพนักงานที่ไม่มีอยู่ในระบบ\n2. สังเกต dropdown',
+        expected: 'Dropdown ไม่แสดงผลลัพธ์ หรือแสดงข้อความ "ไม่พบข้อมูล"'
+      },
+      {
+        id: 'TC-005',
+        name: 'รหัสพนักงาน required — บันทึกไม่ได้ถ้าไม่เลือกพนักงาน',
+        precondition: 'เปิดฟอร์ม ยังไม่ได้เลือกพนักงาน',
+        steps: '1. ไม่เลือกพนักงาน\n2. กรอกข้อมูลอื่นครบ\n3. กดปุ่ม บันทึกการเปลี่ยนแปลง',
+        expected: 'ระบบแสดง error ที่ field รหัสพนักงาน บันทึกไม่สำเร็จ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ประเภทการเปลี่ยนแปลง',
+    tcs: [
+      {
+        id: 'TC-006',
+        name: 'เลือก checkbox ได้หลายประเภทพร้อมกัน — ฟอร์มแสดงทุก section',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. เลือก checkbox "เปลี่ยนตำแหน่ง"\n2. เลือก checkbox "ปรับเงินเดือน" เพิ่ม\n3. สังเกตฟอร์ม',
+        expected: 'ทั้งสอง checkbox ถูกเลือกพร้อมกัน ฟอร์มแสดง section ของทั้งสองประเภทพร้อมกัน'
+      },
+      {
+        id: 'TC-007',
+        name: 'ไม่เลือกประเภทการเปลี่ยนแปลงเลย — บันทึกไม่ได้',
+        precondition: 'เลือกพนักงานแล้ว ไม่ได้ติ๊ก checkbox ใด',
+        steps: '1. เลือกพนักงาน\n2. ไม่เลือก checkbox ประเภทการเปลี่ยนแปลงใดเลย\n3. กรอกวันที่มีผล\n4. กดบันทึก',
+        expected: 'ระบบแสดง error "ต้องเลือกประเภทการเปลี่ยนแปลงอย่างน้อย 1 ข้อ" บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-008',
+        name: 'เลือกทั้ง 3 ประเภทพร้อมกัน — ฟอร์มแสดงครบทุก section',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. เลือก checkbox ทั้ง 3: เปลี่ยนตำแหน่ง / เปลี่ยนแผนก-ฝ่าย / ปรับเงินเดือน\n2. สังเกตฟอร์ม',
+        expected: 'ฟอร์มแสดง section ของทั้ง 3 ประเภทพร้อมกัน ฟิลด์ครบทุกกลุ่ม'
+      },
+      {
+        id: 'TC-009',
+        name: 'ยกเลิก checkbox — section ที่เกี่ยวข้องซ่อนหาย',
+        precondition: 'เลือก checkbox "เปลี่ยนตำแหน่ง" ไว้แล้ว',
+        steps: '1. สังเกตว่า section เปลี่ยนตำแหน่งแสดงอยู่\n2. ยกเลิก checkbox "เปลี่ยนตำแหน่ง"\n3. สังเกตฟอร์ม',
+        expected: 'Section เปลี่ยนตำแหน่งซ่อนหายทันที'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — เปลี่ยนตำแหน่ง',
+    tcs: [
+      {
+        id: 'TC-010',
+        name: 'ตำแหน่งเดิม auto-fill read-only จากข้อมูลปัจจุบัน',
+        precondition: 'เลือกพนักงานและติ๊ก "เปลี่ยนตำแหน่ง" แล้ว',
+        steps: '1. สังเกต field ตำแหน่งเดิม\n2. พยายามแก้ไข field ตำแหน่งเดิม',
+        expected: 'ตำแหน่งเดิม auto-fill ตรงกับตำแหน่งปัจจุบันของพนักงาน เป็น read-only แก้ไขไม่ได้'
+      },
+      {
+        id: 'TC-011',
+        name: 'ตำแหน่งใหม่ required — บันทึกไม่ได้ถ้าไม่เลือก',
+        precondition: 'ติ๊ก "เปลี่ยนตำแหน่ง" แล้ว',
+        steps: '1. ไม่เลือกตำแหน่งใหม่\n2. กรอกข้อมูลอื่นครบ\n3. กดบันทึก',
+        expected: 'ระบบแสดง error ที่ field ตำแหน่งใหม่ บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-012',
+        name: 'ระดับพนักงาน auto-fill ตามตำแหน่งใหม่ที่เลือก',
+        precondition: 'ติ๊ก "เปลี่ยนตำแหน่ง" และเปิด dropdown ตำแหน่งใหม่',
+        steps: '1. เลือกตำแหน่งใหม่จาก dropdown\n2. สังเกต field ระดับพนักงาน',
+        expected: 'ระดับพนักงาน auto-fill ตามตำแหน่งใหม่ที่เลือกทันที'
+      },
+      {
+        id: 'TC-013',
+        name: 'เลือกตำแหน่งใหม่เหมือนตำแหน่งเดิม — ไม่มี error/warning',
+        precondition: 'ติ๊ก "เปลี่ยนตำแหน่ง" ทราบตำแหน่งปัจจุบันของพนักงาน',
+        steps: '1. เลือกตำแหน่งใหม่เป็นตำแหน่งเดียวกับตำแหน่งเดิม\n2. กรอกข้อมูลอื่นครบ\n3. กดบันทึก',
+        expected: 'ระบบไม่แสดง error หรือ warning เกี่ยวกับตำแหน่ง บันทึกสำเร็จตามปกติ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — เปลี่ยนแผนก / ฝ่าย',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'แผนก/ฝ่ายเดิม auto-fill read-only จากข้อมูลปัจจุบัน',
+        precondition: 'เลือกพนักงานและติ๊ก "เปลี่ยนแผนก/ฝ่าย" แล้ว',
+        steps: '1. สังเกต field แผนก/ฝ่ายเดิม\n2. พยายามแก้ไข',
+        expected: 'แผนก/ฝ่ายเดิม auto-fill จากข้อมูลปัจจุบัน เป็น read-only ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-015',
+        name: 'แผนก/ฝ่ายใหม่ required — บันทึกไม่ได้ถ้าไม่เลือก',
+        precondition: 'ติ๊ก "เปลี่ยนแผนก/ฝ่าย" แล้ว',
+        steps: '1. ไม่เลือกแผนก/ฝ่ายใหม่\n2. กรอกข้อมูลอื่นครบ\n3. กดบันทึก',
+        expected: 'ระบบแสดง error ที่ field แผนก/ฝ่ายใหม่ บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-016',
+        name: 'สาขาที่ทำงาน auto-fill เมื่อเลือกแผนก/ฝ่ายใหม่',
+        precondition: 'ติ๊ก "เปลี่ยนแผนก/ฝ่าย" แล้ว',
+        steps: '1. เลือกแผนก/ฝ่ายใหม่จาก dropdown\n2. สังเกต field สาขาที่ทำงาน',
+        expected: 'สาขาที่ทำงาน auto-fill ตามแผนก/ฝ่ายใหม่ที่เลือก'
+      },
+      {
+        id: 'TC-017',
+        name: 'สาขาที่ทำงาน สามารถเปลี่ยนใหม่ได้ (ไม่ lock)',
+        precondition: 'สาขาที่ทำงาน auto-fill แล้วจากการเลือกแผนก/ฝ่ายใหม่',
+        steps: '1. คลิก field สาขาที่ทำงาน\n2. เลือกสาขาอื่นจาก dropdown',
+        expected: 'สามารถเปลี่ยนสาขาได้ ค่าเปลี่ยนตามที่เลือก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — ปรับเงินเดือน',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'เงินเดือนเดิม auto-fill read-only จากข้อมูลปัจจุบัน',
+        precondition: 'เลือกพนักงานและติ๊ก "ปรับเงินเดือน" แล้ว',
+        steps: '1. สังเกต field เงินเดือนเดิม\n2. พยายามแก้ไข',
+        expected: 'เงินเดือนเดิม auto-fill ตรงกับข้อมูลปัจจุบัน เป็น read-only'
+      },
+      {
+        id: 'TC-019',
+        name: 'เงินเดือนใหม่ required — บันทึกไม่ได้ถ้าว่าง',
+        precondition: 'ติ๊ก "ปรับเงินเดือน" แล้ว',
+        steps: '1. ไม่กรอกเงินเดือนใหม่\n2. กรอกข้อมูลอื่นครบ\n3. กดบันทึก',
+        expected: 'ระบบแสดง error ที่ field เงินเดือนใหม่ บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-020',
+        name: 'เงินเดือนใหม่ = 0 หรือติดลบ — block บันทึก',
+        precondition: 'ติ๊ก "ปรับเงินเดือน" แล้ว',
+        steps: '1. พิมพ์ค่า 0 ใน field เงินเดือนใหม่\n2. กดบันทึก\n3. ทดสอบซ้ำด้วยค่าติดลบ (-1000)',
+        expected: 'ระบบแสดง error "เงินเดือนใหม่ต้องเป็นตัวเลขมากกว่า 0" บันทึกไม่สำเร็จทั้งสองกรณี'
+      },
+      {
+        id: 'TC-021',
+        name: 'อัตราการเปลี่ยนแปลง คำนวณ real-time — แสดง +X.X%',
+        precondition: 'ติ๊ก "ปรับเงินเดือน" มีเงินเดือนเดิม auto-fill แล้ว',
+        steps: '1. กรอกเงินเดือนใหม่ที่มากกว่าเดิม เช่น เดิม 30,000 ใหม่ 32,550\n2. สังเกต field อัตราการเปลี่ยนแปลง',
+        expected: 'อัตราการเปลี่ยนแปลงคำนวณทันที ตามสูตร ((ใหม่-เดิม)/เดิม)×100 ในตัวอย่างแสดง "+8.5%"'
+      },
+      {
+        id: 'TC-022',
+        name: 'เงินเดือนใหม่น้อยกว่าเดิม — warning สีส้ม ไม่บล็อคการบันทึก',
+        precondition: 'ติ๊ก "ปรับเงินเดือน" มีเงินเดือนเดิม auto-fill แล้ว',
+        steps: '1. กรอกเงินเดือนใหม่น้อยกว่าเดิม\n2. สังเกต warning\n3. กดบันทึกต่อ',
+        expected: 'แสดง warning สีส้ม "เงินเดือนใหม่น้อยกว่าเดิม ต้องการดำเนินการต่อหรือไม่?" แต่ยังสามารถบันทึกได้ (ไม่บล็อค)'
+      },
+      {
+        id: 'TC-023',
+        name: 'เลือก "ปรับเงินเดือน" — sync ไปยัง 7.3 อัตโนมัติ ไม่บันทึกซ้ำ',
+        precondition: 'ติ๊ก "ปรับเงินเดือน" กรอกข้อมูลครบ',
+        steps: '1. บันทึกรายการที่มี "ปรับเงินเดือน" สำเร็จ\n2. เปิดหน้า 7.3\n3. ตรวจสอบรายการ',
+        expected: 'รายการปรับเงินเดือนปรากฏใน 7.3 โดยอัตโนมัติ ไม่ต้องบันทึกซ้ำในหน้า 7.3'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — รายละเอียดเพิ่มเติม',
+    tcs: [
+      {
+        id: 'TC-024',
+        name: 'วันที่มีผล required — บันทึกไม่ได้ถ้าว่าง',
+        precondition: 'กรอกข้อมูลอื่นครบ ยังไม่กรอกวันที่มีผล',
+        steps: '1. ไม่กรอกวันที่มีผล\n2. กดบันทึก',
+        expected: 'ระบบแสดง error ที่ field วันที่มีผล บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-025',
+        name: 'วันที่มีผลก่อนวันเริ่มงานพนักงาน — error บล็อคการบันทึก',
+        precondition: 'ทราบวันเริ่มงานของพนักงานที่เลือก',
+        steps: '1. กรอกวันที่มีผลก่อนวันเริ่มงานของพนักงาน\n2. กดบันทึก',
+        expected: 'ระบบแสดง error "วันที่มีผลต้องไม่ก่อนวันเริ่มงาน [วันเริ่มงาน]" บันทึกไม่สำเร็จ'
+      },
+      {
+        id: 'TC-026',
+        name: 'วันที่มีผลซ้ำกับรายการที่บันทึกไว้แล้ว — warning ไม่บล็อค',
+        precondition: 'มีรายการที่บันทึกในวันดังกล่าวอยู่แล้ว',
+        steps: '1. กรอกวันที่มีผลเป็นวันเดียวกับที่มีรายการอยู่แล้ว\n2. สังเกต warning\n3. กดบันทึกต่อ',
+        expected: 'ระบบแสดง warning "มีการบันทึกในวันนี้แล้ว ต้องการบันทึกเพิ่มหรือไม่?" แต่ยังบันทึกได้ (ไม่บล็อค)'
+      },
+      {
+        id: 'TC-027',
+        name: 'เหตุผล/หมายเหตุ ไม่ใช่ required — บันทึกได้แม้ว่าง',
+        precondition: 'กรอกข้อมูล required ครบทุก field',
+        steps: '1. ไม่กรอกเหตุผล/หมายเหตุ\n2. กดบันทึก',
+        expected: 'บันทึกสำเร็จ ไม่มี error สำหรับ field เหตุผล/หมายเหตุ'
+      },
+      {
+        id: 'TC-028',
+        name: 'แนบเอกสารอ้างอิง ไม่ใช่ required — บันทึกได้โดยไม่แนบ',
+        precondition: 'กรอกข้อมูล required ครบทุก field',
+        steps: '1. ไม่แนบเอกสารใดๆ\n2. กดบันทึก',
+        expected: 'บันทึกสำเร็จ ไม่มี error เกี่ยวกับเอกสารแนบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — บันทึก / Post-save',
+    tcs: [
+      {
+        id: 'TC-029',
+        name: 'Happy Path — บันทึกสำเร็จ Toast แสดง "บันทึกข้อมูลการทำงานสำเร็จ"',
+        precondition: 'กรอกข้อมูล required ทั้งหมดครบถ้วน',
+        steps: '1. เลือกพนักงาน Active\n2. เลือกประเภทการเปลี่ยนแปลง ≥ 1 ข้อ\n3. กรอกข้อมูลครบ\n4. กดปุ่ม "บันทึกการเปลี่ยนแปลง"',
+        expected: 'บันทึกสำเร็จ Toast แสดง "บันทึกข้อมูลการทำงานสำเร็จ"'
+      },
+      {
+        id: 'TC-030',
+        name: 'ข้อมูลปัจจุบันพนักงานอัปเดตทันที กรณีวันที่มีผล ≤ วันนี้',
+        precondition: 'บันทึกสำเร็จโดยใช้วันที่มีผลเป็นวันนี้หรือย้อนหลัง',
+        steps: '1. บันทึกการเปลี่ยนแปลงโดยใช้วันที่มีผลเป็นวันนี้\n2. เปิดดูข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงาน (ตำแหน่ง/แผนก/เงินเดือน) อัปเดตทันที ตรงกับข้อมูล After ที่บันทึก'
+      },
+      {
+        id: 'TC-031',
+        name: 'ข้อมูลปัจจุบันพนักงานไม่เปลี่ยน กรณีวันที่มีผลเป็นอนาคต',
+        precondition: 'บันทึกสำเร็จโดยใช้วันที่มีผลเป็นวันในอนาคต',
+        steps: '1. บันทึกการเปลี่ยนแปลงโดยใช้วันที่มีผลเป็นอนาคต\n2. เปิดดูข้อมูลปัจจุบันของพนักงาน',
+        expected: 'ข้อมูลปัจจุบันของพนักงานไม่เปลี่ยนแปลง (รอถึงวันที่มีผล)'
+      },
+      {
+        id: 'TC-032',
+        name: 'รายการใหม่แสดงเป็นอันดับแรกในหน้ารายการ',
+        precondition: 'บันทึกสำเร็จแล้ว (ต่อจาก TC-029)',
+        steps: '1. ดูหน้ารายการประวัติการเปลี่ยนแปลง',
+        expected: 'รายการที่เพิ่งบันทึกแสดงเป็นอันดับแรก (บนสุด) ของรายการ'
+      },
+      {
+        id: 'TC-033',
+        name: 'กด ยกเลิก — กลับหน้ารายการโดยไม่บันทึก',
+        precondition: 'กรอกข้อมูลบางส่วนในฟอร์มแล้ว',
+        steps: '1. กรอกข้อมูลในฟอร์มบางส่วน\n2. กดปุ่ม ยกเลิก',
+        expected: 'กลับสู่หน้ารายการ ข้อมูลที่กรอกไม่ถูกบันทึก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — Out-of-scope',
+    tcs: [
+      {
+        id: 'TC-034',
+        name: '[SKIP] ส่งเมลแจ้งพนักงาน — ทำผ่าน Cronjob นอกขอบเขตฟอร์มนี้',
+        precondition: 'บันทึกสำเร็จแล้ว',
+        steps: '1. ตรวจสอบว่าพนักงานได้รับเมลแจ้งหลังบันทึก',
+        expected: '[Out-of-scope] การส่งเมลจัดการผ่าน Cronjob ไม่ใช่ฟอร์มนี้ — ข้ามรายการนี้'
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+state['TC-034'].status = 'skip'
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  writeToFile()
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) {
+        state[id].status = data[id].status
+        state[id].note = data[id].note || ''
+      }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++
+    else if(v.status==='fail') f++
+    else if(v.status==='skip') s++
+    else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats()
+  saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+
+  editor.addEventListener('focus', () => { activeEditor = id })
+
+  editor.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'IMG') return
+    const range = document.createRange()
+    range.selectNode(e.target)
+    const sel = window.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(range)
+  })
+
+  editor.addEventListener('dblclick', (e) => {
+    if (e.target.tagName !== 'IMG') return
+    openLightbox(e.target.src)
+  })
+
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      insertAtCursor(img)
+      showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+
+  editor.addEventListener('dragover', (e) => { e.preventDefault() })
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      editor.focus()
+      insertAtCursor(img)
+      showToast('📎 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents()
+  range.insertNode(node)
+  range.setStartAfter(node)
+  range.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState()
+  showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img')
+  img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'
+  close.textContent = '✕'
+  overlay.appendChild(img)
+  overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm
+  img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด?')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  state['TC-034'].status = 'skip'
+  document.querySelectorAll('.tc-row').forEach(r => r.className = 'tc-row')
+  document.querySelectorAll('.tbtn').forEach(b => b.className = 'tbtn')
+  document.querySelectorAll('.actual-editor').forEach(e => e.innerHTML = '')
+  document.getElementById('bug-out').classList.remove('open')
+  const row034 = document.getElementById('row-TC-034')
+  if (row034) row034.className = 'tc-row s-skip'
+  const sBtn034 = document.getElementById('s-TC-034')
+  if (sBtn034) sBtn034.className = 'tbtn as'
+  updateStats()
+  writeToFile()
+}
+
+function showBugReport() {
+  const fails = []
+  let num = 1
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const actual = editor ? editor.innerText.trim() : ''
+        fails.push({ ...tc, section: sec.name, actual, num: num++ })
+      }
+    })
+  })
+
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+
+  if (!fails.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:4px">${f.name}</div>
+      <div class="bug-line"><b>• ทำ:</b> ${f.steps.split('\n')[0]}</div>
+      <div class="bug-line"><b>• ควรได้:</b> ${f.expected}</div>
+      <div class="bug-line"><b>• ได้จริง:</b> ${f.actual || 'ยังไม่ได้ระบุ'}</div>
+    </div>
+  `).join('')
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+// --- File System ---
+async function dbGet(key) {
+  return new Promise(resolve => {
+    const req = indexedDB.open('qa_handles', 1)
+    req.onupgradeneeded = e => e.target.result.createObjectStore('h')
+    req.onsuccess = e => {
+      const tx = e.target.result.transaction('h', 'readonly')
+      const r = tx.objectStore('h').get(key)
+      r.onsuccess = () => resolve(r.result ?? null)
+      r.onerror = () => resolve(null)
+    }
+    req.onerror = () => resolve(null)
+  })
+}
+
+async function dbSet(key, val) {
+  return new Promise(resolve => {
+    const req = indexedDB.open('qa_handles', 1)
+    req.onupgradeneeded = e => e.target.result.createObjectStore('h')
+    req.onsuccess = e => {
+      const tx = e.target.result.transaction('h', 'readwrite')
+      tx.objectStore('h').put(val, key)
+      tx.oncomplete = resolve
+      tx.onerror = resolve
+    }
+    req.onerror = resolve
+  })
+}
+
+function setFileBadge(name) {
+  const badge = document.getElementById('file-badge')
+  const btn = document.getElementById('btn-file')
+  if (name) {
+    badge.textContent = '📄 ' + name
+    badge.style.display = ''
+    btn.textContent = '🔄 เปลี่ยนไฟล์'
+  } else {
+    badge.style.display = 'none'
+    btn.textContent = '📁 เชื่อมต่อไฟล์'
+  }
+}
+
+async function writeToFile() {
+  if (!fileHandle) return
+  try {
+    const data = {}
+    Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+    const w = await fileHandle.createWritable()
+    await w.write(JSON.stringify(data, null, 2))
+    await w.close()
+  } catch(e) {
+    if (e.name === 'NotAllowedError') {
+      try {
+        const perm = await fileHandle.requestPermission({ mode: 'readwrite' })
+        if (perm === 'granted') await writeToFile()
+      } catch(_) { fileHandle = null; setFileBadge(null) }
+    }
+  }
+}
+
+async function connectFile() {
+  if (!window.showSaveFilePicker) {
+    showToast('❌ ใช้ Chrome หรือ Edge เพื่อใช้งานฟีเจอร์นี้')
+    return
+  }
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: FILE_NAME,
+      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+    })
+    fileHandle = handle
+    await dbSet(STORAGE_KEY, handle)
+    const file = await handle.getFile()
+    if (file.size > 0) {
+      try {
+        const data = JSON.parse(await file.text())
+        Object.keys(data).forEach(id => {
+          if (state[id]) { state[id].status = data[id].status; state[id].note = data[id].note || '' }
+        })
+        applyStateToUI()
+        updateStats()
+        saveState()
+        showToast('📂 โหลดข้อมูลจากไฟล์แล้ว')
+      } catch(_) { await writeToFile(); showToast('💾 เชื่อมต่อไฟล์แล้ว') }
+    } else {
+      await writeToFile()
+      showToast('💾 เชื่อมต่อไฟล์แล้ว')
+    }
+    setFileBadge(file.name)
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('❌ ' + (e.message || 'เกิดข้อผิดพลาด'))
+  }
+}
+
+async function initFileHandle() {
+  const handle = await dbGet(STORAGE_KEY)
+  if (!handle) return
+  try {
+    fileHandle = handle
+    const file = await handle.getFile()
+    const perm = await handle.queryPermission({ mode: 'readwrite' })
+    setFileBadge(file.name + (perm !== 'granted' ? ' ⚠️' : ''))
+  } catch(e) {}
+}
+
+function applyStateToUI() {
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+    const s = state[tc.id]
+    if (!s) return
+    const row = document.getElementById('row-' + tc.id)
+    if (!row) return
+    row.className = 'tc-row' + (s.status ? ' s-' + s.status : '')
+    ;['p','f','s'].forEach(k => {
+      const map = {p:'pass',f:'fail',s:'skip'}
+      const btn = document.getElementById(k + '-' + tc.id)
+      if (btn) btn.className = 'tbtn' + (s.status === map[k] ? ' a'+k : '')
+    })
+    if (s.note) {
+      const editor = document.getElementById('actual-' + tc.id)
+      if (editor) editor.innerHTML = s.note
+    }
+  }))
+}
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML = SECTIONS.map(sec => `
+    <div>
+      <div class="section-hd">${sec.name}</div>
+      ${sec.tcs.map(tc => `
+        <div class="tc-row" id="row-${tc.id}">
+          <div class="tc-top">
+            <div class="tc-id">${tc.id}</div>
+            <div class="tc-name">${tc.name}</div>
+            <div class="tc-btns">
+              <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+              <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+              <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+            </div>
+          </div>
+          <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+          <div class="tc-detail" id="detail-${tc.id}">
+            ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+            <div class="detail-label">Steps</div>
+            <div class="detail-val">${tc.steps.replace(/\n/g,'<br>')}</div>
+            <div class="detail-label">Expected</div>
+            <div class="detail-val">${tc.expected}</div>
+            <div class="detail-label" style="margin-top:10px">Actual result</div>
+            <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+              data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+            <div class="save-row">
+              <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('')
+
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+}
+
+render()
+loadState()
+applyStateToUI()
+updateStats()
+initFileHandle()
+</script>
+</body>
+</html>

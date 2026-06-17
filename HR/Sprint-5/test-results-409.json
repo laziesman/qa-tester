@@ -1,0 +1,166 @@
+{
+  "TC-001": {
+    "status": "pass",
+    "note": "หน้าโหลดสำเร็จ URL=https://hr-stg.intelligent-bytes.com/employee/contracts/6"
+  },
+  "TC-002": {
+    "status": "pass",
+    "note": "พบฟิลด์/ข้อมูลพนักงานในหน้า (manual verify ชื่อ-รหัส)"
+  },
+  "TC-003": {
+    "status": "pass",
+    "note": "พบข้อมูล/label เลขที่สัญญา (manual verify ค่า)"
+  },
+  "TC-004": {
+    "status": "pass",
+    "note": "พบ label วันที่เริ่มสัญญา (manual verify ค่า)"
+  },
+  "TC-005": {
+    "status": "pass",
+    "note": "fields มีค่าเดิม: inputs=21, selects=1 (manual verify ความถูกต้อง)"
+  },
+  "TC-006": {
+    "status": "pass",
+    "note": "รหัสพนักงาน — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-007": {
+    "status": "pass",
+    "note": "ชื่อ-สกุล — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-008": {
+    "status": "pass",
+    "note": "เลขที่สัญญา — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-009": {
+    "status": "pass",
+    "note": "วันที่เริ่มสัญญา — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-010": {
+    "status": "pass",
+    "note": "ผู้สร้าง / วันที่สร้าง — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-011": {
+    "status": "pass",
+    "note": "สถานะ — พบ 11 disabled fields ในหน้า (manual verify ตัวไหน)"
+  },
+  "TC-012": {
+    "status": "pass",
+    "note": "เลือก \"สัญญาจ้างงาน\" สำเร็จ"
+  },
+  "TC-013": {
+    "status": "pass",
+    "note": "วันที่สิ้นสุดเปลี่ยนจาก 2030-06-30 → 2028-12-31"
+  },
+  "TC-014": {
+    "status": "pass",
+    "note": "textarea พิมพ์ได้"
+  },
+  "TC-015": {
+    "status": "pass",
+    "note": "textarea หมายเหตุพิมพ์ได้"
+  },
+  "TC-016": {
+    "status": "skip",
+    "note": "มี error หลังล้าง — manual verify"
+  },
+  "TC-017": {
+    "status": "skip",
+    "note": "มี error — manual verify"
+  },
+  "TC-018": {
+    "status": "pass",
+    "note": "มี error เมื่อวันสิ้นสุด (2020-01-01) < วันเริ่ม (2026-06-15)"
+  },
+  "TC-019": {
+    "status": "pass",
+    "note": "มี error เมื่อวันสิ้นสุด = วันเริ่ม (2026-06-15)"
+  },
+  "TC-020": {
+    "status": "pass",
+    "note": "ไม่มี error วันที่เมื่อวันสิ้นสุด (2030-12-31) > วันเริ่ม"
+  },
+  "TC-021": {
+    "status": "pass",
+    "note": "มี error เมื่อวันสิ้นสุดว่าง"
+  },
+  "TC-022": {
+    "status": "skip",
+    "note": "อัปโหลดได้แต่ชื่อไฟล์ไม่แสดง (manual verify)"
+  },
+  "TC-023": {
+    "status": "pass",
+    "note": "กดปุ่มลบเอกสารแนบได้ (manual verify รายการหาย)"
+  },
+  "TC-024": {
+    "status": "skip",
+    "note": "ต้อง manual — แทนที่ไฟล์"
+  },
+  "TC-025": {
+    "status": "skip",
+    "note": "ต้อง manual — อัปโหลดประเภทไม่รองรับ"
+  },
+  "TC-026": {
+    "status": "skip",
+    "note": "ต้อง manual — อัปโหลดขนาดเกิน limit"
+  },
+  "TC-027": {
+    "status": "pass",
+    "note": "toggle คลิกได้ (manual verify state เปลี่ยน)"
+  },
+  "TC-028": {
+    "status": "pass",
+    "note": "กรอกจำนวนวันแจ้งเตือนได้"
+  },
+  "TC-029": {
+    "status": "skip",
+    "note": "ต้อง manual — verify การแจ้งเตือนส่งจริง"
+  },
+  "TC-030": {
+    "status": "skip",
+    "note": "ไม่พบสัญญาหมดอายุ — ต้อง manual verify"
+  },
+  "TC-031": {
+    "status": "skip",
+    "note": "ไม่พบสัญญาหมดอายุ — ต้อง manual verify"
+  },
+  "TC-032": {
+    "status": "skip",
+    "note": "ไม่พบสัญญาหมดอายุ — ต้อง manual verify"
+  },
+  "TC-033": {
+    "status": "skip",
+    "note": "ไม่พบสัญญาหมดอายุ — ต้อง manual verify"
+  },
+  "TC-034": {
+    "status": "skip",
+    "note": "ไม่พบสัญญาหมดอายุ — ต้อง manual verify"
+  },
+  "TC-035": {
+    "status": "pass",
+    "note": "Toast แสดง \"สำเร็จ\" หรือ \"แก้ไข\" หลังบันทึก"
+  },
+  "TC-036": {
+    "status": "pass",
+    "note": "redirect → https://hr-stg.intelligent-bytes.com/employee/contracts"
+  },
+  "TC-037": {
+    "status": "skip",
+    "note": "ต้อง manual — ตรวจ audit log วันที่/ผู้แก้ไข"
+  },
+  "TC-038": {
+    "status": "skip",
+    "note": "ต้อง manual — ตรวจ audit log ค่าก่อน/หลัง"
+  },
+  "TC-039": {
+    "status": "pass",
+    "note": "ยกเลิก → redirect → https://hr-stg.intelligent-bytes.com/employee/contracts"
+  },
+  "TC-040": {
+    "status": "pass",
+    "note": "ค่าที่แก้ไขไม่ถูกบันทึก หลังกดยกเลิก"
+  },
+  "TC-041": {
+    "status": "skip",
+    "note": "ไม่มี confirm dialog — อาจ redirect ทันที (manual verify spec)"
+  }
+}

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 395 — บันทึกใบลาออก</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;font-size:15px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 32px rgba(0,0,0,0.35),0 0 0 0.5px rgba(255,255,255,0.08)}
+
+.topbar{background:#1E293B;padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:14px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap}
+.task-link{font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;background:transparent;white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+
+.stats-bar{background:#162032;border-bottom:0.5px solid rgba(255,255,255,0.05);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.2);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.2);color:#c9a040}
+.pl-pend{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+
+.body{background:#0F172A;padding:14px 18px 20px}
+.section-hd{font-size:11px;font-weight:600;color:rgba(248,250,252,0.4);letter-spacing:0.07em;padding:14px 0 6px;text-transform:uppercase}
+.section-hd:first-child{padding-top:4px}
+
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.6)}
+
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:#1E293B;border-top:0.5px solid rgba(255,255,255,0.06)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer;transition:background 0.1s}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+.abtn.send{background:#0369a1;color:#fff;border-color:#1F3864}
+.abtn.send:hover{background:#0284c7}
+
+.bug-out{display:none;padding:0 18px 20px;background:#0F172A}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px;padding-top:4px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+.bug-actual-content{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:#1a1a1a;color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.6}
+.send-progress-title{font-weight:500;margin-bottom:6px}
+.send-step{color:rgba(248,250,252,0.35);font-size:12px}
+.send-step.done{color:#7ec87e}
+.send-step.active{color:#fff}
+.send-step.err{color:#f09595}
+.del-btn{color:rgba(226,75,74,0.45);border-color:rgba(226,75,74,0.12)}
+.del-btn:hover{background:rgba(226,75,74,0.15);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.add-tc-btn{display:block;width:100%;padding:10px;border:1px dashed rgba(255,255,255,0.12);border-radius:7px;background:transparent;color:rgba(248,250,252,0.3);cursor:pointer;font-size:13px;margin-top:6px;transition:all 0.15s;font-family:inherit}
+.add-tc-btn:hover{border-color:rgba(248,250,252,0.3);color:rgba(248,250,252,0.65);background:rgba(255,255,255,0.04)}
+.extra-hd{font-size:11px;font-weight:600;color:rgba(248,250,252,0.3);letter-spacing:0.07em;padding:18px 0 6px;text-transform:uppercase;border-top:0.5px solid rgba(255,255,255,0.06);margin-top:12px}
+.note-box{background:rgba(56,189,248,0.08);border:0.5px solid rgba(56,189,248,0.2);border-radius:6px;padding:8px 11px;font-size:12px;color:rgba(56,189,248,0.9);margin-bottom:10px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="topbar-title">#395 — บันทึกใบลาออก</div>
+    <div class="topbar-meta">HR&FI · Sprint 5</div>
+    <a class="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/395" target="_blank">เปิด Board ↗</a>
+  </div>
+
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+
+  <div class="body">
+    <div class="note-box">🔗 Test URL: <a href="https://hr-stg.intelligent-bytes.com/employee/resignation/create" target="_blank" style="color:inherit">hr-stg.intelligent-bytes.com/employee/resignation/create</a> &nbsp;|&nbsp; พนักงานทดสอบ: test1, test2, test3, test4</div>
+    <div id="tc-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'qa_task_395'
+const TCS_KEY = STORAGE_KEY + '_tcs'
+const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/395'
+const TASK_NUMBER = '395'
+const TASK_NAME = 'บันทึกใบลาออก'
+
+const SECTIONS = [
+  {
+    name: 'ส่วนที่ 1 — เลือกพนักงาน',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'ค้นหาพนักงาน Active ด้วยรหัสพนักงาน — แสดงผลใน dropdown',
+        precondition: 'มีพนักงานสถานะ Active อยู่ในระบบ',
+        steps: '1. เปิดฟอร์มบันทึกใบลาออก\n2. พิมพ์รหัสพนักงาน Active ในช่องค้นหา\n3. สังเกต dropdown ที่แสดงขึ้น',
+        expected: 'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับรหัสใน dropdown และสามารถเลือกได้'
+      },
+      {
+        id: 'TC-002',
+        name: 'ค้นหาพนักงาน Active ด้วยชื่อ-สกุล — แสดงผลใน dropdown',
+        precondition: 'มีพนักงานสถานะ Active อยู่ในระบบ',
+        steps: '1. พิมพ์ชื่อหรือสกุลพนักงาน Active ในช่องค้นหา\n2. สังเกต dropdown',
+        expected: 'ระบบแสดงรายชื่อพนักงาน Active ที่ตรงกับชื่อ/สกุล สามารถเลือกได้'
+      },
+      {
+        id: 'TC-003',
+        name: 'พนักงานที่บันทึกลาออกแล้ว ไม่ปรากฏใน dropdown',
+        precondition: 'มีพนักงานที่เคยบันทึกใบลาออกไว้แล้วในระบบ',
+        steps: '1. พิมพ์รหัส/ชื่อพนักงานที่ลาออกแล้ว\n2. ดู dropdown',
+        expected: 'พนักงานที่ลาออกแล้วไม่ปรากฏในรายการค้นหา'
+      },
+      {
+        id: 'TC-004',
+        name: 'พนักงาน Inactive ไม่ปรากฏใน dropdown',
+        precondition: 'มีพนักงานสถานะ Inactive ในระบบ',
+        steps: '1. พิมพ์รหัส/ชื่อพนักงาน Inactive\n2. ดู dropdown',
+        expected: 'พนักงาน Inactive ไม่ปรากฏในรายการ'
+      },
+      {
+        id: 'TC-005',
+        name: 'เลือกพนักงาน → ข้อมูลส่วนที่ 2 auto-fill ทั้งหมดทันที',
+        precondition: 'มีพนักงาน Active ในระบบ (ใช้ test1–test4)',
+        steps: '1. ค้นหาและเลือกพนักงาน Active จาก dropdown\n2. สังเกตฟิลด์ในส่วนที่ 2 (ชื่อ-สกุล, ขอบเขตการทำงาน, ฝ่าย, แผนก, ตำแหน่ง, ระดับพนักงาน, สถานที่ทำงาน, วันเริ่มงาน, อายุงาน)',
+        expected: 'ฟิลด์ส่วนที่ 2 ทุกตัวแสดงข้อมูลของพนักงานที่เลือกทันที โดยไม่ต้องกดปุ่มเพิ่มเติม'
+      },
+      {
+        id: 'TC-006',
+        name: 'ฟิลด์ auto-fill ส่วนที่ 2 ทั้งหมดเป็น read-only',
+        precondition: 'เลือกพนักงานแล้ว (ส่วนที่ 2 auto-fill แล้ว)',
+        steps: '1. พยายามคลิกแก้ไขฟิลด์ ชื่อ-สกุล, ฝ่าย, แผนก, ตำแหน่ง ฯลฯ\n2. พยายามพิมพ์ข้อความลงในฟิลด์',
+        expected: 'ฟิลด์ทุกตัวใน auto-fill เป็น read-only ไม่สามารถแก้ไขได้'
+      },
+      {
+        id: 'TC-007',
+        name: '"อายุงาน" คำนวณถูกต้อง — แสดง ปี เดือน วัน',
+        precondition: 'เลือกพนักงานที่ทราบวันเริ่มงานแน่ชัด',
+        steps: '1. เลือกพนักงานที่ทราบวันเริ่มงาน\n2. ดูค่า "อายุงาน" ที่แสดง\n3. คำนวณด้วยตัวเองจากวันเริ่มงาน ถึง วันที่บันทึก (วันปัจจุบัน)',
+        expected: 'อายุงานที่แสดงตรงกับการคำนวณ แสดงเป็น X ปี X เดือน X วัน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Validation ฟิลด์บังคับ',
+    tcs: [
+      {
+        id: 'TC-008',
+        name: 'กด "บันทึก" โดยไม่เลือกพนักงาน → บล็อค + error highlight',
+        precondition: 'เปิดฟอร์มใหม่ ยังไม่เลือกพนักงาน',
+        steps: '1. ไม่เลือกพนักงาน\n2. กดปุ่ม "บันทึกใบลาออก" (ถ้าไม่ disabled ให้ลองกด)',
+        expected: 'ระบบบล็อคการบันทึก highlight ฟิลด์รหัสพนักงานสีแดง และแสดง error ใต้ฟิลด์'
+      },
+      {
+        id: 'TC-009',
+        name: 'กด "บันทึก" ไม่เลือกประเภทลาออก → highlight + error',
+        precondition: 'เลือกพนักงานแล้ว แต่ยังไม่เลือกประเภทลาออก',
+        steps: '1. เลือกพนักงาน\n2. ข้ามฟิลด์ "ประเภทลาออก"\n3. กรอกฟิลด์อื่นครบ\n4. กดปุ่ม "บันทึก"',
+        expected: 'ระบบ highlight ฟิลด์ประเภทลาออกสีแดงและแสดง error ใต้ฟิลด์'
+      },
+      {
+        id: 'TC-010',
+        name: 'กด "บันทึก" ไม่เลือกสาเหตุการลาออก → highlight + error',
+        precondition: 'เลือกพนักงานและประเภทลาออกแล้ว แต่ยังไม่เลือกสาเหตุ',
+        steps: '1. กรอกฟิลด์บังคับอื่นครบ ยกเว้น "สาเหตุการลาออก"\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบ highlight ฟิลด์สาเหตุการลาออกสีแดงและแสดง error ใต้ฟิลด์'
+      },
+      {
+        id: 'TC-011',
+        name: 'กด "บันทึก" ไม่กรอกวันที่แจ้งลาออก → highlight + error',
+        precondition: 'กรอกฟิลด์บังคับอื่นครบ ยกเว้น "วันที่แจ้งลาออก"',
+        steps: '1. ปล่อยฟิลด์วันที่แจ้งลาออกว่าง\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบ highlight วันที่แจ้งลาออกสีแดงและแสดง error'
+      },
+      {
+        id: 'TC-012',
+        name: 'กด "บันทึก" ไม่กรอกวันที่ลาออก → highlight + error',
+        precondition: 'กรอกฟิลด์บังคับอื่นครบ ยกเว้น "วันที่ลาออก"',
+        steps: '1. ปล่อยฟิลด์วันที่ลาออกว่าง\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบ highlight วันที่ลาออกสีแดงและแสดง error'
+      },
+      {
+        id: 'TC-013',
+        name: 'ปุ่ม "บันทึกใบลาออก" disabled จนกว่าฟิลด์บังคับครบ',
+        precondition: 'เปิดฟอร์มใหม่',
+        steps: '1. สังเกตสถานะปุ่ม "บันทึกใบลาออก" ก่อนกรอกข้อมูล\n2. ค่อยๆ กรอกฟิลด์บังคับทีละตัว\n3. สังเกตว่าปุ่มเปิดใช้งานได้เมื่อใด',
+        expected: 'ปุ่มอยู่สถานะ disabled จนกว่าฟิลด์บังคับทุกตัวจะครบ จึง enable'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — Validation วันที่',
+    tcs: [
+      {
+        id: 'TC-014',
+        name: 'วันที่ลาออก < วันที่แจ้ง → error "วันที่ลาออกต้องอยู่หลังหรือตรงกับวันที่แจ้ง"',
+        precondition: 'เลือกพนักงานและกรอกข้อมูลครบแล้ว',
+        steps: '1. กรอก "วันที่แจ้งลาออก" = วันที่ปัจจุบัน\n2. กรอก "วันที่ลาออก" = วันก่อนหน้า (เช่น เมื่อวาน)\n3. สังเกตข้อความแจ้งเตือน',
+        expected: 'ระบบแสดง error "วันที่ลาออกต้องอยู่หลังหรือตรงกับวันที่แจ้ง" และบล็อคการบันทึก'
+      },
+      {
+        id: 'TC-015',
+        name: 'วันที่ลาออก = วันที่แจ้ง → ผ่าน valid',
+        precondition: 'เลือกพนักงานและกรอกข้อมูลครบ',
+        steps: '1. กรอก "วันที่แจ้งลาออก" และ "วันที่ลาออก" เป็นวันเดียวกัน\n2. สังเกตผลการ validate',
+        expected: 'ไม่มี error วันที่ — สามารถดำเนินการต่อและบันทึกได้'
+      },
+      {
+        id: 'TC-016',
+        name: 'วันที่ลาออก > วันที่แจ้ง → ผ่าน valid',
+        precondition: 'เลือกพนักงานและกรอกข้อมูลครบ',
+        steps: '1. กรอก "วันที่แจ้งลาออก" = วันปัจจุบัน\n2. กรอก "วันที่ลาออก" = วันในอนาคต (เช่น +30 วัน)\n3. สังเกตผลการ validate',
+        expected: 'ไม่มี error วันที่ — สามารถดำเนินการต่อและบันทึกได้'
+      },
+      {
+        id: 'TC-017',
+        name: '"วันที่บันทึก" default = วันปัจจุบัน',
+        precondition: 'เปิดฟอร์มใหม่',
+        steps: '1. เปิดฟอร์มบันทึกใบลาออก\n2. ดูค่า default ของฟิลด์ "วันที่บันทึก"',
+        expected: 'ฟิลด์ "วันที่บันทึก" แสดงวันที่ปัจจุบันโดยอัตโนมัติ'
+      },
+      {
+        id: 'TC-018',
+        name: '"วันที่บันทึก" ย้อนหลังเกิน 30 วัน → ไม่อนุญาต',
+        precondition: 'เปิดฟอร์มบันทึกใบลาออก',
+        steps: '1. แก้ไข "วันที่บันทึก" ให้เป็นวันที่มากกว่า 30 วันก่อนวันปัจจุบัน\n2. สังเกตพฤติกรรมระบบ',
+        expected: 'ระบบแสดง error หรือไม่ให้เลือกวันที่ย้อนหลังเกิน 30 วัน'
+      },
+      {
+        id: 'TC-019',
+        name: '"ระยะเวลาแจ้งล่วงหน้า" คำนวณ real-time เมื่อกรอกวันครบ',
+        precondition: 'เลือกพนักงานแล้ว',
+        steps: '1. กรอก "วันที่แจ้งลาออก"\n2. กรอก "วันที่ลาออก"\n3. สังเกตค่า "ระยะเวลาแจ้งล่วงหน้า" ทันที',
+        expected: 'ค่า "ระยะเวลาแจ้งล่วงหน้า" คำนวณและแสดงทันที (หน่วย: วัน) โดยไม่ต้องกดปุ่มใดเพิ่ม'
+      },
+      {
+        id: 'TC-020',
+        name: 'แจ้งล่วงหน้า < 30 วัน → warning สีส้ม (ไม่บล็อคการบันทึก)',
+        precondition: 'เลือกพนักงานและกรอกข้อมูลครบ',
+        steps: '1. กรอกวันที่แจ้งและวันที่ลาออกให้ห่างกันน้อยกว่า 30 วัน (เช่น 5 วัน)\n2. สังเกต warning\n3. ลองกดบันทึก',
+        expected: 'แสดง warning สีส้ม "แจ้งล่วงหน้าน้อยกว่าที่กำหนด (X วัน)" แต่สามารถบันทึกได้'
+      },
+      {
+        id: 'TC-021',
+        name: 'แจ้งล่วงหน้า ≥ 30 วัน → ไม่มี warning',
+        precondition: 'เลือกพนักงานและกรอกข้อมูลครบ',
+        steps: '1. กรอกวันที่แจ้งและวันที่ลาออกให้ห่างกัน 30 วันขึ้นไป\n2. สังเกต warning',
+        expected: 'ไม่มี warning สีส้ม — ระยะเวลาแจ้งล่วงหน้าแสดงปกติ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — สาเหตุ/ประเภท "อื่นๆ"',
+    tcs: [
+      {
+        id: 'TC-022',
+        name: 'เลือกประเภทลาออก "อื่นๆ" → แสดง text input เพิ่มเติม (บังคับ)',
+        precondition: 'เปิดฟอร์มและเลือกพนักงานแล้ว',
+        steps: '1. เลือก "ประเภทลาออก" = อื่นๆ\n2. สังเกต UI',
+        expected: 'ระบบแสดง text input เพิ่มเติมให้กรอกรายละเอียด และฟิลด์นี้บังคับกรอก'
+      },
+      {
+        id: 'TC-023',
+        name: 'เลือกประเภทลาออก "อื่นๆ" ไม่กรอก text → บล็อคการบันทึก',
+        precondition: 'เลือกประเภทลาออก = อื่นๆ แล้ว',
+        steps: '1. เลือก "อื่นๆ" แต่ไม่กรอก text เพิ่มเติม\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบล็อคการบันทึกและแสดง error ที่ฟิลด์ text ของประเภทลาออก'
+      },
+      {
+        id: 'TC-024',
+        name: 'เลือกสาเหตุลาออก "อื่นๆ" → แสดง text input เพิ่มเติม (บังคับ)',
+        precondition: 'เปิดฟอร์มและเลือกพนักงานแล้ว',
+        steps: '1. เลือก "สาเหตุการลาออก" = อื่นๆ\n2. สังเกต UI',
+        expected: 'ระบบแสดง text input เพิ่มเติมให้กรอกรายละเอียด และฟิลด์นี้บังคับกรอก'
+      },
+      {
+        id: 'TC-025',
+        name: 'เลือกสาเหตุลาออก "อื่นๆ" ไม่กรอก text → บล็อคการบันทึก',
+        precondition: 'เลือกสาเหตุ = อื่นๆ แล้ว',
+        steps: '1. เลือก "อื่นๆ" แต่ไม่กรอก text\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบล็อคการบันทึกและแสดง error ที่ฟิลด์ text ของสาเหตุ'
+      },
+      {
+        id: 'TC-026',
+        name: 'เปลี่ยนสาเหตุจาก "อื่นๆ" กลับเป็นตัวเลือกอื่น → ซ่อน text input',
+        precondition: 'เลือกสาเหตุ = อื่นๆ จน text input แสดงแล้ว',
+        steps: '1. เลือกสาเหตุ = "อื่นๆ" (text input โชว์)\n2. เปลี่ยนสาเหตุเป็น "ได้งานใหม่" หรือตัวเลือกอื่น\n3. สังเกต text input',
+        expected: 'text input เพิ่มเติมซ่อนหายไป และไม่ต้องกรอก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — Checklist การดำเนินการต่อเนื่อง',
+    tcs: [
+      {
+        id: 'TC-027',
+        name: 'ไม่ tick Checklist ใดเลย → บันทึกได้ปกติ (optional)',
+        precondition: 'กรอกฟิลด์บังคับครบทุกตัว',
+        steps: '1. ไม่ tick checkbox ใดใน Checklist\n2. กดบันทึก',
+        expected: 'บันทึกสำเร็จ — Checklist เป็น optional ไม่บล็อคการบันทึก'
+      },
+      {
+        id: 'TC-028',
+        name: 'Tick "แจ้งออกประกันสังคม" → ต้องระบุ "วันที่แจ้ง" (บังคับ)',
+        precondition: 'กรอกฟิลด์บังคับครบ',
+        steps: '1. Tick checkbox "แจ้งออกประกันสังคม"\n2. สังเกต UI ที่เพิ่มขึ้น',
+        expected: 'ระบบแสดง date picker "วันที่แจ้ง" และทำให้เป็นฟิลด์บังคับ'
+      },
+      {
+        id: 'TC-029',
+        name: 'Tick "แจ้งออก สปส." ไม่กรอกวันที่แจ้ง → บล็อคการบันทึก',
+        precondition: 'Tick "แจ้งออกประกันสังคม" แล้ว',
+        steps: '1. Tick แจ้งออก สปส. แต่ไม่กรอก "วันที่แจ้ง"\n2. กดบันทึก',
+        expected: 'ระบบบล็อคการบันทึกและแสดง error ที่ฟิลด์ "วันที่แจ้ง"'
+      },
+      {
+        id: 'TC-030',
+        name: 'สถานะ Checklist บันทึกลงใน record และแสดงในหน้ารายการ',
+        precondition: 'บันทึกใบลาออกสำเร็จพร้อม Checklist บางรายการถูก tick',
+        steps: '1. บันทึกใบลาออกพร้อม tick Checklist บางรายการ\n2. ไปที่หน้ารายการ 7.1.19.1\n3. ดูสถานะ Checklist ของ record ที่บันทึก',
+        expected: 'สถานะ Checklist แสดงในหน้ารายการตรงกับที่กรอก'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — เมื่อบันทึกสำเร็จ',
+    tcs: [
+      {
+        id: 'TC-031',
+        name: 'บันทึกสำเร็จ → Toast "บันทึกใบลาออกสำเร็จ — [ชื่อพนักงาน]"',
+        precondition: 'กรอกข้อมูลครบทุกฟิลด์บังคับ',
+        steps: '1. กรอกข้อมูลครบ\n2. กดปุ่ม "บันทึกใบลาออก"\n3. สังเกต Toast notification',
+        expected: 'Toast แสดงข้อความ "บันทึกใบลาออกสำเร็จ — [ชื่อพนักงาน]"'
+      },
+      {
+        id: 'TC-032',
+        name: 'บันทึกสำเร็จ → สถานะพนักงานเปลี่ยนเป็น "ลาออก" + badge ในรายการ',
+        precondition: 'บันทึกใบลาออกสำเร็จแล้ว',
+        steps: '1. ไปที่หน้ารายการพนักงาน\n2. ค้นหาพนักงานที่เพิ่งบันทึกใบลาออก',
+        expected: 'พนักงานยังแสดงอยู่ในรายชื่อ พร้อม badge สถานะ "ลาออก"'
+      },
+      {
+        id: 'TC-033',
+        name: 'หลังวันที่ลาออก — พนักงาน login Staff Portal ไม่ได้',
+        precondition: 'บันทึกใบลาออกสำเร็จ วันที่ลาออก = วันนี้หรือผ่านไปแล้ว',
+        steps: '1. ใช้ account ของพนักงานที่ลาออกแล้ว\n2. ลอง login Staff Portal',
+        expected: 'พนักงานไม่สามารถ login Staff Portal ได้ ระบบแสดงข้อความปฏิเสธ',
+      },
+      {
+        id: 'TC-034',
+        name: 'ระบบบันทึก Audit Log ครบ (วันที่, ผู้บันทึก, ข้อมูลที่กรอก)',
+        precondition: 'บันทึกใบลาออกสำเร็จแล้ว',
+        steps: '1. ไปที่หน้า Audit Log หรือดูที่ record ของใบลาออกที่บันทึก\n2. ตรวจสอบ log',
+        expected: 'Audit Log บันทึก: วันที่บันทึก, ชื่อผู้บันทึก, และข้อมูลที่กรอกทั้งหมด'
+      },
+      {
+        id: 'TC-035',
+        name: 'ระบบส่ง Notification แจ้ง HR Admin และผู้บังคับบัญชา',
+        precondition: 'บันทึกใบลาออกสำเร็จ',
+        steps: '1. ตรวจสอบ notification ของ HR Admin\n2. ตรวจสอบ notification ของผู้บังคับบัญชาพนักงาน',
+        expected: 'HR Admin และผู้บังคับบัญชาได้รับ notification แจ้งการลาออก'
+      },
+      {
+        id: 'TC-036',
+        name: 'บันทึกสำเร็จ → redirect กลับหน้ารายการ 7.1.19.1 อัตโนมัติ',
+        precondition: 'กรอกข้อมูลครบ',
+        steps: '1. กดปุ่ม "บันทึกใบลาออก"\n2. หลัง Toast แสดง สังเกต URL และหน้าปัจจุบัน',
+        expected: 'ระบบ redirect กลับหน้ารายการใบลาออก (7.1.19.1) โดยอัตโนมัติ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — การแก้ไขหลังบันทึก',
+    tcs: [
+      {
+        id: 'TC-037',
+        name: 'เอกสารสถานะ "รอดำเนินการ" → แก้ไขได้',
+        precondition: 'มีใบลาออกที่สถานะ "รอดำเนินการ"',
+        steps: '1. เปิดใบลาออกที่สถานะ "รอดำเนินการ"\n2. ลองกดแก้ไข',
+        expected: 'สามารถเข้าหน้าแก้ไขและบันทึกการเปลี่ยนแปลงได้'
+      },
+      {
+        id: 'TC-038',
+        name: 'เอกสารสถานะอื่น (ไม่ใช่ "รอดำเนินการ") → ไม่สามารถแก้ไขได้',
+        precondition: 'มีใบลาออกที่สถานะไม่ใช่ "รอดำเนินการ"',
+        steps: '1. เปิดใบลาออกที่สถานะ อื่นๆ\n2. ลองกดแก้ไขหรือ edit',
+        expected: 'ปุ่มแก้ไข disabled หรือระบบไม่อนุญาตให้แก้ไข'
+      },
+      {
+        id: 'TC-039',
+        name: 'ไม่สามารถเปลี่ยน "รหัสพนักงาน" หลังบันทึกได้',
+        precondition: 'เปิดใบลาออกสถานะ "รอดำเนินการ" ในโหมดแก้ไข',
+        steps: '1. เปิดใบลาออกในโหมดแก้ไข\n2. ลองแก้ไขหรือ reset ฟิลด์ "รหัสพนักงาน"',
+        expected: 'ฟิลด์รหัสพนักงานเป็น read-only ในหน้าแก้ไข ไม่สามารถเปลี่ยนได้'
+      },
+      {
+        id: 'TC-040',
+        name: 'แก้ไขสำเร็จ → Audit Log บันทึกการเปลี่ยนแปลง ก่อน/หลัง',
+        precondition: 'แก้ไขใบลาออก (สถานะ "รอดำเนินการ") และบันทึกสำเร็จ',
+        steps: '1. แก้ไขข้อมูลในใบลาออก (เช่น วันที่ลาออก)\n2. บันทึก\n3. ดู Audit Log ของ record นั้น',
+        expected: 'Audit Log แสดงข้อมูลก่อนแก้ไขและหลังแก้ไขในรายการเดียวกัน'
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+
+let customTcs = []
+
+function loadCustomTcs() {
+  try { const saved = localStorage.getItem(TCS_KEY); if (saved) customTcs = JSON.parse(saved) } catch(e) {}
+  customTcs.forEach(tc => { if (!state[tc.id]) state[tc.id] = { status: null, note: '' } })
+}
+
+function saveCustomTcs() { localStorage.setItem(TCS_KEY, JSON.stringify(customTcs)) }
+
+function nextExId() {
+  const nums = customTcs.map(tc => parseInt(tc.id.replace('EX-',''), 10)).filter(n => !isNaN(n))
+  const next = nums.length ? Math.max(...nums) + 1 : 1
+  return 'EX-' + String(next).padStart(3, '0')
+}
+
+function addExtraTc() {
+  const id = nextExId()
+  customTcs.push({ id, name: id, precondition: '', steps: '', expected: '' })
+  state[id] = { status: null, note: '' }
+  saveCustomTcs(); render(); applyStateToUI(); updateStats()
+}
+
+function deleteExtraTc(id) {
+  if (!confirm('ลบ ' + id + '?')) return
+  customTcs = customTcs.filter(tc => tc.id !== id)
+  delete state[id]
+  saveCustomTcs(); saveState(); render(); applyStateToUI(); updateStats()
+}
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) { state[id].status = data[id].status; state[id].note = data[id].note || '' }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++; else if(v.status==='fail') f++; else if(v.status==='skip') s++; else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+  document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats(); saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+  editor.addEventListener('focus', () => { activeEditor = id })
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img); showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+  editor.addEventListener('dragover', (e) => e.preventDefault())
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      editor.focus(); insertAtCursor(img); showToast('📎 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents(); range.insertNode(node)
+  range.setStartAfter(node); range.collapse(true)
+  sel.removeAllRanges(); sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState(); showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img'); img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'; close.textContent = '✕'
+  overlay.appendChild(img); overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm; img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด? (TC เพิ่มเติมที่สร้างไว้จะยังอยู่)')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  document.getElementById('bug-out').classList.remove('open')
+  render(); applyStateToUI(); updateStats()
+}
+
+function collectFails(tcs, sectionName, fails, num) {
+  tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'fail') {
+      const editor = document.getElementById('actual-' + tc.id)
+      fails.push({ ...tc, section: sectionName,
+        actual: editor ? editor.innerText.trim() : '',
+        actualHtml: editor ? editor.innerHTML.trim() : '', num: num++ })
+    }
+  })
+  return num
+}
+
+function showBugReport() {
+  const fails = []; let num = 1
+  SECTIONS.forEach(sec => { num = collectFails(sec.tcs, sec.name, fails, num) })
+  num = collectFails(customTcs, 'เพิ่มเติม', fails, num)
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
+  document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
+  if (!fails.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' }); return
+  }
+  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
+      ${f.precondition ? `<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>` : ''}
+      <div class="bug-line"><b>Steps:</b> ${f.steps ? f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') : '—'}</div>
+      <div class="bug-line"><b>Expected:</b> ${f.expected || '—'}</div>
+      <div class="bug-line"><b>Actual result:</b></div>
+      <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+    </div>
+  `).join('')
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+document.getElementById('bug-list').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target.src)
+})
+
+function tcRowHTML(tc, isDynamic) {
+  return `
+    <div class="tc-row" id="row-${tc.id}">
+      <div class="tc-top">
+        <div class="tc-id">${tc.id}</div>
+        <div class="tc-name">${tc.name}</div>
+        <div class="tc-btns">
+          <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+          <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+          <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+          ${isDynamic ? `<button class="tbtn del-btn" onclick="deleteExtraTc('${tc.id}')" title="ลบ TC นี้">✕</button>` : ''}
+        </div>
+      </div>
+      <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+      <div class="tc-detail" id="detail-${tc.id}">
+        ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+        <div class="detail-label">Steps</div>
+        <div class="detail-val">${tc.steps ? tc.steps.replace(/\n/g,'<br>') : '<span style="color:rgba(248,250,252,0.25)">—</span>'}</div>
+        <div class="detail-label">Expected</div>
+        <div class="detail-val">${tc.expected || '<span style="color:rgba(248,250,252,0.25)">—</span>'}</div>
+        <div class="detail-label" style="margin-top:10px">Actual result</div>
+        <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+          data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+        <div class="save-row">
+          <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+        </div>
+      </div>
+    </div>`
+}
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML =
+    SECTIONS.map(sec => `
+      <div>
+        ${sec.name ? `<div class="section-hd">${sec.name}</div>` : ''}
+        ${sec.tcs.map(tc => tcRowHTML(tc, false)).join('')}
+      </div>`
+    ).join('') +
+    `<div>
+      <div class="extra-hd">Test Cases เพิ่มเติม <span style="font-weight:400;font-size:10px">(นอกเหนือ AC)</span></div>
+      ${customTcs.map(tc => tcRowHTML(tc, true)).join('')}
+      <button class="add-tc-btn" onclick="addExtraTc()">+ เพิ่ม Test Case</button>
+    </div>`
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+  customTcs.forEach(tc => setupEditor(tc.id))
+}
+
+function applyStateToUI() {
+  const applyOne = (tc) => {
+    const s = state[tc.id]; if (!s) return
+    if (s.status) {
+      const row = document.getElementById('row-' + tc.id)
+      if (row) row.className = 'tc-row s-' + s.status
+      const map = { pass:'p', fail:'f', skip:'s' }
+      const btn = document.getElementById(map[s.status] + '-' + tc.id)
+      if (btn) btn.className = 'tbtn a' + map[s.status][0]
+    }
+    if (s.note) { const editor = document.getElementById('actual-' + tc.id); if (editor) editor.innerHTML = s.note }
+  }
+  SECTIONS.forEach(sec => sec.tcs.forEach(applyOne))
+  customTcs.forEach(applyOne)
+}
+
+loadCustomTcs(); render(); loadState(); applyStateToUI(); updateStats()
+
+const PROXY_URL = 'http://localhost:8765'
+
+function exportBugJSON() {
+  const payload = buildPayload(); if (!payload) return
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob); a.download = 'bug-report-' + TASK_NUMBER + '.json'; a.click()
+  showToast('📥 ดาวน์โหลด bug-report-' + TASK_NUMBER + '.json แล้วครับ')
+}
+
+function buildPayload() {
+  const fails = []
+  const gather = (tcs, sectionName) => tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'fail') {
+      const editor = document.getElementById('actual-' + tc.id)
+      const images = []; if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+      fails.push({ tc_id: tc.id, name: tc.name, section: sectionName,
+        precondition: tc.precondition || '', steps: tc.steps || '', expected: tc.expected || '',
+        actual: editor ? editor.innerText.trim() : 'ยังไม่ได้ระบุ', images })
+    }
+  })
+  SECTIONS.forEach(sec => gather(sec.tcs, sec.name))
+  gather(customTcs, 'เพิ่มเติม')
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  return {
+    task_url: TASK_URL, task_number: TASK_NUMBER, task_name: TASK_NAME,
+    total_pass: Object.values(state).filter(v => v.status === 'pass').length,
+    total_fail: fails.length,
+    total_skip: Object.values(state).filter(v => v.status === 'skip').length,
+    total_tc: Object.keys(state).length, bugs: fails
+  }
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div')
+  progressEl.className = 'send-progress'
+  progressEl.innerHTML = `<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div>
+    <div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`
+  document.body.appendChild(progressEl)
+}
+function showSendDone(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step done'
+  progressEl.querySelector('#sp-0').textContent = '✓ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 3000)
+}
+function showSendErr(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step err'
+  progressEl.querySelector('#sp-0').textContent = '✗ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 5000)
+}
+
+async function sendToBoard() {
+  const payload = buildPayload(); if (!payload) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    })
+    const data = await r.json()
+    if (data.ok) {
+      showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`)
+      showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)
+    } else {
+      showSendErr(data.error || 'ส่งไม่สำเร็จ'); showToast('❌ ' + (data.error || 'ส่งไม่สำเร็จ'))
+    }
+  } catch(err) {
+    showSendErr('เปิด proxy ก่อน'); showToast('❌ ไม่พบ proxy — รัน: python proxy.py'); console.error(err)
+  }
+}
+</script>
+</body>
+</html>

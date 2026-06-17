@@ -1,0 +1,833 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 407 — หน้าแสดงรายการเอกสารสัญญาทั้งหมดของพนักงาน</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;font-size:15px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 32px rgba(0,0,0,0.35),0 0 0 0.5px rgba(255,255,255,0.08)}
+
+.topbar{background:#1E293B;padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:14px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap}
+.task-link{font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;background:transparent;white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+
+.stats-bar{background:#162032;border-bottom:0.5px solid rgba(255,255,255,0.05);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.2);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.2);color:#c9a040}
+.pl-pend{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+
+.body{background:#0F172A;padding:14px 18px 20px}
+.section-hd{font-size:11px;font-weight:600;color:rgba(248,250,252,0.4);letter-spacing:0.07em;padding:14px 0 6px;text-transform:uppercase}
+.section-hd:first-child{padding-top:4px}
+
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.4)}
+
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:#1E293B;border-top:0.5px solid rgba(255,255,255,0.06)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer;transition:background 0.1s}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+.abtn.send{background:#0369a1;color:#fff;border-color:#1F3864}
+.abtn.send:hover{background:#0284c7}
+
+.bug-out{display:none;padding:0 18px 20px;background:#0F172A}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px;padding-top:4px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+.bug-actual-content{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:#1a1a1a;color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.6}
+.send-progress-title{font-weight:500;margin-bottom:6px}
+.send-step{color:rgba(248,250,252,0.35);font-size:12px}
+.send-step.done{color:#7ec87e}
+.send-step.active{color:#fff}
+.send-step.err{color:#f09595}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+<div class="topbar-title">#407 — หน้าแสดงรายการเอกสารสัญญาทั้งหมดของพนักงาน</div>
+    <div class="topbar-meta">HR · Sprint 5</div>
+    <a class="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/407" target="_blank">เปิด Board ↗</a>
+  </div>
+
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+
+  <div class="body">
+    <div id="tc-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'qa_task_407'
+const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/407'
+const TASK_NUMBER = '407'
+const TASK_NAME = 'หน้าแสดงรายการเอกสารสัญญาทั้งหมดของพนักงาน'
+
+const SECTIONS = [
+  {
+    name: 'ส่วนที่ 1 — การแสดงรายการและ Default',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดหน้า → แสดงรายการสัญญาทั้งหมดของพนักงาน เรียงตามวันที่ล่าสุดก่อน',
+        precondition: 'พนักงานมีเอกสารสัญญาในระบบ',
+        steps: '1. เปิดหน้ารายการเอกสารสัญญา\n2. สังเกตลำดับรายการที่แสดง',
+        expected: 'แสดงรายการสัญญาทั้งหมดของพนักงาน เรียงตามวันที่สัญญาล่าสุดก่อน'
+      },
+      {
+        id: 'TC-002',
+        name: 'แต่ละแถวแสดง: ชื่อสัญญา / ประเภทสัญญา / วันที่เริ่มต้น / วันที่สิ้นสุด / สถานะ',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. ตรวจสอบข้อมูลในแต่ละแถว',
+        expected: 'ทุกแถวแสดงข้อมูลครบ: ชื่อสัญญา, ประเภทสัญญา, วันที่เริ่มต้น, วันที่สิ้นสุด, Badge สถานะ'
+      },
+      {
+        id: 'TC-003',
+        name: 'พนักงานที่ไม่มีสัญญา → แสดงข้อความ "ไม่มีเอกสารสัญญา" ไม่ขึ้น error',
+        precondition: 'พนักงานที่ไม่มีเอกสารสัญญาในระบบ',
+        steps: '1. เปิดหน้ารายการของพนักงานที่ไม่มีสัญญา\n2. สังเกตการแสดงผล',
+        expected: 'แสดง empty state เช่น "ไม่มีเอกสารสัญญา" ไม่ขึ้น error ไม่แสดงตารางว่าง'
+      },
+      {
+        id: 'TC-004',
+        name: 'Column header ครบและ label ถูกต้อง',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. ตรวจสอบ header ของตาราง/รายการ',
+        expected: 'ทุก column header แสดงถูกต้อง ไม่มี header ที่ว่างหรือ label ผิด'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — ค้นหา',
+    tcs: [
+      {
+        id: 'TC-005',
+        name: 'พิมพ์คำค้นหาใน search box → แสดงเฉพาะรายการที่ตรงกับชื่อสัญญา',
+        precondition: 'มีรายการสัญญาหลายรายการ',
+        steps: '1. พิมพ์คำในช่อง search\n2. สังเกตรายการที่แสดง',
+        expected: 'กรองแสดงเฉพาะรายการที่ชื่อสัญญาตรงกับคำค้นหา (case-insensitive) รายการที่ไม่ตรงถูกซ่อน'
+      },
+      {
+        id: 'TC-006',
+        name: 'ค้นหาด้วยคำที่ไม่มีในระบบ → แสดง "ไม่พบ" หรือ empty state',
+        precondition: 'มีรายการสัญญาในระบบ',
+        steps: '1. พิมพ์คำที่ไม่มีชื่อสัญญาใดตรงกัน\n2. สังเกตผล',
+        expected: 'แสดง empty state หรือข้อความ "ไม่พบ" ไม่แสดง error หรือหน้าขาว'
+      },
+      {
+        id: 'TC-007',
+        name: 'ลบคำค้นหาออก → แสดงรายการทั้งหมดกลับมา',
+        precondition: 'มีคำค้นหาอยู่ใน search box',
+        steps: '1. ลบคำค้นหาออกจาก search box\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่ต้องกด reset'
+      },
+      {
+        id: 'TC-008',
+        name: 'ค้นหาแบบ real-time (ไม่ต้องกด Enter)',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. พิมพ์ทีละตัวอักษรใน search box\n2. สังเกตว่ารายการอัปเดตทันทีหรือต้องกด Enter',
+        expected: 'รายการกรองแบบ real-time ทุกครั้งที่พิมพ์ ไม่ต้องกด Enter'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — กรองตามประเภทสัญญา',
+    tcs: [
+      {
+        id: 'TC-009',
+        name: 'เลือก filter ประเภทสัญญา → แสดงเฉพาะรายการที่ตรงกับประเภทที่เลือก',
+        precondition: 'มีสัญญาหลายประเภทในระบบ',
+        steps: '1. เลือกประเภทสัญญาใดในตัวกรอง\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ประเภทตรงกับที่เลือก รายการประเภทอื่นถูกซ่อน'
+      },
+      {
+        id: 'TC-010',
+        name: 'Dropdown ประเภทสัญญาแสดงประเภทจริงในระบบ ไม่แสดงประเภทที่ไม่มีรายการ',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. เปิด dropdown filter ประเภทสัญญา\n2. ตรวจสอบรายการใน dropdown',
+        expected: 'แสดงเฉพาะประเภทที่มีสัญญาอยู่จริงในระบบ ไม่แสดงประเภทที่ว่าง'
+      },
+      {
+        id: 'TC-011',
+        name: 'เลือก "ทั้งหมด" → รายการทั้งหมดกลับมา',
+        precondition: 'มีการเลือก filter ประเภทสัญญา',
+        steps: '1. เลือก "ทั้งหมด" ใน filter ประเภทสัญญา\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามประเภท'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — กรองตามสถานะสัญญา',
+    tcs: [
+      {
+        id: 'TC-012',
+        name: 'เลือก filter "ใช้งาน" → แสดงเฉพาะสัญญาที่ active',
+        precondition: 'มีสัญญาสถานะ active และ inactive ในระบบ',
+        steps: '1. เลือก filter "ใช้งาน"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่มีสถานะ active / ใช้งาน สัญญาที่หมดอายุหรือยกเลิกถูกซ่อน'
+      },
+      {
+        id: 'TC-013',
+        name: 'เลือก filter "หมดอายุ" → แสดงเฉพาะสัญญาที่หมดอายุ',
+        precondition: 'มีสัญญาที่หมดอายุในระบบ',
+        steps: '1. เลือก filter "หมดอายุ"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่หมดอายุ สัญญา active ถูกซ่อน'
+      },
+      {
+        id: 'TC-014',
+        name: 'เลือก filter "ใกล้หมดอายุ" → แสดงเฉพาะสัญญาที่ใกล้หมดอายุ',
+        precondition: 'มีสัญญาที่ใกล้หมดอายุในระบบ (ภายใน 30 วัน)',
+        steps: '1. เลือก filter "ใกล้หมดอายุ"\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ใกล้หมดอายุ สัญญาอื่นถูกซ่อน'
+      },
+      {
+        id: 'TC-015',
+        name: 'เลือก "ทั้งหมด" → รายการทั้งหมดกลับมา',
+        precondition: 'มีการเลือก filter สถานะ',
+        steps: '1. เลือก "ทั้งหมด" ใน filter สถานะ\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามสถานะ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — กรองตามช่วงวันที่',
+    tcs: [
+      {
+        id: 'TC-016',
+        name: 'เลือกวันที่เริ่มต้น และ วันที่สิ้นสุด → แสดงเฉพาะสัญญาที่อยู่ในช่วงที่เลือก',
+        precondition: 'มีสัญญาในช่วงวันที่ต่างๆ',
+        steps: '1. เลือกวันที่เริ่มต้น\n2. เลือกวันที่สิ้นสุด\n3. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่วันที่สัญญาอยู่ในช่วงที่เลือก สัญญานอกช่วงถูกซ่อน'
+      },
+      {
+        id: 'TC-017',
+        name: 'วันที่สิ้นสุดน้อยกว่าวันที่เริ่มต้น → แสดง error หรือ warning',
+        precondition: 'เปิดหน้ารายการ',
+        steps: '1. เลือกวันที่เริ่มต้น = วันนี้\n2. เลือกวันที่สิ้นสุด = เมื่อวาน\n3. สังเกตพฤติกรรม',
+        expected: 'แสดง validation error หรือ warning เช่น "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น"'
+      },
+      {
+        id: 'TC-018',
+        name: 'เคลียร์ filter วันที่ → รายการทั้งหมดกลับมา',
+        precondition: 'มีการตั้ง filter วันที่',
+        steps: '1. กดปุ่ม clear หรือลบวันที่ทั้งสองออก\n2. สังเกตรายการที่แสดง',
+        expected: 'แสดงรายการทั้งหมดกลับมา ไม่กรองตามวันที่'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — กรองหลายเงื่อนไขพร้อมกัน',
+    tcs: [
+      {
+        id: 'TC-019',
+        name: 'ใช้ filter หลายตัวพร้อมกัน → ผลลัพธ์เป็น AND (ต้องตรงทุกเงื่อนไข)',
+        precondition: 'มีสัญญาหลายประเภทและสถานะ',
+        steps: '1. เลือกประเภทสัญญา\n2. เลือกสถานะสัญญา\n3. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงเฉพาะสัญญาที่ตรงทั้งประเภทและสถานะที่เลือก (AND logic)'
+      },
+      {
+        id: 'TC-020',
+        name: 'ใช้ search + filter พร้อมกัน → ผลลัพธ์ตรงตามเงื่อนไขรวม',
+        precondition: 'มีสัญญาในระบบ',
+        steps: '1. พิมพ์คำค้นหา\n2. เลือก filter ประเภทสัญญา\n3. ตรวจสอบผล',
+        expected: 'แสดงเฉพาะสัญญาที่ตรงทั้งคำค้นหาและ filter ที่เลือก'
+      },
+      {
+        id: 'TC-021',
+        name: 'กดปุ่ม "Reset" หรือ "เคลียร์ทั้งหมด" → filter ทั้งหมดกลับ default',
+        precondition: 'มีการตั้ง filter หลายตัว',
+        steps: '1. ตั้ง filter หลายตัว\n2. กดปุ่ม reset/clear\n3. สังเกตสถานะ filter และรายการที่แสดง',
+        expected: 'filter ทั้งหมดกลับเป็นค่า default, search box ว่าง, รายการทั้งหมดแสดง'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 7 — Badge สถานะและวันที่เหลือ',
+    tcs: [
+      {
+        id: 'TC-022',
+        name: 'สัญญา active → Badge สีเขียว หรือ text "ใช้งาน"',
+        precondition: 'มีสัญญา active ในระบบ',
+        steps: '1. ดู Badge ของสัญญา active',
+        expected: 'Badge สีเขียว หรือ label "ใช้งาน" แสดงชัดเจน'
+      },
+      {
+        id: 'TC-023',
+        name: 'สัญญาหมดอายุ → Badge สีแดง หรือ text "หมดอายุ"',
+        precondition: 'มีสัญญาที่หมดอายุแล้วในระบบ',
+        steps: '1. ดู Badge ของสัญญาที่หมดอายุ',
+        expected: 'Badge สีแดง หรือ label "หมดอายุ" แสดงชัดเจน'
+      },
+      {
+        id: 'TC-024',
+        name: 'สัญญาใกล้หมดอายุ (≤30 วัน) → Badge สีเหลือง/ส้ม + แสดงวันที่เหลือ',
+        precondition: 'มีสัญญาที่จะหมดอายุภายใน 30 วัน',
+        steps: '1. ดู Badge ของสัญญาที่ใกล้หมดอายุ',
+        expected: 'Badge สีเหลืองหรือส้ม + แสดงจำนวนวันที่เหลือ เช่น "เหลือ 15 วัน"'
+      },
+      {
+        id: 'TC-025',
+        name: 'วันที่เหลือแสดงตัวเลขถูกต้อง (ตรงกับ วันสิ้นสุด - วันนี้)',
+        precondition: 'มีสัญญาที่ใกล้หมดอายุ',
+        steps: '1. ดูวันที่เหลือที่แสดงใน Badge\n2. คำนวณเองว่า วันสิ้นสุด - วันนี้ = กี่วัน',
+        expected: 'ตัวเลขวันที่เหลือตรงกับการคำนวณ วันสิ้นสุด - วันนี้'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 8 — Auto-เปลี่ยนสถานะ',
+    tcs: [
+      {
+        id: 'TC-026',
+        name: 'เมื่อถึงวันหมดสัญญา (วันนี้ = วันสิ้นสุด + 1) → สถานะเปลี่ยนเป็น "หมดอายุ" อัตโนมัติ',
+        precondition: 'มีสัญญาที่วันสิ้นสุด = เมื่อวาน',
+        steps: '1. ตรวจสอบ Badge สถานะของสัญญาที่วันสิ้นสุด = เมื่อวาน',
+        expected: 'สัญญาแสดงสถานะ "หมดอายุ" โดยไม่ต้องอัปเดต manually'
+      },
+      {
+        id: 'TC-027',
+        name: 'เมื่อยังอยู่ในช่วงสัญญา → ไม่เปลี่ยนเป็น "หมดอายุ"',
+        precondition: 'มีสัญญาที่วันสิ้นสุด = อีก 10 วัน',
+        steps: '1. ตรวจสอบสถานะของสัญญาที่ยังไม่หมด',
+        expected: 'ยังแสดงสถานะ "ใช้งาน" หรือ "ใกล้หมดอายุ" ไม่เปลี่ยนเป็น "หมดอายุ" ก่อนกำหนด'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 9 — Pagination',
+    tcs: [
+      {
+        id: 'TC-028',
+        name: 'มีสัญญาเกิน page size → Pagination แสดง',
+        precondition: 'มีสัญญามากกว่า page size ที่กำหนด',
+        steps: '1. ตรวจสอบว่ามี pagination แสดงที่ด้านล่าง',
+        expected: 'Pagination แสดง แสดงจำนวนหน้า สามารถกดเปลี่ยนหน้าได้'
+      },
+      {
+        id: 'TC-029',
+        name: 'กดหน้าถัดไป → แสดงรายการชุดถัดไป ไม่ซ้ำกับหน้าแรก',
+        precondition: 'มีสัญญาเกิน 1 หน้า',
+        steps: '1. กด "หน้าถัดไป" หรือ กดหมายเลขหน้าถัดไป\n2. ตรวจสอบรายการที่แสดง',
+        expected: 'แสดงรายการชุดถัดไป ไม่ซ้ำกับรายการในหน้าก่อน'
+      },
+      {
+        id: 'TC-030',
+        name: 'กรอง filter แล้ว → Pagination อัปเดตตามผล filter (ไม่แสดงหน้าที่เกิน)',
+        precondition: 'มีสัญญาเกิน 1 หน้า',
+        steps: '1. กรองให้เหลือรายการน้อยกว่า page size\n2. ดู pagination',
+        expected: 'Pagination ลดลงหรือหายไปตามจำนวนผลลัพธ์ ไม่มีปุ่มหน้าที่เกินจำนวนจริง'
+      },
+      {
+        id: 'TC-031',
+        name: 'มีสัญญาน้อยกว่าหรือเท่ากับ page size → ไม่แสดง pagination',
+        precondition: 'มีสัญญาน้อยกว่า page size',
+        steps: '1. ตรวจสอบว่ามี pagination แสดงหรือไม่',
+        expected: 'ไม่แสดง pagination เมื่อรายการน้อยกว่าหรือเท่ากับ page size'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 10 — Export Excel',
+    tcs: [
+      {
+        id: 'TC-032',
+        name: 'กดปุ่ม Export Excel → ดาวน์โหลดไฟล์ .xlsx สำเร็จ',
+        precondition: 'มีสัญญาในระบบ',
+        steps: '1. กดปุ่ม "Export Excel"\n2. สังเกตการดาวน์โหลด',
+        expected: 'ไฟล์ .xlsx ดาวน์โหลดสำเร็จ ชื่อไฟล์เหมาะสม'
+      },
+      {
+        id: 'TC-033',
+        name: 'ไฟล์ที่ export มีข้อมูลครบทุก column และตรงกับที่แสดงในหน้า',
+        precondition: 'เปิดไฟล์ .xlsx ที่ export มา',
+        steps: '1. เปิดไฟล์ Excel\n2. ตรวจสอบว่ามี column ครบและข้อมูลตรงกับ UI',
+        expected: 'มีทุก column ที่แสดงใน UI ข้อมูลในแต่ละแถวตรงกับที่แสดงบนหน้า'
+      },
+      {
+        id: 'TC-034',
+        name: 'Export ขณะมี filter active → export เฉพาะรายการที่ผ่าน filter',
+        precondition: 'มีการตั้ง filter',
+        steps: '1. ตั้ง filter บางอย่าง\n2. กด Export\n3. ตรวจสอบไฟล์',
+        expected: 'ไฟล์ export มีเฉพาะรายการที่ผ่าน filter ณ ขณะที่กด export'
+      },
+      {
+        id: 'TC-035',
+        name: 'ไม่มีสัญญา (หรือ filter ไม่พบผล) → Export ให้ไฟล์ว่างหรือมีแค่ header',
+        precondition: 'ไม่มีรายการ (filter ไม่พบหรือไม่มีข้อมูล)',
+        steps: '1. ตั้ง filter ให้ไม่มีผล\n2. กด Export',
+        expected: 'ดาวน์โหลดไฟล์ได้ ไฟล์มีเฉพาะ header หรือแสดงข้อความว่าไม่มีข้อมูล ไม่ขึ้น error'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 11 — สิทธิ์และปุ่มต่างๆ',
+    tcs: [
+      {
+        id: 'TC-036',
+        name: 'ปุ่ม "เพิ่มสัญญา" แสดงสำหรับ user ที่มีสิทธิ์สร้าง',
+        precondition: 'login ด้วย user ที่มีสิทธิ์สร้างสัญญา',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตปุ่ม "เพิ่มสัญญา"',
+        expected: 'ปุ่ม "เพิ่มสัญญา" แสดงอยู่ที่มุมขวาบนหรือตำแหน่งที่ชัดเจน'
+      },
+      {
+        id: 'TC-037',
+        name: 'ปุ่ม "เพิ่มสัญญา" ซ่อนสำหรับ user ที่ไม่มีสิทธิ์สร้าง',
+        precondition: 'login ด้วย user ที่ไม่มีสิทธิ์สร้างสัญญา',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตว่ามีปุ่ม "เพิ่มสัญญา" หรือไม่',
+        expected: 'ปุ่ม "เพิ่มสัญญา" ซ่อนหรือ disabled ไม่ให้ user ที่ไม่มีสิทธิ์กดได้'
+      },
+      {
+        id: 'TC-038',
+        name: 'กดปุ่ม "ดูรายละเอียด" → เปิดหน้า detail ของสัญญานั้น (task-406 flow)',
+        precondition: 'เปิดหน้ารายการสัญญา',
+        steps: '1. กดปุ่ม "ดูรายละเอียด" ของสัญญาใด\n2. สังเกตหน้าที่เปิดขึ้น',
+        expected: 'เปิดหน้า detail ของสัญญานั้น ข้อมูลตรงกับรายการที่กด'
+      },
+      {
+        id: 'TC-039',
+        name: 'กดปุ่ม "แก้ไข" → เปิดหน้าฟอร์มแก้ไขสัญญานั้น',
+        precondition: 'login ด้วย user ที่มีสิทธิ์แก้ไข',
+        steps: '1. กดปุ่ม "แก้ไข" ของสัญญาใด\n2. สังเกตหน้าที่เปิดขึ้น',
+        expected: 'เปิดหน้าฟอร์มแก้ไขสัญญา ข้อมูลเดิมโหลดมาแสดงครบ'
+      },
+      {
+        id: 'TC-040',
+        name: 'กดปุ่ม "ลบ" → Modal ยืนยันแสดงขึ้น',
+        precondition: 'login ด้วย user ที่มีสิทธิ์ลบ',
+        steps: '1. กดปุ่ม "ลบ" ของสัญญาใด\n2. สังเกตพฤติกรรม',
+        expected: 'Modal ยืนยันการลบแสดงขึ้น แสดงชื่อสัญญาและข้อความเตือน'
+      },
+      {
+        id: 'TC-041',
+        name: 'user ที่ไม่มีสิทธิ์แก้ไข → ปุ่ม "แก้ไข" และ "ลบ" ซ่อนหรือ disabled',
+        precondition: 'login ด้วย user ที่ไม่มีสิทธิ์แก้ไข/ลบ',
+        steps: '1. เปิดหน้ารายการสัญญา\n2. สังเกตปุ่ม "แก้ไข" และ "ลบ"',
+        expected: 'ปุ่ม "แก้ไข" และ "ลบ" ซ่อนหรือ disabled ไม่ให้ user ที่ไม่มีสิทธิ์กดได้'
+      },
+      {
+        id: 'TC-042',
+        name: 'responsive บน mobile (viewport 375px) — ตารางหรือ list แสดงได้อ่านออก ไม่ overflow',
+        precondition: 'ปรับ viewport เป็น 375px',
+        steps: '1. ปรับ viewport หรือใช้ DevTools ตั้งเป็น 375px\n2. ตรวจสอบการแสดงผล',
+        expected: 'หน้าแสดงผลได้อ่านออก ไม่มี horizontal scroll ไม่มีข้อความหรือปุ่มถูกตัด'
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) {
+        state[id].status = data[id].status
+        state[id].note = data[id].note || ''
+      }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++
+    else if(v.status==='fail') f++
+    else if(v.status==='skip') s++
+    else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+  document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats()
+  saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+  editor.addEventListener('focus', () => { activeEditor = id })
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img)
+      showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+  editor.addEventListener('dragover', (e) => { e.preventDefault() })
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      editor.focus()
+      insertAtCursor(img)
+      showToast('📎 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents()
+  range.insertNode(node)
+  range.setStartAfter(node)
+  range.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState()
+  showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img')
+  img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'
+  close.textContent = '✕'
+  overlay.appendChild(img)
+  overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm
+  img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด?')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  document.getElementById('bug-out').classList.remove('open')
+  render()
+  loadState()
+  applyStateToUI()
+  updateStats()
+}
+
+function showBugReport() {
+  const fails = []
+  let num = 1
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const actual = editor ? editor.innerText.trim() : ''
+        const actualHtml = editor ? editor.innerHTML.trim() : ''
+        fails.push({ ...tc, section: sec.name, actual, actualHtml, num: num++ })
+      }
+    })
+  })
+
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
+  document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
+
+  if (!fails.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
+      ${f.precondition ? `<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>` : ''}
+      <div class="bug-line"><b>Steps:</b> ${f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')}</div>
+      <div class="bug-line"><b>Expected:</b> ${f.expected}</div>
+      <div class="bug-line"><b>Actual result:</b></div>
+      <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+    </div>
+  `).join('')
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+document.getElementById('bug-list').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target.src)
+})
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML = SECTIONS.map(sec => `
+    <div>
+      <div class="section-hd">${sec.name}</div>
+      ${sec.tcs.map(tc => `
+        <div class="tc-row" id="row-${tc.id}">
+          <div class="tc-top">
+            <div class="tc-id">${tc.id}</div>
+            <div class="tc-name">${tc.name}</div>
+            <div class="tc-btns">
+              <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+              <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+              <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+            </div>
+          </div>
+          <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+          <div class="tc-detail" id="detail-${tc.id}">
+            ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+            <div class="detail-label">Steps</div>
+            <div class="detail-val">${tc.steps.replace(/\n/g,'<br>')}</div>
+            <div class="detail-label">Expected</div>
+            <div class="detail-val">${tc.expected}</div>
+            <div class="detail-label" style="margin-top:10px">Actual result</div>
+            <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+              data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+            <div class="save-row">
+              <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('')
+
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+}
+
+function applyStateToUI() {
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+    const s = state[tc.id]
+    if (s.status) {
+      document.getElementById('row-' + tc.id).className = 'tc-row s-' + s.status
+      const map = { pass:'p', fail:'f', skip:'s' }
+      const btn = document.getElementById(map[s.status] + '-' + tc.id)
+      if (btn) btn.className = 'tbtn a' + map[s.status][0]
+    }
+    if (s.note) {
+      const editor = document.getElementById('actual-' + tc.id)
+      if (editor) editor.innerHTML = s.note
+    }
+  }))
+}
+
+render()
+loadState()
+applyStateToUI()
+updateStats()
+
+const PROXY_URL = 'http://localhost:8765'
+
+function exportBugJSON() {
+  const payload = buildPayload()
+  if (!payload) return
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'bug-report-' + TASK_NUMBER + '.json'
+  a.click()
+  showToast('📥 ดาวน์โหลด bug-report-' + TASK_NUMBER + '.json แล้วครับ')
+}
+
+function buildPayload() {
+  const fails = []
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const images = []
+        if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+        fails.push({ tc_id: tc.id, name: tc.name, section: sec.name,
+          precondition: tc.precondition || '', steps: tc.steps, expected: tc.expected,
+          actual: editor ? editor.innerText.trim() : 'ยังไม่ได้ระบุ', images })
+      }
+    })
+  })
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  return {
+    task_url: TASK_URL, task_number: TASK_NUMBER, task_name: TASK_NAME,
+    total_pass: Object.values(state).filter(v => v.status === 'pass').length,
+    total_fail: fails.length,
+    total_skip: Object.values(state).filter(v => v.status === 'skip').length,
+    total_tc: Object.keys(state).length,
+    bugs: fails
+  }
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div')
+  progressEl.className = 'send-progress'
+  progressEl.innerHTML = `<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div>
+    <div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`
+  document.body.appendChild(progressEl)
+}
+function showSendDone(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step done'
+  progressEl.querySelector('#sp-0').textContent = '✓ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 3000)
+}
+function showSendErr(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step err'
+  progressEl.querySelector('#sp-0').textContent = '✗ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 5000)
+}
+
+async function sendToBoard() {
+  const payload = buildPayload()
+  if (!payload) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await r.json()
+    if (data.ok) {
+      showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`)
+      showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)
+    } else {
+      showSendErr(data.error || 'ส่งไม่สำเร็จ')
+      showToast('❌ ' + (data.error || 'ส่งไม่สำเร็จ'))
+    }
+  } catch (err) {
+    showSendErr('เปิด proxy ก่อน')
+    showToast('❌ ไม่พบ proxy — รัน: python proxy.py')
+    console.error(err)
+  }
+}
+</script>
+</body>
+</html>

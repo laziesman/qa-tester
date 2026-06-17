@@ -1,0 +1,724 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 404 — ฟอร์มแก้ไขรายการประวัติการเปลี่ยนแปลงที่บันทึกไว้แล้ว</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;font-size:15px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 32px rgba(0,0,0,0.35),0 0 0 0.5px rgba(255,255,255,0.08)}
+
+.topbar{background:#1E293B;padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:14px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap}
+.task-link{font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:5px;padding:4px 10px;background:transparent;white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+
+.stats-bar{background:#162032;border-bottom:0.5px solid rgba(255,255,255,0.05);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pl-pass{background:rgba(82,168,105,0.2);color:#7ec87e}
+.pl-fail{background:rgba(226,75,74,0.2);color:#f09595}
+.pl-skip{background:rgba(212,160,23,0.2);color:#c9a040}
+.pl-pend{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+
+.body{background:#0F172A;padding:14px 18px 20px}
+.section-hd{font-size:11px;font-weight:600;color:rgba(248,250,252,0.4);letter-spacing:0.07em;padding:14px 0 6px;text-transform:uppercase}
+.section-hd:first-child{padding-top:4px}
+
+.tc-row{background:#1E293B;border:0.5px solid rgba(255,255,255,0.07);border-left:3px solid transparent;border-radius:7px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s}
+.tc-row.s-pass{border-left-color:#52a869;background:rgba(52,168,105,0.12)}
+.tc-row.s-fail{border-left-color:#e24b4a;background:rgba(226,75,74,0.1)}
+.tc-row.s-skip{border-left-color:#d4a017;background:rgba(212,160,23,0.1)}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:rgba(248,250,252,0.4)}
+.tc-name{font-size:14px;color:#F8FAFC;font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.35);cursor:pointer;transition:all 0.1s}
+.tbtn:hover{background:rgba(255,255,255,0.07)}
+.tbtn.ap{background:rgba(52,168,105,0.18);color:#7ec87e;border-color:rgba(52,168,105,0.4)}
+.tbtn.af{background:rgba(226,75,74,0.18);color:#f09595;border-color:rgba(226,75,74,0.35)}
+.tbtn.as{background:rgba(212,160,23,0.18);color:#f6a942;border-color:rgba(212,160,23,0.4)}
+.tc-toggle{font-size:12px;color:rgba(248,250,252,0.4);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:rgba(248,250,252,0.4)}
+
+.tc-detail{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.06);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:12px;color:rgba(248,250,252,0.35);margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6}
+
+.actual-editor{min-height:72px;border:0.5px solid rgba(255,255,255,0.07);border-radius:5px;padding:7px 9px;font-size:13px;color:#F8FAFC;background:#1E293B;outline:none;line-height:1.6}
+.actual-editor:focus{border-color:rgba(248,250,252,0.35)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:rgba(255,255,255,0.2);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.07);background:#38BDF8;color:#0F172A;cursor:pointer}
+.save-btn:hover{background:#0ea5e9}
+
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:#1E293B;border-top:0.5px solid rgba(255,255,255,0.06)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.07);background:#1E293B;color:rgba(248,250,252,0.5);cursor:pointer;transition:background 0.1s}
+.abtn:hover{background:rgba(255,255,255,0.07)}
+.abtn.primary{background:#38BDF8;color:#0F172A;border-color:#38BDF8}
+.abtn.primary:hover{background:#0ea5e9}
+.abtn.send{background:#0369a1;color:#fff;border-color:#1F3864}
+.abtn.send:hover{background:#0284c7}
+
+.bug-out{display:none;padding:0 18px 20px;background:#0F172A}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:500;color:#F8FAFC;margin-bottom:8px;padding-top:4px}
+.bug-item{border:0.5px solid rgba(226,75,74,0.25);background:rgba(226,75,74,0.1);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#f09595;font-weight:500;margin-bottom:5px}
+.bug-line{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.7}
+.bug-line b{color:rgba(248,250,252,0.4);font-weight:500}
+.no-fail{font-size:14px;color:#7ec87e;background:rgba(52,168,105,0.18);border-radius:7px;padding:10px 14px;display:inline-block}
+.bug-actual-content{font-size:13px;color:rgba(248,250,252,0.65);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:#1a1a1a;color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.2);line-height:1.6}
+.send-progress-title{font-weight:500;margin-bottom:6px}
+.send-step{color:rgba(248,250,252,0.35);font-size:12px}
+.send-step.done{color:#7ec87e}
+.send-step.active{color:#fff}
+.send-step.err{color:#f09595}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+<div class="topbar-title">#404 — ฟอร์มแก้ไขรายการประวัติการเปลี่ยนแปลงที่บันทึกไว้แล้ว</div>
+    <div class="topbar-meta">HR · Sprint 5</div>
+    <a class="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/404" target="_blank">เปิด Board ↗</a>
+  </div>
+
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+
+  <div class="body">
+    <div id="tc-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'qa_task_404'
+const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/404'
+const TASK_NUMBER = '404'
+const TASK_NAME = 'ฟอร์มแก้ไขรายการประวัติการเปลี่ยนแปลงที่บันทึกไว้แล้ว'
+
+const SECTIONS = [
+  {
+    name: 'ส่วนที่ 1 — โหลดข้อมูลเดิมมาแสดง',
+    tcs: [
+      {
+        id: 'TC-001',
+        name: 'เปิดฟอร์มแก้ไข → ข้อมูลเดิมโหลดครบทุก field ก่อนให้แก้ไข',
+        precondition: 'มีรายการที่บันทึกไว้แล้วในระบบ',
+        steps: '1. เปิดหน้ารายการประวัติการเปลี่ยนแปลง\n2. เลือกรายการใดรายการหนึ่ง\n3. กดปุ่ม "แก้ไข"\n4. ตรวจสอบว่าข้อมูลทุก field โหลดมาแสดงครบ',
+        expected: 'ฟอร์มแสดงข้อมูลเดิมของรายการนั้นครบทุก field ก่อนให้ผู้ใช้แก้ไข ไม่มี field ใดว่างเปล่าที่ควรมีข้อมูล'
+      },
+      {
+        id: 'TC-002',
+        name: 'ประเภทการเปลี่ยนแปลงโหลดมาแสดงตรงกับรายการที่เลือก',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีประเภทการเปลี่ยนแปลงชัดเจน เช่น "เปลี่ยนตำแหน่ง"',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "ประเภทการเปลี่ยนแปลง"',
+        expected: 'แสดงประเภทการเปลี่ยนแปลงตรงกับที่บันทึกไว้ เช่น "เปลี่ยนตำแหน่ง" หรือหลายประเภทหากมีหลายประเภท'
+      },
+      {
+        id: 'TC-003',
+        name: 'ข้อมูล Before / After โหลดมาแสดงตรงกับรายการที่เลือก',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล Before/After',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบค่าใน field Before และ After ของแต่ละประเภทการเปลี่ยนแปลง',
+        expected: 'ค่า Before และ After ตรงกับข้อมูลที่บันทึกไว้ในรายการนั้น ไม่ใช่ค่าของรายการอื่น'
+      },
+      {
+        id: 'TC-004',
+        name: 'วันที่มีผลโหลดมาแสดงตรงกับรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "วันที่มีผล"',
+        expected: 'แสดงวันที่มีผลตรงกับที่บันทึกไว้ ไม่ใช่วันที่ปัจจุบันหรือค่าว่าง'
+      },
+      {
+        id: 'TC-005',
+        name: 'ผู้บันทึก / วันที่บันทึกโหลดมาแสดงตรงกับรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่ทราบว่าใครบันทึกและเมื่อไร',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ตรวจสอบ field "ผู้บันทึก" และ "วันที่บันทึก"',
+        expected: 'แสดงชื่อผู้บันทึกและวันที่บันทึกตรงกับรายการนั้น'
+      },
+      {
+        id: 'TC-006',
+        name: 'เหตุผล / หมายเหตุเดิมโหลดมาแสดงใน field ที่แก้ไขได้',
+        precondition: 'มีรายการที่บันทึก "เหตุผล/หมายเหตุ" ไว้แล้ว',
+        steps: '1. เปิดฟอร์มแก้ไขรายการที่มีเหตุผล/หมายเหตุ\n2. ตรวจสอบ field "เหตุผล/หมายเหตุ"',
+        expected: 'แสดงข้อความเหตุผล/หมายเหตุเดิมใน field ที่แก้ไขได้ สามารถเห็น cursor ได้ (editable)'
+      },
+      {
+        id: 'TC-007',
+        name: 'เอกสารแนบเดิมโหลดมาแสดงรายชื่อครบ พร้อมดูหรือลบแต่ละไฟล์',
+        precondition: 'มีรายการที่มีเอกสารแนบไว้แล้ว',
+        steps: '1. เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบ\n2. ตรวจสอบรายชื่อเอกสารแนบ\n3. ตรวจสอบว่ามีปุ่ม/ลิงก์สำหรับดูหรือลบแต่ละไฟล์',
+        expected: 'แสดงรายชื่อเอกสารแนบเดิมครบ มีปุ่มดูหรือดาวน์โหลด และปุ่มลบแต่ละไฟล์'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 2 — Read-only fields',
+    tcs: [
+      {
+        id: 'TC-008',
+        name: 'ประเภทการเปลี่ยนแปลง — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกหรือแก้ไข field "ประเภทการเปลี่ยนแปลง"\n2. พยายาม tick/untick checkbox หรือเปลี่ยนค่า',
+        expected: 'Field "ประเภทการเปลี่ยนแปลง" ไม่สามารถแก้ไขได้ (read-only / disabled) ค่าคงเดิม'
+      },
+      {
+        id: 'TC-009',
+        name: 'ข้อมูลก่อนเปลี่ยน (Before) — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล Before',
+        steps: '1. พยายามคลิกและแก้ไขข้อมูลใน field Before (เช่น ตำแหน่งเดิม, เงินเดือนเดิม)\n2. พยายามพิมพ์ค่าใหม่',
+        expected: 'ทุก field ที่แสดงข้อมูลก่อนเปลี่ยน (Before) ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-010',
+        name: 'ข้อมูลหลังเปลี่ยน (After) — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีข้อมูล After',
+        steps: '1. พยายามคลิกและแก้ไขข้อมูลใน field After (เช่น ตำแหน่งใหม่, เงินเดือนใหม่)\n2. พยายามพิมพ์ค่าใหม่',
+        expected: 'ทุก field ที่แสดงข้อมูลหลังเปลี่ยน (After) ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-011',
+        name: 'วันที่มีผล — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิก date picker ที่ field "วันที่มีผล"\n2. พยายามเปลี่ยนวันที่',
+        expected: 'Field "วันที่มีผล" ไม่สามารถแก้ไขได้ date picker ไม่เปิด หรือ field เป็น disabled'
+      },
+      {
+        id: 'TC-012',
+        name: 'ผู้บันทึก — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกและแก้ไข field "ผู้บันทึก"',
+        expected: 'Field "ผู้บันทึก" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-013',
+        name: 'วันที่บันทึก — ไม่สามารถแก้ไขได้',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามคลิกและแก้ไข field "วันที่บันทึก"',
+        expected: 'Field "วันที่บันทึก" ไม่สามารถแก้ไขได้ (read-only / disabled)'
+      },
+      {
+        id: 'TC-014',
+        name: 'แสดงข้อความแจ้งว่าหากต้องการเปลี่ยน Before/After หรือวันที่มีผล ต้องลบและสร้างใหม่',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. สังเกตหน้าฟอร์มแก้ไขทั้งหน้า\n2. ตรวจสอบว่ามีข้อความแจ้งเตือนหรือ hint ใกล้ field read-only',
+        expected: 'มีข้อความแจ้งว่า "หากต้องการแก้ไข Before/After หรือวันที่มีผล ต้องลบรายการเดิมและสร้างใหม่" หรือข้อความที่มีความหมายเดียวกัน'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 3 — แก้ไขเหตุผล / หมายเหตุ',
+    tcs: [
+      {
+        id: 'TC-015',
+        name: 'แก้ไขข้อความใน "เหตุผล/หมายเหตุ" ได้ปกติ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. คลิกที่ field "เหตุผล/หมายเหตุ"\n2. ลบข้อความเดิมและพิมพ์ข้อความใหม่\n3. ตรวจสอบว่าข้อความที่พิมพ์แสดงใน field',
+        expected: 'สามารถแก้ไขข้อความใน field "เหตุผล/หมายเหตุ" ได้ ข้อความใหม่แสดงใน field ปกติ'
+      },
+      {
+        id: 'TC-016',
+        name: 'ล้าง "เหตุผล/หมายเหตุ" ทั้งหมด (เป็นค่าว่าง) → บันทึกได้ (optional field)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มี "เหตุผล/หมายเหตุ" อยู่',
+        steps: '1. ลบข้อความทั้งหมดใน field "เหตุผล/หมายเหตุ" จนว่าง\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast แสดง "แก้ไขข้อมูลสำเร็จ" field "เหตุผล/หมายเหตุ" เป็นค่าว่างได้ (ไม่บังคับ)'
+      },
+      {
+        id: 'TC-017',
+        name: 'พิมพ์ "เหตุผล/หมายเหตุ" ความยาวมากๆ → ระบบจัดการได้ (รับหรือแสดง error ขนาดสูงสุด)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พิมพ์ข้อความยาวมากในช่อง "เหตุผล/หมายเหตุ" เช่น 500+ ตัวอักษร\n2. กดปุ่ม "บันทึก"',
+        expected: 'หากมี limit: แสดง error แจ้งจำนวนสูงสุด / หากไม่มี limit: บันทึกสำเร็จ ข้อความยาวถูกเก็บครบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 4 — จัดการเอกสารแนบ',
+    tcs: [
+      {
+        id: 'TC-018',
+        name: 'เพิ่มเอกสารแนบใหม่ → แสดงในรายการพร้อมชื่อไฟล์',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. คลิกปุ่ม "เพิ่มเอกสาร" หรือ input file\n2. เลือกไฟล์ใหม่จากเครื่อง\n3. สังเกตรายการเอกสารแนบ',
+        expected: 'ไฟล์ที่เพิ่งเลือกปรากฏในรายการเอกสารแนบ พร้อมชื่อไฟล์ถูกต้อง รายการเดิมยังอยู่ครบ'
+      },
+      {
+        id: 'TC-019',
+        name: 'ลบเอกสารแนบเดิม → ไฟล์หายจากรายการ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบเดิม',
+        steps: '1. คลิกปุ่มลบที่เอกสารแนบรายการใดรายการหนึ่ง\n2. ยืนยันการลบ (ถ้ามี dialog)\n3. สังเกตรายการเอกสาร',
+        expected: 'ไฟล์ที่ลบหายออกจากรายการทันที ไฟล์อื่นยังอยู่ครบ'
+      },
+      {
+        id: 'TC-020',
+        name: 'แทนที่เอกสารแนบเดิม → ไฟล์ใหม่แทนที่ไฟล์เดิม',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบเดิม (ถ้ามีฟีเจอร์ replace)',
+        steps: '1. คลิกปุ่ม "แทนที่" ที่ไฟล์ใดไฟล์หนึ่ง\n2. เลือกไฟล์ใหม่\n3. สังเกตรายการเอกสาร',
+        expected: 'ไฟล์ใหม่แทนที่ไฟล์เดิมในรายการ ชื่อไฟล์อัปเดตเป็นชื่อใหม่ ไฟล์เดิมไม่ปรากฏอีก'
+      },
+      {
+        id: 'TC-021',
+        name: 'ลบเอกสารแนบทั้งหมด → บันทึกได้ (optional)',
+        precondition: 'เปิดฟอร์มแก้ไขรายการที่มีเอกสารแนบหลายไฟล์',
+        steps: '1. ลบเอกสารแนบทั้งหมดออกทุกไฟล์\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast "แก้ไขข้อมูลสำเร็จ" เอกสารแนบเป็นค่าว่างได้ (ไม่บังคับต้องมี)'
+      },
+      {
+        id: 'TC-022',
+        name: 'แนบไฟล์ประเภทที่ไม่รองรับ → แสดง error ระบุประเภทที่รองรับ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามแนบไฟล์ประเภทที่ไม่รองรับ เช่น .exe, .sh\n2. สังเกต error',
+        expected: 'ระบบแสดง error แจ้งประเภทไฟล์ที่รองรับ เช่น "รองรับเฉพาะ PDF, JPG, PNG, DOC" ไม่อนุญาตให้แนบไฟล์นั้น'
+      },
+      {
+        id: 'TC-023',
+        name: 'แนบไฟล์เกินขนาดสูงสุด → แสดง error แจ้งขนาดสูงสุด',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. พยายามแนบไฟล์ขนาดใหญ่เกิน limit ที่กำหนด\n2. สังเกต error',
+        expected: 'ระบบแสดง error แจ้งขนาดสูงสุดที่อนุญาต เช่น "ไฟล์ต้องไม่เกิน 10 MB" ไม่อนุญาตให้แนบ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 5 — บันทึกการแก้ไขและ Audit Log',
+    tcs: [
+      {
+        id: 'TC-024',
+        name: 'แก้ไขเหตุผล/หมายเหตุ แล้วกด "บันทึก" → Toast "แก้ไขข้อมูลสำเร็จ"',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. แก้ไขข้อความในช่อง "เหตุผล/หมายเหตุ"\n2. กดปุ่ม "บันทึก"\n3. สังเกต Toast notification',
+        expected: 'Toast แสดง "แก้ไขข้อมูลสำเร็จ" และหายไปหลังสักครู่'
+      },
+      {
+        id: 'TC-025',
+        name: 'เพิ่ม/ลบเอกสารแนบ แล้วกด "บันทึก" → Toast "แก้ไขข้อมูลสำเร็จ"',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เพิ่มหรือลบเอกสารแนบ\n2. กดปุ่ม "บันทึก"\n3. สังเกต Toast notification',
+        expected: 'Toast แสดง "แก้ไขข้อมูลสำเร็จ" และหายไปหลังสักครู่'
+      },
+      {
+        id: 'TC-026',
+        name: 'บันทึกสำเร็จ → ข้อมูลที่แก้ไขอัปเดตทันทีใน list / detail',
+        precondition: 'บันทึกการแก้ไขสำเร็จแล้ว',
+        steps: '1. บันทึกการแก้ไขสำเร็จ\n2. กลับไปดูรายการใน list\n3. เปิดดู detail ของรายการที่แก้ไข',
+        expected: 'ข้อมูลที่แก้ไข (เหตุผล/หมายเหตุ / เอกสารแนบ) อัปเดตใน list และ detail ทันที ไม่ต้อง refresh หน้า'
+      },
+      {
+        id: 'TC-027',
+        name: 'บันทึกสำเร็จ → Audit log บันทึก วันที่แก้ไข / ผู้แก้ไข / ค่าก่อน / ค่าหลัง',
+        precondition: 'มีสิทธิ์ดู audit log',
+        steps: '1. บันทึกการแก้ไขสำเร็จ\n2. เปิดดู audit log ของรายการนั้น',
+        expected: 'Audit log แสดงรายการแก้ไขใหม่ ประกอบด้วย: วันที่แก้ไข, ชื่อผู้แก้ไข, ค่าก่อนแก้ไข, ค่าหลังแก้ไข'
+      },
+      {
+        id: 'TC-028',
+        name: 'บันทึกโดยไม่เปลี่ยนแปลงใดๆ → บันทึกสำเร็จ ไม่มี error',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ',
+        steps: '1. เปิดฟอร์มแก้ไขแต่ไม่เปลี่ยนแปลงข้อมูลใดๆ\n2. กดปุ่ม "บันทึก"',
+        expected: 'ระบบบันทึกสำเร็จ Toast "แก้ไขข้อมูลสำเร็จ" ไม่มี error ใดๆ'
+      }
+    ]
+  },
+  {
+    name: 'ส่วนที่ 6 — ปุ่มยกเลิก',
+    tcs: [
+      {
+        id: 'TC-029',
+        name: 'กด "ยกเลิก" โดยไม่แก้ไขใดๆ → กลับหน้ารายการปกติ',
+        precondition: 'เปิดฟอร์มแก้ไขรายการ ยังไม่แก้ไขใดๆ',
+        steps: '1. เปิดฟอร์มแก้ไขรายการ\n2. ไม่แก้ไขข้อมูลใดๆ\n3. กดปุ่ม "ยกเลิก"',
+        expected: 'กลับสู่หน้ารายการปกติ ไม่มี dialog ยืนยัน รายการไม่เปลี่ยนแปลง'
+      },
+      {
+        id: 'TC-030',
+        name: 'กด "ยกเลิก" หลังแก้ไขข้อมูลแล้ว → ยืนยัน dialog / ข้อมูลไม่ถูกบันทึก',
+        precondition: 'เปิดฟอร์มแก้ไขและแก้ไขข้อมูลบางส่วนแล้ว',
+        steps: '1. แก้ไขข้อความใน "เหตุผล/หมายเหตุ"\n2. กดปุ่ม "ยกเลิก"\n3. สังเกต dialog หรือพฤติกรรมของระบบ',
+        expected: 'ระบบแสดง dialog ยืนยัน "ยกเลิกการแก้ไข?" หรือกลับทันที — กรณีกลับ: ข้อมูลที่แก้ไขไม่ถูกบันทึก รายการในระบบยังเป็นค่าเดิม'
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) {
+        state[id].status = data[id].status
+        state[id].note = data[id].note || ''
+      }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++
+    else if(v.status==='fail') f++
+    else if(v.status==='skip') s++
+    else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+  document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats()
+  saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+  editor.addEventListener('focus', () => { activeEditor = id })
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img)
+      showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+  editor.addEventListener('dragover', (e) => { e.preventDefault() })
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      editor.focus()
+      insertAtCursor(img)
+      showToast('📎 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents()
+  range.insertNode(node)
+  range.setStartAfter(node)
+  range.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState()
+  showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img')
+  img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'
+  close.textContent = '✕'
+  overlay.appendChild(img)
+  overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm
+  img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด?')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  document.getElementById('bug-out').classList.remove('open')
+  render()
+  loadState()
+  applyStateToUI()
+  updateStats()
+}
+
+function showBugReport() {
+  const fails = []
+  let num = 1
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const actual = editor ? editor.innerText.trim() : ''
+        const actualHtml = editor ? editor.innerHTML.trim() : ''
+        fails.push({ ...tc, section: sec.name, actual, actualHtml, num: num++ })
+      }
+    })
+  })
+
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
+  document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
+
+  if (!fails.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
+  list.innerHTML = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
+      ${f.precondition ? `<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>` : ''}
+      <div class="bug-line"><b>Steps:</b> ${f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')}</div>
+      <div class="bug-line"><b>Expected:</b> ${f.expected}</div>
+      <div class="bug-line"><b>Actual result:</b></div>
+      <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+    </div>
+  `).join('')
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+document.getElementById('bug-list').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target.src)
+})
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML = SECTIONS.map(sec => `
+    <div>
+      <div class="section-hd">${sec.name}</div>
+      ${sec.tcs.map(tc => `
+        <div class="tc-row" id="row-${tc.id}">
+          <div class="tc-top">
+            <div class="tc-id">${tc.id}</div>
+            <div class="tc-name">${tc.name}</div>
+            <div class="tc-btns">
+              <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+              <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+              <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+            </div>
+          </div>
+          <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+          <div class="tc-detail" id="detail-${tc.id}">
+            ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+            <div class="detail-label">Steps</div>
+            <div class="detail-val">${tc.steps.replace(/\n/g,'<br>')}</div>
+            <div class="detail-label">Expected</div>
+            <div class="detail-val">${tc.expected}</div>
+            <div class="detail-label" style="margin-top:10px">Actual result</div>
+            <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+              data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+            <div class="save-row">
+              <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('')
+
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+}
+
+function applyStateToUI() {
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+    const s = state[tc.id]
+    if (s.status) {
+      document.getElementById('row-' + tc.id).className = 'tc-row s-' + s.status
+      const map = { pass:'p', fail:'f', skip:'s' }
+      const btn = document.getElementById(map[s.status] + '-' + tc.id)
+      if (btn) btn.className = 'tbtn a' + map[s.status][0]
+    }
+    if (s.note) {
+      const editor = document.getElementById('actual-' + tc.id)
+      if (editor) editor.innerHTML = s.note
+    }
+  }))
+}
+
+render()
+loadState()
+applyStateToUI()
+updateStats()
+
+const PROXY_URL = 'http://localhost:8765'
+
+function exportBugJSON() {
+  const payload = buildPayload()
+  if (!payload) return
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'bug-report-' + TASK_NUMBER + '.json'
+  a.click()
+  showToast('📥 ดาวน์โหลด bug-report-' + TASK_NUMBER + '.json แล้วครับ')
+}
+
+function buildPayload() {
+  const fails = []
+  SECTIONS.forEach(sec => {
+    sec.tcs.forEach(tc => {
+      if (state[tc.id]?.status === 'fail') {
+        const editor = document.getElementById('actual-' + tc.id)
+        const images = []
+        if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+        fails.push({ tc_id: tc.id, name: tc.name, section: sec.name,
+          precondition: tc.precondition || '', steps: tc.steps, expected: tc.expected,
+          actual: editor ? editor.innerText.trim() : 'ยังไม่ได้ระบุ', images })
+      }
+    })
+  })
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  return {
+    task_url: TASK_URL, task_number: TASK_NUMBER, task_name: TASK_NAME,
+    total_pass: Object.values(state).filter(v => v.status === 'pass').length,
+    total_fail: fails.length,
+    total_skip: Object.values(state).filter(v => v.status === 'skip').length,
+    total_tc: Object.keys(state).length,
+    bugs: fails
+  }
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div')
+  progressEl.className = 'send-progress'
+  progressEl.innerHTML = `<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div>
+    <div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`
+  document.body.appendChild(progressEl)
+}
+function showSendDone(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step done'
+  progressEl.querySelector('#sp-0').textContent = '✓ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 3000)
+}
+function showSendErr(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step err'
+  progressEl.querySelector('#sp-0').textContent = '✗ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 5000)
+}
+
+async function sendToBoard() {
+  const payload = buildPayload()
+  if (!payload) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await r.json()
+    if (data.ok) {
+      showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`)
+      showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)
+    } else {
+      showSendErr(data.error || 'ส่งไม่สำเร็จ')
+      showToast('❌ ' + (data.error || 'ส่งไม่สำเร็จ'))
+    }
+  } catch (err) {
+    showSendErr('เปิด proxy ก่อน')
+    showToast('❌ ไม่พบ proxy — รัน: python proxy.py')
+    console.error(err)
+  }
+}
+</script>
+</body>
+</html>

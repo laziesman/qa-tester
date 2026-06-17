@@ -1,0 +1,162 @@
+{
+  "TC-001": {
+    "status": "pass",
+    "note": "พิมพ์ \"test4\" → dropdown แสดง 1 option"
+  },
+  "TC-002": {
+    "status": "pass",
+    "note": "พิมพ์ \"test\" → dropdown แสดง 5 option"
+  },
+  "TC-003": {
+    "status": "skip",
+    "note": "ต้อง manual — ต้องมี employee ที่ลาออกแล้ว ค้นหาดูว่าไม่ปรากฏ"
+  },
+  "TC-004": {
+    "status": "skip",
+    "note": "ต้อง manual — ต้องมี employee Inactive ค้นหาดูว่าไม่ปรากฏ"
+  },
+  "TC-005": {
+    "status": "pass",
+    "note": "เลือกพนักงานแล้ว ส่วนที่ 2 มีข้อมูลแสดง (manual verify columns)"
+  },
+  "TC-006": {
+    "status": "skip",
+    "note": "ต้อง manual verify — selector อาจไม่ตรงกับ component จริง"
+  },
+  "TC-007": {
+    "status": "skip",
+    "note": "ต้อง manual — เปรียบเทียบค่าที่แสดงกับการคำนวณจากวันเริ่มงาน → วันนี้"
+  },
+  "TC-008": {
+    "status": "pass",
+    "note": "กดบันทึกโดยไม่เลือกพนักงาน → มี error แสดง"
+  },
+  "TC-013": {
+    "status": "skip",
+    "note": "ปุ่ม enabled แม้ยังไม่กรอก — อาจ validate ตอน submit แทน"
+  },
+  "TC-009": {
+    "status": "skip",
+    "note": "ปุ่ม disabled — ยังกรอกฟิลด์อื่นไม่ครบหรือ manual verify"
+  },
+  "TC-010": {
+    "status": "pass",
+    "note": "ไม่เลือกสาเหตุ → มี error"
+  },
+  "TC-011": {
+    "status": "skip",
+    "note": "ต้อง manual — กรอกครบยกเว้นวันที่แจ้ง แล้วดู error highlight"
+  },
+  "TC-012": {
+    "status": "skip",
+    "note": "ต้อง manual — กรอกครบยกเว้นวันที่ลาออก แล้วดู error highlight"
+  },
+  "TC-017": {
+    "status": "pass",
+    "note": "พบ date input ที่มีค่า 2026-06-15 (วันปัจจุบัน)"
+  },
+  "TC-014": {
+    "status": "pass",
+    "note": "วันลาออก < แจ้ง → error แสดง"
+  },
+  "TC-015": {
+    "status": "pass",
+    "note": "วันลาออก = แจ้ง → ไม่มี error"
+  },
+  "TC-016": {
+    "status": "pass",
+    "note": "วันลาออก > แจ้ง → ไม่มี error"
+  },
+  "TC-018": {
+    "status": "pass",
+    "note": "ย้อนหลัง 35 วัน (2026-05-11) → error แสดง"
+  },
+  "TC-019": {
+    "status": "pass",
+    "note": "ค่าระยะเวลาแจ้งล่วงหน้าแสดงขึ้นหลังกรอกวันครบ"
+  },
+  "TC-020": {
+    "status": "skip",
+    "note": "ไม่เห็น warning text — manual verify color + ข้อความ"
+  },
+  "TC-021": {
+    "status": "pass",
+    "note": "แจ้งล่วงหน้า 30 วัน → ไม่มี warning"
+  },
+  "TC-022": {
+    "status": "skip",
+    "note": "ไม่พบ option \"อื่นๆ\" ใน dropdown ประเภทลาออก"
+  },
+  "TC-023": {
+    "status": "pass",
+    "note": "ไม่กรอก text หลังเลือก \"อื่นๆ\" → มี error บล็อค"
+  },
+  "TC-024": {
+    "status": "pass",
+    "note": "เลือกสาเหตุ \"อื่นๆ\" → text input เพิ่มเติมแสดง"
+  },
+  "TC-025": {
+    "status": "pass",
+    "note": "ไม่กรอก text หลังเลือกสาเหตุ \"อื่นๆ\" → มี error"
+  },
+  "TC-026": {
+    "status": "pass",
+    "note": "เปลี่ยนจาก \"อื่นๆ\" → \"ได้งานใหม่\" → text input ซ่อน"
+  },
+  "TC-027": {
+    "status": "skip",
+    "note": "ต้อง manual — ต้องกรอกทุก field บังคับแล้วกดบันทึกโดยไม่ tick Checklist"
+  },
+  "TC-028": {
+    "status": "skip",
+    "note": "ไม่พบ checkbox แจ้งออกประกันสังคม — manual verify"
+  },
+  "TC-029": {
+    "status": "skip",
+    "note": "ไม่พบ checkbox — manual verify"
+  },
+  "TC-030": {
+    "status": "skip",
+    "note": "ต้อง manual — บันทึกฟอร์มแล้วไปดูหน้ารายการ 7.1.19.1"
+  },
+  "TC-031": {
+    "status": "skip",
+    "note": "ต้อง manual — บันทึกจริงแล้วดู Toast ที่แสดง"
+  },
+  "TC-032": {
+    "status": "skip",
+    "note": "ต้อง manual — ดูหน้ารายการพนักงาน ว่ามี badge \"ลาออก\""
+  },
+  "TC-033": {
+    "status": "skip",
+    "note": "ต้อง manual — ใช้ account พนักงานที่ลาออกแล้ว login Staff Portal"
+  },
+  "TC-034": {
+    "status": "skip",
+    "note": "ต้อง manual — ดู Audit Log ของ record ที่บันทึก"
+  },
+  "TC-035": {
+    "status": "skip",
+    "note": "ต้อง manual — ตรวจ notification ของ HR Admin + ผู้บังคับบัญชา"
+  },
+  "TC-036": {
+    "status": "skip",
+    "note": "ต้อง manual — บันทึกสำเร็จแล้วดูว่า redirect ไปหน้ารายการ"
+  },
+  "TC-037": {
+    "status": "skip",
+    "note": "ไม่พบปุ่มแก้ไขใน row \"รอดำเนินการ\" — manual verify"
+  },
+  "TC-038": {
+    "status": "skip",
+    "note": "ต้อง manual — เปิด record ที่สถานะไม่ใช่ \"รอดำเนินการ\" ตรวจปุ่มแก้ไข"
+  },
+  "TC-039": {
+    "status": "skip",
+    "note": "ต้อง manual — เปิดโหมดแก้ไข ดูว่าฟิลด์รหัสพนักงาน read-only"
+  },
+  "TC-040": {
+    "status": "skip",
+    "note": "ต้อง manual — แก้ไขบันทึกแล้วดู Audit Log ก่อน/หลัง"
+  }
+}

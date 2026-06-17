@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Status Style Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0e0e0e;display:flex;height:100vh}
+
+/* nav tabs */
+.tabs{position:fixed;top:0;left:0;right:0;background:#111;border-bottom:0.5px solid rgba(255,255,255,0.08);padding:8px 16px;display:flex;gap:6px;z-index:10}
+.tab{font-size:12px;padding:5px 14px;border-radius:5px;border:0.5px solid rgba(255,255,255,0.1);background:transparent;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.12s}
+.tab:hover{color:#fff}
+.tab.active{background:#fff;color:#111;border-color:#fff;font-weight:600}
+.note{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.2);align-self:center}
+
+/* demo panels */
+.panel{display:none;flex:1;margin-top:37px;height:calc(100vh - 37px)}
+.panel.active{display:flex}
+
+/* sidebar shell */
+.sidebar{width:340px;background:#242424;display:flex;flex-direction:column;overflow:hidden;height:100%}
+.logo{font-size:14px;font-weight:600;color:#fff;padding:14px;border-bottom:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:7px}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:#e24b4a}
+.nav-area{flex:1;overflow-y:auto;padding:8px 10px 14px}
+.nav-project{font-size:13px;font-weight:600;color:#fff;padding:4px 6px;margin-bottom:4px}
+.nav-sprint{font-size:11px;color:rgba(255,255,255,0.3);padding:4px 6px 3px 10px;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:2px}
+
+/* preview area */
+.preview{flex:1;background:#141414;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.1);font-size:13px}
+
+/* =====================================================
+   OPTION A — Smart pill
+===================================================== */
+.a-task{padding:6px 8px 6px 14px;border-radius:6px;color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:2px;transition:background 0.1s}
+.a-task:hover{background:rgba(255,255,255,0.06);color:#fff}
+.a-task.active{background:rgba(255,255,255,0.09);color:#fff}
+.a-task-id{font-size:13px;font-weight:500;flex-shrink:0}
+.a-task-info{margin-left:auto;flex-shrink:0}
+
+/* smart badge */
+.a-badge{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.a-badge.fail{background:rgba(226,75,74,0.2);color:#f09595}
+.a-badge.done{background:rgba(82,168,105,0.2);color:#7ec87e}
+.a-badge.prog{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.4)}
+.a-badge.none{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.2)}
+
+/* =====================================================
+   OPTION B — Dot + number
+===================================================== */
+.b-task{padding:6px 8px 6px 14px;border-radius:6px;color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:2px;transition:background 0.1s}
+.b-task:hover{background:rgba(255,255,255,0.06);color:#fff}
+.b-task.active{background:rgba(255,255,255,0.09);color:#fff}
+.b-task-id{font-size:13px;font-weight:500;flex-shrink:0}
+.b-dots{display:flex;gap:8px;margin-left:auto;align-items:center;flex-shrink:0}
+.b-dot{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:500}
+.b-dot-p{color:#7ec87e}
+.b-dot-f{color:#f09595}
+.b-dot-s{color:#c9a040}
+.b-dot-n{color:rgba(255,255,255,0.22)}
+.b-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;display:block}
+
+/* =====================================================
+   OPTION C — Progress bar
+===================================================== */
+.c-task{padding:7px 8px 7px 14px;border-radius:6px;cursor:pointer;display:flex;flex-direction:column;gap:5px;margin-bottom:3px;transition:background 0.1s}
+.c-task:hover{background:rgba(255,255,255,0.06)}
+.c-task.active{background:rgba(255,255,255,0.09)}
+.c-task-top{display:flex;align-items:center;gap:8px}
+.c-task-id{font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);flex-shrink:0}
+.c-task.active .c-task-id{color:#fff}
+.c-task-count{font-size:11px;color:rgba(255,255,255,0.25);margin-left:auto}
+.c-bar-wrap{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;display:flex}
+.c-bar-p{background:#52a869;height:100%}
+.c-bar-f{background:#e24b4a;height:100%}
+.c-bar-s{background:#d4a017;height:100%}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('a')">A — Smart pill</button>
+  <button class="tab" onclick="show('b')">B — Dot + number</button>
+  <button class="tab" onclick="show('c')">C — Progress bar</button>
+  <span class="note">กดที่ task เพื่อดู active state</span>
+</div>
+
+<!-- ============ PANEL A ============ -->
+<div class="panel active" id="panel-a">
+  <div class="sidebar">
+    <div class="logo"><span class="logo-dot"></span>QA Tester</div>
+    <div class="nav-area">
+      <div class="nav-project">HR</div>
+      <div class="nav-sprint">Sprint 5</div>
+
+      <!-- fail case -->
+      <div class="a-task" onclick="activate(this)">
+        <div class="a-task-id">#403</div>
+        <div class="a-task-info"><span class="a-badge fail">2 Fail</span></div>
+      </div>
+      <!-- done case -->
+      <div class="a-task active" onclick="activate(this)">
+        <div class="a-task-id">#404</div>
+        <div class="a-task-info"><span class="a-badge done">✓ Done</span></div>
+      </div>
+      <!-- in progress -->
+      <div class="a-task" onclick="activate(this)">
+        <div class="a-task-id">#405</div>
+        <div class="a-task-info"><span class="a-badge prog">8 / 23</span></div>
+      </div>
+      <!-- not started -->
+      <div class="a-task" onclick="activate(this)">
+        <div class="a-task-id">#406</div>
+        <div class="a-task-info"><span class="a-badge none">23 TC</span></div>
+      </div>
+      <div class="a-task" onclick="activate(this)">
+        <div class="a-task-id">#407</div>
+        <div class="a-task-info"><span class="a-badge none">42 TC</span></div>
+      </div>
+      <div class="a-task" onclick="activate(this)">
+        <div class="a-task-id">#416</div>
+        <div class="a-task-info"><span class="a-badge none">22 TC</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="preview">← เลือก task</div>
+</div>
+
+<!-- ============ PANEL B ============ -->
+<div class="panel" id="panel-b">
+  <div class="sidebar">
+    <div class="logo"><span class="logo-dot"></span>QA Tester</div>
+    <div class="nav-area">
+      <div class="nav-project">HR</div>
+      <div class="nav-sprint">Sprint 5</div>
+
+      <div class="b-task" onclick="activate(this)">
+        <div class="b-task-id">#403</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">5</div>
+          <div class="b-dot b-dot-f">2</div>
+          <div class="b-dot b-dot-s">1</div>
+          <div class="b-dot b-dot-n">30</div>
+        </div>
+      </div>
+      <div class="b-task active" onclick="activate(this)">
+        <div class="b-task-id">#404</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">30</div>
+          <div class="b-dot b-dot-f">0</div>
+          <div class="b-dot b-dot-s">0</div>
+          <div class="b-dot b-dot-n">0</div>
+        </div>
+      </div>
+      <div class="b-task" onclick="activate(this)">
+        <div class="b-task-id">#405</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">8</div>
+          <div class="b-dot b-dot-f">0</div>
+          <div class="b-dot b-dot-s">0</div>
+          <div class="b-dot b-dot-n">15</div>
+        </div>
+      </div>
+      <div class="b-task" onclick="activate(this)">
+        <div class="b-task-id">#406</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">0</div>
+          <div class="b-dot b-dot-f">0</div>
+          <div class="b-dot b-dot-s">0</div>
+          <div class="b-dot b-dot-n">23</div>
+        </div>
+      </div>
+      <div class="b-task" onclick="activate(this)">
+        <div class="b-task-id">#407</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">0</div>
+          <div class="b-dot b-dot-f">0</div>
+          <div class="b-dot b-dot-s">0</div>
+          <div class="b-dot b-dot-n">42</div>
+        </div>
+      </div>
+      <div class="b-task" onclick="activate(this)">
+        <div class="b-task-id">#416</div>
+        <div class="b-dots">
+          <div class="b-dot b-dot-p">0</div>
+          <div class="b-dot b-dot-f">0</div>
+          <div class="b-dot b-dot-s">0</div>
+          <div class="b-dot b-dot-n">22</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="preview">← เลือก task</div>
+</div>
+
+<!-- ============ PANEL C ============ -->
+<div class="panel" id="panel-c">
+  <div class="sidebar">
+    <div class="logo"><span class="logo-dot"></span>QA Tester</div>
+    <div class="nav-area">
+      <div class="nav-project">HR</div>
+      <div class="nav-sprint">Sprint 5</div>
+
+      <!-- 5P 2F 1S / 38 total -->
+      <div class="c-task" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#403</div>
+          <div class="c-task-count">8 / 38</div>
+        </div>
+        <div class="c-bar-wrap">
+          <div class="c-bar-p" style="width:13%"></div>
+          <div class="c-bar-f" style="width:5%"></div>
+          <div class="c-bar-s" style="width:3%"></div>
+        </div>
+      </div>
+      <!-- all done -->
+      <div class="c-task active" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#404</div>
+          <div class="c-task-count">30 / 30 ✓</div>
+        </div>
+        <div class="c-bar-wrap">
+          <div class="c-bar-p" style="width:100%"></div>
+        </div>
+      </div>
+      <!-- in progress -->
+      <div class="c-task" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#405</div>
+          <div class="c-task-count">8 / 23</div>
+        </div>
+        <div class="c-bar-wrap">
+          <div class="c-bar-p" style="width:35%"></div>
+        </div>
+      </div>
+      <!-- not started -->
+      <div class="c-task" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#406</div>
+          <div class="c-task-count">0 / 23</div>
+        </div>
+        <div class="c-bar-wrap"></div>
+      </div>
+      <div class="c-task" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#407</div>
+          <div class="c-task-count">0 / 42</div>
+        </div>
+        <div class="c-bar-wrap"></div>
+      </div>
+      <div class="c-task" onclick="activate(this)">
+        <div class="c-task-top">
+          <div class="c-task-id">#416</div>
+          <div class="c-task-count">0 / 22</div>
+        </div>
+        <div class="c-bar-wrap"></div>
+      </div>
+    </div>
+  </div>
+  <div class="preview">← เลือก task</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('panel-' + id).classList.add('active')
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.trim().toLowerCase().startsWith(id)) t.classList.add('active')
+  })
+}
+
+function activate(el) {
+  const panel = el.closest('.panel')
+  panel.querySelectorAll('[class*="-task"]').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+{
+  "TC-001": {
+    "status": "pass",
+    "note": "หน้าโหลดสำเร็จ URL=https://hr-stg.intelligent-bytes.com/employee/contracts/6/view"
+  },
+  "TC-002": {
+    "status": "pass",
+    "note": "พบข้อมูล: ['สัญญา', 'พนักงาน'] ในหน้า (manual verify ครบทุก field)"
+  },
+  "TC-003": {
+    "status": "pass",
+    "note": "เลขที่สัญญา — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-004": {
+    "status": "pass",
+    "note": "รหัสพนักงาน / ชื่อ-สกุล — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-005": {
+    "status": "pass",
+    "note": "ตำแหน่ง / แผนก — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-006": {
+    "status": "pass",
+    "note": "ประเภทสัญญา — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-007": {
+    "status": "pass",
+    "note": "วันที่เริ่มสัญญา — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-008": {
+    "status": "pass",
+    "note": "วันที่สิ้นสุดสัญญา — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-009": {
+    "status": "pass",
+    "note": "เงื่อนไขสำคัญ — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-010": {
+    "status": "pass",
+    "note": "หมายเหตุ — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-011": {
+    "status": "pass",
+    "note": "การตั้งค่าการแจ้งเตือน — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-012": {
+    "status": "pass",
+    "note": "ผู้สร้าง / วันที่สร้าง — ไม่พบ editable input/textarea ในหน้า (หน้า read-only)"
+  },
+  "TC-013": {
+    "status": "pass",
+    "note": "พบข้อความวันที่เหลือในหน้า (manual verify ตัวเลขตรงกับ วันสิ้นสุด - วันนี้)"
+  },
+  "TC-014": {
+    "status": "skip",
+    "note": "ต้อง manual verify ข้ามวัน — ตรวจว่าค่าลดลง 1 เมื่อเปิดวันถัดไป"
+  },
+  "TC-015": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาที่หมดอายุแล้ว"
+  },
+  "TC-016": {
+    "status": "pass",
+    "note": "พบ section เอกสารแนบ (manual verify ชื่อไฟล์ครบ)"
+  },
+  "TC-017": {
+    "status": "skip",
+    "note": "ไม่พบปุ่มดูเอกสาร — manual verify"
+  },
+  "TC-018": {
+    "status": "skip",
+    "note": "ไม่พบปุ่มดาวน์โหลด — manual verify"
+  },
+  "TC-019": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาที่ไม่มีเอกสารแนบ"
+  },
+  "TC-020": {
+    "status": "pass",
+    "note": "พบ section ประวัติการแก้ไข (manual verify ลำดับวันที่ล่าสุด → เก่าสุด)"
+  },
+  "TC-021": {
+    "status": "skip",
+    "note": "ต้อง manual verify ว่าแต่ละรายการมี วันที่, ผู้แก้ไข, ฟิลด์, Before/After"
+  },
+  "TC-022": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาที่ไม่เคยแก้ไข"
+  },
+  "TC-023": {
+    "status": "pass",
+    "note": "พบปุ่ม \"แก้ไข\" ในหน้า"
+  },
+  "TC-024": {
+    "status": "skip",
+    "note": "ต้อง manual verify ด้วย user ที่ไม่มีสิทธิ์ U"
+  },
+  "TC-025": {
+    "status": "pass",
+    "note": "redirect → https://hr-stg.intelligent-bytes.com/employee/contracts/6"
+  },
+  "TC-026": {
+    "status": "pass",
+    "note": "พบปุ่ม \"ลบ\" ในหน้า"
+  },
+  "TC-027": {
+    "status": "skip",
+    "note": "ต้อง manual verify ด้วย user ที่ไม่มีสิทธิ์ D"
+  },
+  "TC-028": {
+    "status": "pass",
+    "note": "สัญญา active + ปุ่ม \"ลบ\" disabled ✅"
+  },
+  "TC-029": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาสถานะหมดอายุ/ยกเลิก"
+  },
+  "TC-030": {
+    "status": "pass",
+    "note": "สัญญา active + พบปุ่ม \"ยกเลิกสัญญา\""
+  },
+  "TC-031": {
+    "status": "skip",
+    "note": "ต้อง manual verify กับสัญญาสถานะ หมดอายุ/ยกเลิก"
+  },
+  "TC-032": {
+    "status": "skip",
+    "note": "ต้อง manual verify ด้วย user ไม่มีสิทธิ์ U"
+  },
+  "TC-033": {
+    "status": "skip",
+    "note": "error: Locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator(\"[role=\\\"dialog\\\"] button:has-text(\\\"ยืนยัน\\\"):visible, [role=\\\"dialog\\\"] button:has-text(\\\"ยกเลิกสัญญา\\\"):visible, [role=\\\"dialog\\\"] button[type=\\\"submit\\\"]:visible\").first\n    - locator resolved to <button disabled tabindex=\"-1\" type=\"button\" class=\"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedWarning MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorWarning Mui-disabled MuiButton-root MuiButton-contained MuiButton-containedWarning MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorWarning mui-1ej2rwe\">ยืนยันยกเลิก</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not enabled\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not enabled\n    - retrying click action\n      - waiting 100ms\n    6 × waiting for element to be visible, enabled and stable\n      - element is not enabled\n    - retrying click action\n      - waiting 500ms\n"
+  },
+  "TC-034": {
+    "status": "skip",
+    "note": "ข้าม — TC-033 error"
+  },
+  "TC-035": {
+    "status": "skip",
+    "note": "ข้าม — TC-033 error"
+  },
+  "TC-036": {
+    "status": "skip",
+    "note": "ข้าม — TC-033 error"
+  }
+}

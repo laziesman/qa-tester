@@ -1,0 +1,158 @@
+{
+  "TC-001": {
+    "status": "pass",
+    "note": "dropdown แสดง 6 option สำหรับ test4"
+  },
+  "TC-002": {
+    "status": "skip",
+    "note": "ไม่ได้ตั้ง TEST_INACTIVE_EMP_CODE ใน .env"
+  },
+  "TC-003": {
+    "status": "pass",
+    "note": "auto-fill 4 ฟิลด์: ['test4 test4 (EMP0067)', 'test4 test4', 'ผู้จัดการฝ่ายขาย']"
+  },
+  "TC-004": {
+    "status": "fail",
+    "note": "บางฟิลด์ยังแก้ไขได้: ['test4 test4 (EMP0067)', 'test4 test4', 'ผู้จัดการฝ่ายขาย', 'ไอที']"
+  },
+  "TC-005": {
+    "status": "pass",
+    "note": "แสดง error เมื่อไม่เลือกพนักงาน"
+  },
+  "TC-006": {
+    "status": "pass",
+    "note": "มี 6 ตัวเลือก"
+  },
+  "TC-007": {
+    "status": "pass",
+    "note": "แสดงช่องกรอกเพิ่มเติมเมื่อเลือก อื่นๆ"
+  },
+  "TC-008": {
+    "status": "pass",
+    "note": "มี error เมื่อไม่เลือกประเภทสัญญา"
+  },
+  "TC-009": {
+    "status": "skip",
+    "note": "ไม่มีช่อง เลขที่สัญญา ในฟอร์ม — ระบบ auto-assign backend"
+  },
+  "TC-010": {
+    "status": "skip",
+    "note": "ไม่มีช่อง เลขที่สัญญา ในฟอร์ม — ระบบ auto-assign backend"
+  },
+  "TC-011": {
+    "status": "skip",
+    "note": "ไม่มีช่อง เลขที่สัญญา ในฟอร์ม — ระบบ auto-assign backend"
+  },
+  "TC-012": {
+    "status": "skip",
+    "note": "ไม่มีช่อง เลขที่สัญญา ในฟอร์ม — ระบบ auto-assign backend"
+  },
+  "TC-013": {
+    "status": "pass",
+    "note": "error เมื่อไม่กรอกวันที่เริ่ม"
+  },
+  "TC-014": {
+    "status": "pass",
+    "note": "วันที่สิ้นสุด disabled หลังติ๊ก checkbox"
+  },
+  "TC-015": {
+    "status": "pass",
+    "note": "notification disabled (1 fields)"
+  },
+  "TC-016": {
+    "status": "pass",
+    "note": "error ที่ submit"
+  },
+  "TC-017": {
+    "status": "skip",
+    "note": "ไม่มี error เมื่อวันเท่ากัน — ต้อง verify spec"
+  },
+  "TC-018": {
+    "status": "skip",
+    "note": "ต้องทดสอบร่วมกับ TC-037 (full save without notes)"
+  },
+  "TC-019": {
+    "status": "skip",
+    "note": "ต้องทดสอบร่วมกับ TC-037 (full save without remarks)"
+  },
+  "TC-020": {
+    "status": "pass",
+    "note": "PDF อัปโหลดสำเร็จ"
+  },
+  "TC-021": {
+    "status": "pass",
+    "note": "DOC ไม่มี error"
+  },
+  "TC-022": {
+    "status": "pass",
+    "note": "DOCX ไม่มี error"
+  },
+  "TC-023": {
+    "status": "skip",
+    "note": "ต้อง manual — อาจ filter ที่ accept attribute ใน input"
+  },
+  "TC-024": {
+    "status": "skip",
+    "note": "ต้อง manual verify"
+  },
+  "TC-025": {
+    "status": "skip",
+    "note": "ต้อง manual verify รายการไฟล์ — ดู TC-025-result.png"
+  },
+  "TC-026": {
+    "status": "skip",
+    "note": "ต้อง manual — คลิก edit ชื่อไฟล์ใน UI"
+  },
+  "TC-027": {
+    "status": "skip",
+    "note": "ต้อง manual — กรอกหมายเหตุไฟล์แล้วบันทึก"
+  },
+  "TC-028": {
+    "status": "pass",
+    "note": "toggle แจ้งเตือน ON by default"
+  },
+  "TC-029": {
+    "status": "skip",
+    "note": "ต้อง manual verify"
+  },
+  "TC-030": {
+    "status": "pass",
+    "note": "default = 30 วัน"
+  },
+  "TC-031": {
+    "status": "pass",
+    "note": "error เมื่อกรอก 0"
+  },
+  "TC-032": {
+    "status": "pass",
+    "note": "error เมื่อกรอก 366"
+  },
+  "TC-033": {
+    "status": "pass",
+    "note": "input[type=number] ไม่รับตัวอักษร"
+  },
+  "TC-034": {
+    "status": "skip",
+    "note": "ต้อง manual — checkbox อาจไม่ใช่ตัวถูก"
+  },
+  "TC-035": {
+    "status": "skip",
+    "note": "ต้อง manual (TC-034 ต้อง pass ก่อน)"
+  },
+  "TC-036": {
+    "status": "pass",
+    "note": "redirect → https://hr-stg.intelligent-bytes.com/employee/contracts"
+  },
+  "TC-037": {
+    "status": "pass",
+    "note": "redirect สำเร็จ → https://hr-stg.intelligent-bytes.com/employee/contracts"
+  },
+  "TC-038": {
+    "status": "pass",
+    "note": "สถานะ \"มีผลบังคับใช้\" แสดงทันที"
+  },
+  "TC-039": {
+    "status": "skip",
+    "note": "ต้อง manual verify ใน Audit Log / ประวัติ"
+  }
+}
