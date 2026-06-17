@@ -112,7 +112,9 @@ body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;fon
 </div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="../../firebase-sync.js"></script><script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="../../firebase-sync.js"></script>
+<script src="../../firebase-auth.js"></script><script>
 const STORAGE_KEY='qa_task_822',TCS_KEY=STORAGE_KEY+'_tcs',TASK_URL='https://boards.intelligent-bytes.com/project/boostfitness/task/822',TASK_NUMBER='822',TASK_NAME='แก้ไข UI Tab Retail'
 let customTcs=[];const state={}
 function loadCustomTcs(){try{const s=localStorage.getItem(TCS_KEY);if(s)customTcs=JSON.parse(s)}catch(e){}customTcs.forEach(tc=>{if(!state[tc.id])state[tc.id]={status:null,note:''}})}

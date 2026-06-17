@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — QA Tester</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#1E293B;border:0.5px solid rgba(255,255,255,0.08);border-radius:14px;padding:36px 32px;width:100%;max-width:360px;box-shadow:0 4px 32px rgba(0,0,0,0.4)}
+h1{font-size:18px;font-weight:600;margin-bottom:4px}
+.sub{font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:28px}
+label{font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:5px}
+input{width:100%;padding:9px 12px;border-radius:7px;border:0.5px solid rgba(255,255,255,0.1);background:#0F172A;color:#F8FAFC;font-size:14px;outline:none;margin-bottom:14px}
+input:focus{border-color:rgba(56,189,248,0.6)}
+button{width:100%;padding:10px;border-radius:7px;border:none;background:#38BDF8;color:#0F172A;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+button:hover{background:#0ea5e9}
+button:disabled{opacity:0.5;cursor:not-allowed}
+.err{font-size:12px;color:#f09595;margin-top:10px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>QA Tester</h1>
+  <div class="sub">กรุณา Login เพื่อเข้าใช้งาน</div>
+  <label>Email</label>
+  <input type="email" id="email" placeholder="email@example.com" autocomplete="email">
+  <label>Password</label>
+  <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+  <button id="btn" onclick="doLogin()">Login</button>
+  <div class="err" id="err"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+const CONFIG = {
+  apiKey: "AIzaSyC7ULFZaYUqro-sSlqX1qITv9tTm1ybzj0",
+  authDomain: "qa-tester-f005d.firebaseapp.com",
+  projectId: "qa-tester-f005d",
+  storageBucket: "qa-tester-f005d.firebasestorage.app",
+  messagingSenderId: "447472890864",
+  appId: "1:447472890864:web:fb79980cb0b76803032335"
+};
+firebase.initializeApp(CONFIG);
+const auth = firebase.auth();
+
+// ถ้า login อยู่แล้ว ไปหน้าหลักเลย
+auth.onAuthStateChanged(user => {
+  if (user) location.href = '/index.html';
+});
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('pass').value;
+  const btn   = document.getElementById('btn');
+  const err   = document.getElementById('err');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'กรุณากรอก Email และ Password'; return; }
+  btn.disabled = true;
+  btn.textContent = 'กำลัง Login...';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    location.href = '/index.html';
+  } catch (e) {
+    const msg = {
+      'auth/invalid-credential': 'Email หรือ Password ไม่ถูกต้อง',
+      'auth/user-not-found':     'ไม่พบ Email นี้ในระบบ',
+      'auth/wrong-password':     'Password ไม่ถูกต้อง',
+      'auth/too-many-requests':  'ลอง login บ่อยเกินไป กรุณารอสักครู่',
+    };
+    err.textContent = msg[e.code] || e.message;
+    btn.disabled = false;
+    btn.textContent = 'Login';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

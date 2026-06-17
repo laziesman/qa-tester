@@ -133,7 +133,9 @@ body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;fon
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="../../firebase-sync.js"></script><script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="../../firebase-sync.js"></script>
+<script src="../../firebase-auth.js"></script><script>
 const STORAGE_KEY = 'qa_task_861'
 const TCS_KEY = STORAGE_KEY + '_tcs'
 const TASK_URL = 'https://boards.intelligent-bytes.com/project/browser-app/task/861'
@@ -439,6 +441,7 @@ function applyStateToUI() {
 loadCustomTcs()
 render()
 ;(async () => {
+  if (window.AUTH) await window.AUTH.waitForAuth()
   if (window.FS) await window.FS.pullDoc(STORAGE_KEY)
   loadState()
   applyStateToUI()
