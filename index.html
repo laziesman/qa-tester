@@ -425,7 +425,40 @@ function sprint()  { return project().sprints.find(s => s.id === curSprint) }
 function task(tid) { return sprint().tasks.find(t => t.id === tid) }
 
 function getTaskData(key)      { try { return JSON.parse(localStorage.getItem(key) || '{}') } catch(e) { return {} } }
-function setTaskData(key, data){ try { localStorage.setItem(key, JSON.stringify(data)) } catch(e) { showToast('❌ บันทึกไม่ได้: ' + e.message); console.error('[save]', e) } }
+function setTaskData(key, data) {
+  const val = JSON.stringify(data)
+  try {
+    localStorage.setItem(key, val)
+  } catch(e) {
+    if (e.name !== 'QuotaExceededError') { showToast('❌ บันทึกไม่ได้: ' + e.message); return }
+    // Auto-cleanup: strip base64 images from all tasks to free space, then retry
+    let freed = 0
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (!k || !k.startsWith('qa_task_')) continue
+      try {
+        const d = JSON.parse(localStorage.getItem(k) || '{}')
+        let changed = false
+        Object.values(d).forEach(tc => {
+          if (tc && tc.note && tc.note.includes('data:image')) {
+            freed += tc.note.length
+            tc.note = tc.note.replace(/src="data:[^"]+"/g, 'src=""')
+            freed -= tc.note.length
+            changed = true
+          }
+        })
+        if (changed) localStorage.setItem(k, JSON.stringify(d))
+      } catch(e2) {}
+    }
+    try {
+      localStorage.setItem(key, val)
+      if (freed > 0) showToast(`⚠ ล้างรูปเก่า ${Math.round(freed/1024)}KB เพื่อเพิ่มพื้นที่`)
+    } catch(e3) {
+      showToast('❌ พื้นที่เต็ม ไม่สามารถบันทึกได้')
+      console.error('[save]', e3)
+    }
+  }
+}
 
 function getProgress(key) {
   const d = getTaskData(key)
@@ -3202,7 +3235,7 @@ function setupEditor(id) {
   ed.addEventListener('dragover', e => e.preventDefault())
   ed.addEventListener('drop', e => {
     e.preventDefault()
-    const _ins = src => { const _a = s => { const img = document.createElement('img'); img.src = s; img.onclick = () => openLightbox(img.src); ed.appendChild(img); showToast('วางรูปแล้ว') }; if (!src.startsWith('data:') || src.startsWith('data:image/gif')) { _a(src); return }; const tmp = new Image(); tmp.onload = () => { const MAX = 1200, cv = document.createElement('canvas'); let w = tmp.width, h = tmp.height; if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } cv.width = w; cv.height = h; cv.getContext('2d').drawImage(tmp, 0, 0, w, h); _a(cv.toDataURL('image/jpeg', 0.75)) }; tmp.src = src }
+    const _ins = src => { const _a = s => { const img = document.createElement('img'); img.src = s; img.onclick = () => openLightbox(img.src); ed.appendChild(img); showToast('วางรูปแล้ว') }; if (!src.startsWith('data:') || src.startsWith('data:image/gif')) { _a(src); return }; const tmp = new Image(); tmp.onload = () => { const MAX = 600, cv = document.createElement('canvas'); let w = tmp.width, h = tmp.height; if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } cv.width = w; cv.height = h; cv.getContext('2d').drawImage(tmp, 0, 0, w, h); _a(cv.toDataURL('image/jpeg', 0.4)) }; tmp.src = src }
     const f = Array.from(e.dataTransfer.files).find(x => x.type.startsWith('image/'))
     if (f) { const r = new FileReader(); r.onload = ev => _ins(ev.target.result); r.readAsDataURL(f); return }
     const item = Array.from(e.dataTransfer.items||[]).find(i => i.kind==='file' && i.type.startsWith('image/'))
