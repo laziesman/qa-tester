@@ -7,98 +7,91 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#ffffff; --canvas:#f7f8fa; --panel:#fbfbfc; --panel2:#f1f3f7;
+  --line:#ececf0; --line2:#e2e4ea;
+  --text:#16181d; --dim:#5a606b; --faint:#9499a3;
+  --accent:#4f6ef7; --accent-soft:#eef2ff;
+  --pass:#22c55e; --fail:#ef5350;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:'Sarabun',system-ui,sans-serif;
-  background:#0F172A;
-  color:#F8FAFC;
+  background:var(--canvas);
+  color:var(--text);
   min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:20px;
+  font-size:14.5px;
 }
 
-/* subtle grid bg */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
-  background-size:40px 40px;
-  pointer-events:none;
-}
+.wrap{width:100%;max-width:360px}
 
-.wrap{width:100%;max-width:360px;position:relative}
-
-.brand{text-align:center;margin-bottom:28px}
-.brand-dot{
+.brand{text-align:center;margin-bottom:24px}
+.brand-icon{
   display:inline-flex;align-items:center;justify-content:center;
-  width:42px;height:42px;border-radius:12px;
-  background:linear-gradient(135deg,#4f6ef7,#7c94fa);
+  width:44px;height:44px;border-radius:12px;
+  background:var(--accent-soft);
   margin-bottom:12px;
-  box-shadow:0 4px 16px rgba(79,110,247,0.4);
 }
-.brand-dot svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.brand h1{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.3px}
-.brand .sub{font-size:13px;color:rgba(255,255,255,0.35);margin-top:4px}
+.brand-icon svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.brand h1{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.3px;color:var(--text)}
+.brand .sub{font-size:13px;color:var(--faint);margin-top:4px}
 
 .card{
-  background:#1E293B;
-  border:0.5px solid rgba(255,255,255,0.09);
+  background:var(--bg);
+  border:1px solid var(--line);
   border-radius:16px;
   padding:28px 28px 24px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.04);
+  box-shadow:0 1px 8px rgba(0,0,0,0.06);
 }
 
 label{
-  font-size:12px;font-weight:600;letter-spacing:0.4px;
-  color:rgba(255,255,255,0.45);
+  font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;
+  color:var(--faint);
   display:block;margin-bottom:6px;
 }
 input{
-  width:100%;padding:10px 13px;
+  width:100%;padding:9px 12px;
   border-radius:9px;
-  border:0.5px solid rgba(255,255,255,0.1);
-  background:#0F172A;
-  color:#F8FAFC;
+  border:1px solid var(--line2);
+  background:var(--bg);
+  color:var(--text);
   font-size:14px;font-family:inherit;
   outline:none;
   margin-bottom:16px;
-  transition:border-color .15s;
+  transition:border-color .15s,box-shadow .15s;
 }
-input:focus{border-color:rgba(79,110,247,0.7)}
-input::placeholder{color:rgba(255,255,255,0.18)}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input::placeholder{color:var(--faint)}
 
 .btn{
-  width:100%;padding:11px;
+  width:100%;padding:10px;
   border-radius:9px;border:none;
-  background:linear-gradient(135deg,#4f6ef7,#6a85f9);
+  background:var(--accent);
   color:#fff;
   font-size:14px;font-weight:600;font-family:inherit;
   cursor:pointer;
-  margin-top:4px;
-  box-shadow:0 2px 12px rgba(79,110,247,0.35);
-  transition:opacity .15s,box-shadow .15s;
+  margin-top:2px;
+  transition:opacity .15s;
 }
-.btn:hover{opacity:.92;box-shadow:0 4px 18px rgba(79,110,247,0.45)}
-.btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
 
 .err{
-  font-size:12.5px;color:#f09595;
+  font-size:12.5px;color:var(--fail);
   margin-top:12px;min-height:18px;
-  display:flex;align-items:center;gap:6px;
 }
-.err:not(:empty)::before{content:'⚠';font-size:13px}
 
-.footer{text-align:center;margin-top:20px;font-size:12px;color:rgba(255,255,255,0.18)}
+.footer{text-align:center;margin-top:20px;font-size:12px;color:var(--faint)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">
-    <div class="brand-dot">
+    <div class="brand-icon">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     </div>
     <h1>QA Tester</h1>
@@ -131,9 +124,7 @@ const CONFIG = {
 firebase.initializeApp(CONFIG);
 const auth = firebase.auth();
 
-auth.onAuthStateChanged(user => {
-  if (user) location.href = '/index.html';
-});
+auth.onAuthStateChanged(user => { if (user) location.href = '/index.html'; });
 
 async function doLogin() {
   const email = document.getElementById('email').value.trim();
