@@ -83,6 +83,9 @@ def send_to_taiga(data):
 
     # Upload image helper
     def upload_image(b64_data_url, filename):
+        # Already a public URL (e.g. imgbb) — use directly
+        if b64_data_url.startswith("http://") or b64_data_url.startswith("https://"):
+            return b64_data_url
         match = re.match(r"data:([^;]+);base64,(.+)", b64_data_url, re.DOTALL)
         if not match:
             return None
