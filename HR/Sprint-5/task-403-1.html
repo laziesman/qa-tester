@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -120,7 +120,9 @@ body{font-family:system-ui,Arial,sans-serif;background:#f8f8f7;color:#F8FAFC;fon
   </div>
 </div>
 
-<script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../../firebase-sync.js"></script><script>
 const STORAGE_KEY = 'qa_task_403'
 const FILE_NAME = 'task-403-results.json'
 let fileHandle = null
