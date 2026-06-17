@@ -238,16 +238,15 @@ function setupEditor(id) {
   editor.addEventListener('dragover', (e) => e.preventDefault())
   editor.addEventListener('drop', (e) => {
     e.preventDefault()
+    const _ins = (src) => { const img = document.createElement('img'); img.src = src; img.onclick = () => openLightbox(img.src); editor.focus(); insertAtCursor(img); showToast('📎 วางรูปแล้ว') }
     const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const img = document.createElement('img')
-      img.src = ev.target.result
-      img.onclick = () => openLightbox(img.src)
-      editor.focus(); insertAtCursor(img); showToast('📎 วางรูปแล้ว')
-    }
-    reader.readAsDataURL(file)
+    if (file) { const r = new FileReader(); r.onload = ev => _ins(ev.target.result); r.readAsDataURL(file); return }
+    const item = Array.from(e.dataTransfer.items || []).find(i => i.kind === 'file' && i.type.startsWith('image/'))
+    if (item) { const r = new FileReader(); r.onload = ev => _ins(ev.target.result); r.readAsDataURL(item.getAsFile()); return }
+    const html = e.dataTransfer.getData('text/html')
+    if (html) { const tmp = document.createElement('div'); tmp.innerHTML = html; const s = tmp.querySelector('img')?.src; if (s) { _ins(s); return } }
+    const uri = (e.dataTransfer.getData('text/uri-list') || '').split('\n')[0].trim()
+    if (uri && /\.(png|jpe?g|gif|webp|svg)/i.test(uri)) _ins(uri)
   })
 }
 
