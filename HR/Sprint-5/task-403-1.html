@@ -789,9 +789,13 @@ function render() {
 }
 
 render()
-loadState()
-applyStateToUI()
-updateStats()
+;(async () => {
+  if (window.AUTH) await window.AUTH.waitForAuth()
+  if (window.FS) await window.FS.pullDoc(STORAGE_KEY)
+  loadState()
+  applyStateToUI()
+  updateStats()
+})()
 initFileHandle()
 </script>
 </body>

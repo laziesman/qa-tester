@@ -392,7 +392,15 @@ function applyStateToUI() {
   })
 }
 
-loadCustomTcs(); render(); loadState(); applyStateToUI(); updateStats()
+loadCustomTcs()
+render()
+;(async () => {
+  if (window.AUTH) await window.AUTH.waitForAuth()
+  if (window.FS) await window.FS.pullDoc(STORAGE_KEY)
+  loadState()
+  applyStateToUI()
+  updateStats()
+})()
 
 const PROXY_URL = 'https://web-production-3a704.up.railway.app'
 
