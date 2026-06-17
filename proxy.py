@@ -44,11 +44,12 @@ def send_to_taiga(data):
     t_skip    = data["total_skip"]
     t_tc      = data["total_tc"]
 
-    m = re.search(r"/project/([^/]+)/task/(\d+)", task_url)
+    m = re.search(r"/project/([^/]+)/(task|us)/(\d+)", task_url)
     if not m:
         raise Exception(f"ไม่สามารถ parse URL ได้: {task_url}")
-    slug = m.group(1)
-    ref  = int(m.group(2))
+    slug      = m.group(1)
+    item_type = m.group(2)   # "task" or "us"
+    ref       = int(m.group(3))
 
     # Auth
     print(f"  🔌 Login {USERNAME}...")
@@ -65,14 +66,20 @@ def send_to_taiga(data):
         raise Exception(f"ไม่พบ project '{slug}'")
     pid = resp.json()["id"]
 
-    # Get task by ref (correct endpoint)
-    resp = requests.get(f"{BASE_URL}/api/v1/tasks/by_ref?ref={ref}&project__slug={slug}",
-                        headers=headers_auth)
+    # Get task/userstory by ref
+    if item_type == "us":
+        endpoint = f"{BASE_URL}/api/v1/userstories/by_ref?ref={ref}&project__slug={slug}"
+        patch_url_tpl = f"{BASE_URL}/api/v1/userstories/{{id}}"
+    else:
+        endpoint = f"{BASE_URL}/api/v1/tasks/by_ref?ref={ref}&project__slug={slug}"
+        patch_url_tpl = f"{BASE_URL}/api/v1/tasks/{{id}}"
+
+    resp = requests.get(endpoint, headers=headers_auth)
     if not resp.ok:
-        raise Exception(f"ไม่พบ task #{ref}")
+        raise Exception(f"ไม่พบ {'user story' if item_type=='us' else 'task'} #{ref}")
     task    = resp.json()
     task_id = task["id"]
-    print(f"  ✅ Task #{ref}: {task.get('subject','')[:50]} (id={task_id})")
+    print(f"  ✅ #{ref}: {task.get('subject','')[:50]} (id={task_id})")
 
     # Upload image helper
     def upload_image(b64_data_url, filename):
@@ -134,11 +141,12 @@ def send_to_taiga(data):
     lines += ["---", "*ส่งโดย QA Dashboard*"]
     comment_text = "\n".join(lines)
 
-    # Post comment via PATCH task
-    r = requests.get(f"{BASE_URL}/api/v1/tasks/{task_id}", headers=headers_auth)
+    # Post comment via PATCH
+    patch_url = patch_url_tpl.format(id=task_id)
+    r = requests.get(patch_url, headers=headers_auth)
     version = r.json().get("version", 1) if r.ok else 1
     resp = requests.patch(
-        f"{BASE_URL}/api/v1/tasks/{task_id}",
+        patch_url,
         headers={**headers_auth, "Content-Type": "application/json"},
         json={"version": version, "comment": comment_text},
     )
