@@ -44,7 +44,7 @@
   function _injectLogout(email) {
     const onLogout = () => auth.signOut().then(() => { location.href = '/login.html'; });
     const name = email.split('@')[0];
-    const roleLabel = window.AUTH.role === 'readonly' ? 'ดูอย่างเดียว' : 'Admin';
+    const roleLabel = window.AUTH.role === 'readonly' ? 'Read-only' : 'Admin';
 
     // dark topbar (task pages)
     const topbar = document.querySelector('.topbar');
