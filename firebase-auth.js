@@ -52,47 +52,50 @@
     topbar.appendChild(btn);
   }
 
+  const BLOCKED_FNS = ['resetAll','addTc','deleteTc','setStatus','saveActual','sendToBoard','exportBugJSON'];
+
+  // Capture-phase click blocker — fires before any onclick handler
+  document.addEventListener('click', function (e) {
+    if (window.AUTH?.role !== 'readonly') return;
+    const btn = e.target.closest('button, [onclick]');
+    if (!btn) return;
+    const fn = btn.getAttribute('onclick') || '';
+    if (BLOCKED_FNS.some(f => fn.includes(f))) {
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, true);
+
   function _applyReadonly() {
     document.body.classList.add('qa-readonly');
 
-    // CSS layer
+    // CSS — hide edit controls visually
     const style = document.createElement('style');
     style.textContent = `
-      .qa-readonly .tbtn           { pointer-events:none !important; opacity:0.25 !important; }
+      .qa-readonly .tbtn           { opacity:0.25 !important; cursor:not-allowed !important; }
       .qa-readonly .add-tc-btn     { display:none !important; }
       .qa-readonly .del-btn        { display:none !important; }
       .qa-readonly .save-btn       { display:none !important; }
       .qa-readonly #send-btn       { display:none !important; }
       .qa-readonly #export-btn     { display:none !important; }
-      .qa-readonly .actual-editor  { pointer-events:none !important; }
-      .qa-readonly .abtn.primary   { pointer-events:none !important; opacity:0.25 !important; }
+      .qa-readonly .actual-editor  { pointer-events:none !important; opacity:0.6 !important; }
+      .qa-readonly button[onclick*="resetAll"]   { display:none !important; }
+      .qa-readonly button[onclick*="sendToBoard"]{ display:none !important; }
     `;
     document.head.appendChild(style);
 
-    // JS layer — hide elements directly
+    // Direct DOM hide (belt-and-suspenders)
     setTimeout(() => {
       ['.tbtn', '.add-tc-btn', '.del-btn', '.save-btn', '#send-btn', '#export-btn'].forEach(sel => {
         document.querySelectorAll(sel).forEach(el => el.style.setProperty('display', 'none', 'important'));
       });
       document.querySelectorAll('button').forEach(el => {
-        const fn = el.getAttribute('onclick') || '';
-        if (fn.includes('resetAll') || fn.includes('sendToBoard')) {
+        if (BLOCKED_FNS.some(f => (el.getAttribute('onclick') || '').includes(f))) {
           el.style.setProperty('display', 'none', 'important');
         }
-        if (fn.includes('setStatus') || fn.includes('addTc')) {
-          el.style.setProperty('pointer-events', 'none', 'important');
-          el.style.setProperty('opacity', '0.25', 'important');
-        }
       });
-      document.querySelectorAll('.actual-editor').forEach(el => {
-        el.setAttribute('contenteditable', 'false');
-      });
+      document.querySelectorAll('.actual-editor').forEach(el => el.setAttribute('contenteditable', 'false'));
     }, 0);
-
-    // Function override layer — block calls even if buttons somehow visible
-    const noop = () => {};
-    ['addTc', 'deleteTc', 'resetAll', 'setStatus', 'saveActual', 'sendToBoard', 'exportBugJSON'].forEach(fn => {
-      if (typeof window[fn] === 'function') window[fn] = noop;
-    });
   }
 })();
