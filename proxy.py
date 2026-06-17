@@ -14,7 +14,7 @@ import requests
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_PATH   = os.path.join(SCRIPT_DIR, ".env")
-PORT       = 8765
+PORT       = int(os.environ.get("PORT", 8765))
 
 
 def load_env(path):
@@ -203,9 +203,9 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    print(f"🚀 QA Proxy พร้อมใช้งาน → http://localhost:{PORT}")
+    print(f"🚀 QA Proxy พร้อมใช้งาน → port {PORT}")
     print(f"   กด Ctrl+C เพื่อหยุด\n")
-    server = HTTPServer(("localhost", PORT), Handler)
+    server = HTTPServer(("0.0.0.0", PORT), Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
