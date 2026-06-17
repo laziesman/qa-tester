@@ -54,6 +54,8 @@
 
   function _applyReadonly() {
     document.body.classList.add('qa-readonly');
+
+    // CSS layer
     const style = document.createElement('style');
     style.textContent = `
       .qa-readonly .tbtn           { pointer-events:none !important; opacity:0.25 !important; }
@@ -64,10 +66,33 @@
       .qa-readonly #export-btn     { display:none !important; }
       .qa-readonly .actual-editor  { pointer-events:none !important; }
       .qa-readonly .abtn.primary   { pointer-events:none !important; opacity:0.25 !important; }
-      .qa-readonly button[onclick*="resetAll"]  { display:none !important; }
-      .qa-readonly button[onclick*="sendToBoard"] { display:none !important; }
-      .qa-readonly button[onclick*="setStatus"]   { pointer-events:none !important; opacity:0.25 !important; }
     `;
     document.head.appendChild(style);
+
+    // JS layer — hide elements directly
+    setTimeout(() => {
+      ['.tbtn', '.add-tc-btn', '.del-btn', '.save-btn', '#send-btn', '#export-btn'].forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => el.style.setProperty('display', 'none', 'important'));
+      });
+      document.querySelectorAll('button').forEach(el => {
+        const fn = el.getAttribute('onclick') || '';
+        if (fn.includes('resetAll') || fn.includes('sendToBoard')) {
+          el.style.setProperty('display', 'none', 'important');
+        }
+        if (fn.includes('setStatus') || fn.includes('addTc')) {
+          el.style.setProperty('pointer-events', 'none', 'important');
+          el.style.setProperty('opacity', '0.25', 'important');
+        }
+      });
+      document.querySelectorAll('.actual-editor').forEach(el => {
+        el.setAttribute('contenteditable', 'false');
+      });
+    }, 0);
+
+    // Function override layer — block calls even if buttons somehow visible
+    const noop = () => {};
+    ['addTc', 'deleteTc', 'resetAll', 'setStatus', 'saveActual', 'sendToBoard', 'exportBugJSON'].forEach(fn => {
+      if (typeof window[fn] === 'function') window[fn] = noop;
+    });
   }
 })();

@@ -15,5 +15,8 @@ service cloud.firestore {
     match /qa_results/{docId} {
       allow read, write: if true;
     }
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }
