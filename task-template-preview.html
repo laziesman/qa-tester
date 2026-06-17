@@ -393,7 +393,7 @@ async function sendToBoard() {
   if (!payload) return
   showSending()
   try {
-    const r = await fetch('http://localhost:8765/send', {
+    const r = await fetch('https://web-production-3a704.up.railway.app/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
