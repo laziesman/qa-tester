@@ -53,7 +53,7 @@
     topbar.appendChild(btn);
   }
 
-  const BLOCKED_FNS = ['resetAll','addTc','deleteTc','setStatus','saveActual','sendToBoard','exportBugJSON'];
+  const BLOCKED_FNS = ['resetAll','resetTask','addTc','deleteTc','setStatus','saveActual','sendToBoard','exportBugJSON'];
 
   // Capture-phase click blocker — fires before any onclick handler
   document.addEventListener('click', function (e) {
@@ -94,7 +94,8 @@
         document.querySelectorAll(sel).forEach(el => el.style.setProperty('display', 'none', 'important'));
       });
       document.querySelectorAll('button').forEach(el => {
-        if (BLOCKED_FNS.some(f => (el.getAttribute('onclick') || '').includes(f))) {
+        const oc = el.getAttribute('onclick') || '';
+        if (BLOCKED_FNS.some(f => oc.includes(f))) {
           el.style.setProperty('display', 'none', 'important');
         }
       });
