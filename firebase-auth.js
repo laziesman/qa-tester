@@ -33,6 +33,7 @@
         window.AUTH.user = user;
         window.AUTH.role = role;
 
+        console.log('[AUTH] role=', role, 'calling _applyReadonly:', role === 'readonly');
         _injectLogout(user.email);
         if (role === 'readonly') _applyReadonly();
 
@@ -68,7 +69,9 @@
   }, true);
 
   function _applyReadonly() {
+    console.log('[AUTH] _applyReadonly() called, body=', document.body);
     document.body.classList.add('qa-readonly');
+    console.log('[AUTH] qa-readonly class added:', document.body.classList.contains('qa-readonly'));
 
     // CSS — hide edit controls visually
     const style = document.createElement('style');
