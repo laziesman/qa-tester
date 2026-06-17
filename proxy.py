@@ -19,20 +19,21 @@ PORT       = int(os.environ.get("PORT", 8765))
 
 def load_env(path):
     env = {}
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                env[k.strip()] = v.strip()
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    env[k.strip()] = v.strip()
     return env
 
 
 def send_to_taiga(data):
     env      = load_env(ENV_PATH)
-    BASE_URL = env["TAIGA_URL"].rstrip("/")
-    USERNAME = env["TAIGA_USERNAME"]
-    PASSWORD = env["TAIGA_PASSWORD"]
+    BASE_URL = (os.environ.get("TAIGA_URL") or env.get("TAIGA_URL", "")).rstrip("/")
+    USERNAME = os.environ.get("TAIGA_USERNAME") or env.get("TAIGA_USERNAME", "")
+    PASSWORD = os.environ.get("TAIGA_PASSWORD") or env.get("TAIGA_PASSWORD", "")
 
     task_url  = data["task_url"]
     task_num  = data["task_number"]
