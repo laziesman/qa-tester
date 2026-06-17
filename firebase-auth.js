@@ -69,36 +69,31 @@
       return;
     }
 
-    // light sidebar (index.html — inject below .sb-brand)
-    const brand = document.querySelector('.sb-brand');
-    if (brand) {
+    // light sidebar (index.html — pin to bottom of sidebar)
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
       const wrap = document.createElement('div');
-      wrap.style.cssText = 'padding:8px 12px 2px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line)';
+      wrap.style.cssText = 'margin-top:auto;padding:10px 12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:7px';
 
       const dot = document.createElement('span');
       dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${window.AUTH.role==='readonly'?'#eab308':'#22c55e'};flex-shrink:0`;
 
-      const info = document.createElement('span');
-      info.style.cssText = 'font-size:12px;font-weight:500;color:var(--dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-      info.textContent = name;
-
-      const roleTag = document.createElement('span');
-      roleTag.style.cssText = `font-size:10px;font-weight:700;letter-spacing:0.3px;padding:1px 7px;border-radius:999px;white-space:nowrap;${window.AUTH.role==='readonly'?'background:#fef9c3;color:#92400e':'background:#dcfce7;color:#15803d'}`;
-      roleTag.textContent = roleLabel;
+      const info = document.createElement('div');
+      info.style.cssText = 'flex:1;overflow:hidden';
+      info.innerHTML = `<div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div><div style="font-size:10px;color:var(--faint);margin-top:1px">${roleLabel}</div>`;
 
       const btn = document.createElement('button');
-      btn.title = 'Logout';
+      btn.title = 'ออกจากระบบ';
       btn.innerHTML = '↩';
-      btn.style.cssText = 'width:24px;height:24px;border-radius:6px;border:1px solid var(--line2);background:var(--bg);color:var(--faint);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s';
-      btn.onmouseenter = () => { btn.style.background='var(--fail-soft)'; btn.style.color='var(--fail)'; btn.style.borderColor='var(--fail)'; };
+      btn.style.cssText = 'width:26px;height:26px;border-radius:7px;border:1px solid var(--line2);background:var(--bg);color:var(--faint);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s';
+      btn.onmouseenter = () => { btn.style.background='#fee2e2'; btn.style.color='#ef5350'; btn.style.borderColor='#ef5350'; };
       btn.onmouseleave = () => { btn.style.background='var(--bg)'; btn.style.color='var(--faint)'; btn.style.borderColor='var(--line2)'; };
       btn.onclick = onLogout;
 
       wrap.appendChild(dot);
       wrap.appendChild(info);
-      wrap.appendChild(roleTag);
       wrap.appendChild(btn);
-      brand.insertAdjacentElement('afterend', wrap);
+      sidebar.appendChild(wrap);
     }
   }
 
