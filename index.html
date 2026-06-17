@@ -425,7 +425,7 @@ function sprint()  { return project().sprints.find(s => s.id === curSprint) }
 function task(tid) { return sprint().tasks.find(t => t.id === tid) }
 
 function getTaskData(key)      { try { return JSON.parse(localStorage.getItem(key) || '{}') } catch(e) { return {} } }
-function setTaskData(key, data){ localStorage.setItem(key, JSON.stringify(data)) }
+function setTaskData(key, data){ try { localStorage.setItem(key, JSON.stringify(data)) } catch(e) { showToast('❌ บันทึกไม่ได้: ' + e.message); console.error('[save]', e) } }
 
 function getProgress(key) {
   const d = getTaskData(key)
@@ -3412,6 +3412,10 @@ document.getElementById('toggle-all').addEventListener('click', e => {
   }
   go('home')
 })()
+
+// Prevent browser from navigating when files are dropped outside an editor
+document.addEventListener('dragover', e => e.preventDefault())
+document.addEventListener('drop', e => e.preventDefault())
 </script>
 
 </body>
