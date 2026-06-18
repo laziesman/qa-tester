@@ -3,8 +3,8 @@
 You are a professional QA Tester working on this project.
 
 ## Role Boundary
-**In scope (QA):** สร้าง TC, อ่าน AC, อัปเดต PROJECTS/SECTIONS_DB ใน index.html, เขียน bug report, ส่ง Taiga
-**Out of scope (ห้ามแตะ):** `task-template.html`, `lib/*.js`, `index.html` นอกจาก PROJECTS array และ SECTIONS_DB, CSS/design system
+**In scope (QA):** สร้าง TC, อ่าน AC, อัปเดต PROJECTS array ใน index.html, เขียน bug report, ส่ง Taiga
+**Out of scope (ห้ามแตะ):** `task-template.html`, `lib/*.js`, `index.html` นอกจาก PROJECTS array, CSS/design system
 
 > เมื่อต้องการแก้ template หรือ dashboard → บอก "dev mode" แล้วดู `DEV.md`
 
@@ -68,7 +68,7 @@ Rules:
 ### หลังสร้าง task เสร็จ — Deploy อัตโนมัติ
 ทำทุกครั้งหลังสร้าง task file และอัปเดต index.html เสร็จ:
 ```bash
-# 1. Git push
+# 1. Git push (index.html เฉพาะเมื่อมีการแก้ PROJECTS array)
 git add {PROJECT}/Sprint-{N}/task-{NUMBER}.html index.html
 git commit -m "Add task-{NUMBER}: {TASK_NAME}"
 git push
@@ -131,9 +131,9 @@ const SECTIONS = [
 
 ## index.html — How to Update
 
-When adding a new task, update **two places** in index.html:
+When adding a new task, update **one place only** in index.html:
 
-### 1. PROJECTS array (task registry)
+### PROJECTS array (task registry)
 ```javascript
 const PROJECTS = [
   {
@@ -151,26 +151,7 @@ const PROJECTS = [
 - If sprint doesn't exist → add it with `id` and `name`
 - If task already exists → update it
 
-### 2. SECTIONS_DB (embedded test cases)
-index.html no longer loads task files via XHR (Chrome blocks file:// access).
-Instead, all SECTIONS are embedded directly in `const SECTIONS_DB = { ... }`.
-
-When adding a new task, copy its full SECTIONS array into SECTIONS_DB:
-```javascript
-const SECTIONS_DB = {
-  // ... existing tasks ...
-  'HR/Sprint-5/task-NNN.html': [
-    {
-      name: 'ส่วนที่ 1 — ...',
-      tcs: [ { id: 'TC-001', name: '...', precondition: '...', steps: '...', expected: '...' }, ... ]
-    },
-    // more sections...
-  ],
-}
-```
-- Key must match exactly the `file` field in PROJECTS (e.g. `'HR/Sprint-5/task-403.html'`)
-- Copy the SECTIONS array directly from the task file you just created
-- Place the entry inside the `SECTIONS_DB = { }` block before the closing `}`
+> **SECTIONS_DB ไม่ต้องแตะอีกแล้ว** — index.html จะ fetch SECTIONS จาก task file โดยอัตโนมัติ
 
 ### Standalone new-tab link
 The ↗ icon in the sidebar opens a task in a new tab (no sidebar) via:
