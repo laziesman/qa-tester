@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 ทดสอบอัตโนมัติ Task 411 — หน้าแสดงรายละเอียดเอกสารสัญญาแบบ read-only
 URL: https://hr-stg.intelligent-bytes.com/employee/contracts/6/view
@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright, Page
 
 from hr_helpers import (
     HR_APP_URL, BASE_DIR, SESSION_FILE,
-    launch_browser, ensure_logged_in, select_company
+    launch_browser, sync_to_firebase, ensure_logged_in, select_company
 )
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -608,7 +608,9 @@ def main():
 
     r.summary()
     r.save()
+    sync_to_firebase(r.data, '411')
 
 
 if __name__ == '__main__':
     main()
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 hr_helpers.py — shared helpers สำหรับ HR Staging auto-test
 ใช้ร่วมกันทุก task: login + เลือกบริษัท อรุณเบิกฟ้า
 """
@@ -12,8 +12,8 @@ from playwright.sync_api import Page
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-BASE_DIR     = Path(__file__).parent
-SESSION_FILE = BASE_DIR / 'session.json'
+BASE_DIR     = Path(__file__).parent.parent   # project root
+SESSION_FILE = BASE_DIR / '_misc' / 'session.json'
 
 # ── Load .env ──────────────────────────────────────────────────────────────────
 def load_env(path: Path) -> dict:
@@ -37,7 +37,7 @@ def _base_url(raw: str) -> str:
         return f"{p.scheme}://{p.netloc}"
     return raw
 
-E           = load_env(BASE_DIR / '.env')
+E           = load_env(BASE_DIR / '.env')   # .env อยู่ที่ project root
 HR_APP_URL  = _base_url(E.get('HR_APP_URL', ''))
 HR_USERNAME = E.get('HR_USERNAME', '')
 HR_PASSWORD = E.get('HR_PASSWORD', '')
@@ -197,3 +197,20 @@ def launch_browser(pw, headed: bool, use_session: bool):
             locale='th-TH'
         )
     return browser, ctx
+
+import json as _json
+import urllib.request as _urllib
+
+FIREBASE_PROJECT = 'qa-tester-f005d'
+
+def sync_to_firebase(results_data: dict, task_number: str):
+    storage_key = f'qa_task_{task_number}'
+    url = f'https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT}/databases/(default)/documents/qa_results/{storage_key}'
+    doc = {'fields': {storage_key: {'stringValue': _json.dumps(results_data, ensure_ascii=False)}}}
+    try:
+        req = _urllib.Request(url, data=_json.dumps(doc).encode('utf-8'), headers={'Content-Type': 'application/json'}, method='PATCH')
+        with _urllib.urlopen(req, timeout=10) as resp:
+            resp.read()
+        print(f'  ✅ Firebase sync: {len(results_data)} TC → Firestore ({storage_key})')
+    except Exception as e:
+        print(f'  ⚠️  Firebase sync failed: {e}')

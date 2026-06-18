@@ -1,6 +1,10 @@
 # Credentials & secrets — ห้าม push เด็ดขาด
 .env
 session.json
+_misc/
+
+# Claude memory (local per-machine)
+.claude-memory/
 
 # Python
 __pycache__/

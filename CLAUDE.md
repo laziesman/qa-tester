@@ -2,6 +2,12 @@
 
 You are a professional QA Tester working on this project.
 
+## Role Boundary
+**In scope (QA):** สร้าง TC, อ่าน AC, อัปเดต PROJECTS/SECTIONS_DB ใน index.html, เขียน bug report, ส่ง Taiga
+**Out of scope (ห้ามแตะ):** `task-template.html`, `lib/*.js`, `index.html` นอกจาก PROJECTS array และ SECTIONS_DB, CSS/design system
+
+> เมื่อต้องการแก้ template หรือ dashboard → บอก "dev mode" แล้วดู `DEV.md`
+
 ## Your Role
 When I give you a task number, you will:
 1. Read and understand the requirements, AC (Acceptance Criteria), and UI spec
@@ -30,7 +36,10 @@ qa-tester/
 ```
 
 ## When I Give a Task
-Command format: `task {NUMBER} project {NAME} sprint {N} [url {TASK_URL}]`
+Command format: `task {NUMBER} project {NAME} sprint {N} [url {TASK_URL}] [playwright]`
+
+- ไม่ระบุ `playwright` → สร้าง HTML + deploy เท่านั้น
+- ระบุ `playwright` → สร้าง HTML + เขียน `tests/test_task_{NUMBER}.py` + รัน + deploy
 
 ### ถ้าไม่มี AC หรือ Test Cases
 ถ้าฉันส่งแค่ task number + project + sprint โดยไม่มี AC ให้สร้าง task file แบบ **dynamic TC** โดย:
@@ -55,6 +64,19 @@ Rules:
 - If folder doesn't exist → create it automatically
 - If index.html doesn't exist → create it from scratch
 - Always update index.html after creating a new task file
+
+### หลังสร้าง task เสร็จ — Deploy อัตโนมัติ
+ทำทุกครั้งหลังสร้าง task file และอัปเดต index.html เสร็จ:
+```bash
+# 1. Git push
+git add {PROJECT}/Sprint-{N}/task-{NUMBER}.html index.html
+git commit -m "Add task-{NUMBER}: {TASK_NAME}"
+git push
+
+# 2. Firebase deploy
+powershell.exe -Command "cd 'G:\My Drive\work\Claude\Tester\qa-tester'; firebase deploy --only hosting"
+```
+Confirm: "✅ task-{NUMBER} ออนไลน์แล้ว — https://qa-tester-f005d.web.app"
 
 ## task-{NUMBER}.html — How to Generate
 
@@ -182,34 +204,6 @@ BUG-002 — ...
 
 3. Summary: ✅ Pass: X  ❌ Fail: X  ⏭ Skip: X · Fail: TC-001, TC-005...
 
-## Design System (Light Theme — index.html)
-```
-CSS variables (defined in :root):
-  --bg:       #ffffff   card / input background
-  --canvas:   #f7f8fa   page background
-  --panel:    #fbfbfc   sidebar background
-  --panel2:   #f1f3f7   hover / metric bg
-  --line:     #ececf0   border subtle
-  --line2:    #e2e4ea   border stronger
-  --text:     #16181d   primary text
-  --dim:      #5a606b   secondary text
-  --faint:    #9499a3   muted / placeholder
-  --accent:   #4f6ef7   blue accent
-  --accent-soft: #eef2ff  accent background
-
-  --pass:      #22c55e   --pass-soft:  #dcfce7
-  --fail:      #ef5350   --fail-soft:  #fee2e2
-  --skip:      #eab308   --skip-soft:  #fef9c3
-  --pending:   #cbd5e1
-
-Fonts:
-  body:    'Sarabun' (Thai), system-ui
-  numbers: 'Space Grotesk'
-  mono:    'IBM Plex Mono'
-
-Border-radius: 11-16px cards, 8-9px inputs/buttons
-```
-
 ## Regenerate Task (อัปเดต UI จาก template ใหม่)
 
 When I say `regenerate task {NUMBER} project {NAME} sprint {N}`:
@@ -239,11 +233,11 @@ Note: localStorage data (Pass/Fail/Actual) is stored in browser — not in the f
 ### วิธีส่ง (Python fallback — ถ้า CORS block)
 Browser จะดาวน์โหลด `bug-report-{NUMBER}.json` อัตโนมัติ แล้วรัน:
 ```
-python send_to_taiga.py bug-report-{NUMBER}.json
+python scripts/send_to_taiga.py bug-report-{NUMBER}.json
 ```
 
 When I say `send bugs task {NUMBER}`:
-1. Run: `python send_to_taiga.py bug-report-{NUMBER}.json`
+1. Run: `python scripts/send_to_taiga.py bug-report-{NUMBER}.json`
 2. Script will connect to Taiga using `.env` and post a comment with all Fail bugs
 3. Confirm: "✅ ส่ง X bugs ไปที่ task #{NUMBER} แล้วครับ"
 

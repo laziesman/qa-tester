@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 ทดสอบอัตโนมัติ Task 408 — ฟอร์มสร้างเอกสารสัญญาใหม่ให้พนักงาน
 
@@ -1203,7 +1203,9 @@ def main():
 
     r.summary()
     r.save()
+    sync_to_firebase(r.data, '408')
 
 
 if __name__ == '__main__':
     main()
+

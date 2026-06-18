@@ -9,8 +9,26 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firestore.rules",
+      "firestore.indexes.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "_misc/**",
+      "tests/**",
+      "scripts/**",
+      "test-files/**",
+      "screenshots/**",
+      "CLAUDE.md",
+      "DEV.md",
+      "SKILL.md",
+      "qa-tester.skill",
+      "**/*.py",
+      "**/*.pyc",
+      "**/*.ps1",
+      "**/*.md",
+      "**/test-results-*.json",
+      "**/bug-report-*.json",
+      "Procfile"
     ]
   }
 }
