@@ -1,1 +1,1 @@
-web: python scripts/proxy.py
+web: python3 scripts/proxy.py
