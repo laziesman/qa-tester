@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -95,6 +95,12 @@ body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;fon
 .send-step.err{color:#f09595}
 
 .note-box{background:rgba(56,189,248,0.08);border:0.5px solid rgba(56,189,248,0.2);border-radius:6px;padding:8px 11px;font-size:12px;color:rgba(56,189,248,0.9);margin-bottom:10px;line-height:1.6}
+.pl-retest{background:rgba(245,158,11,0.2);color:#fbbf24}
+.tc-row.s-retest{border-left-color:#f59e0b;background:rgba(245,158,11,0.07)}
+.bug-item-retest{border:0.5px solid rgba(245,158,11,0.25);background:rgba(245,158,11,0.07);border-radius:7px;padding:10px 12px;margin-bottom:8px}
+.retest-badge{font-size:11px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:4px;padding:2px 8px;margin-left:6px}
+.bug-retest-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:0.5px solid rgba(245,158,11,0.3);background:transparent;color:#fbbf24;cursor:pointer;margin-top:8px;font-family:inherit}
+.bug-retest-btn:hover{background:rgba(245,158,11,0.12)}
 </style>
 </head>
 <body>
@@ -109,6 +115,7 @@ body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;fon
   <div class="stats-bar">
     <span class="pill pl-pass" id="sp">Pass 0</span>
     <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-retest" id="sr" style="display:none">Retest 0</span>
     <span class="pill pl-skip" id="ss">Skip 0</span>
     <span class="pill pl-pend" id="sn">Pending 0</span>
     <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
@@ -133,9 +140,8 @@ body{font-family:system-ui,Arial,sans-serif;background:#0F172A;color:#F8FAFC;fon
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="../../firebase-sync.js"></script>
-<script src="../../firebase-auth.js"></script><script src="../../firebase-storage.js"></script><script>
+<script>
 const STORAGE_KEY = 'qa_task_412'
 const TCS_KEY = STORAGE_KEY + '_tcs'
 const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/412'
@@ -351,15 +357,19 @@ function loadState() {
 }
 
 function updateStats() {
-  let p=0,f=0,s=0,n=0
+  let p=0,f=0,r=0,s=0,n=0
   Object.values(state).forEach(v => {
     if(v.status==='pass') p++
     else if(v.status==='fail') f++
+    else if(v.status==='retest') r++
     else if(v.status==='skip') s++
     else n++
   })
   document.getElementById('sp').textContent = 'Pass ' + p
   document.getElementById('sf').textContent = 'Fail ' + f
+  const retestPill = document.getElementById('sr')
+  if (r > 0) { retestPill.style.display = ''; retestPill.textContent = 'Retest ' + r }
+  else retestPill.style.display = 'none'
   document.getElementById('ss').textContent = 'Skip ' + s
   document.getElementById('sn').textContent = 'Pending ' + n
   document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
@@ -490,25 +500,58 @@ function collectFails(tcs, sectionName, fails, num) {
   return num
 }
 
+function collectRetests(tcs, sectionName, retests) {
+  tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'retest') retests.push({ ...tc, section: sectionName })
+  })
+}
+
+function markRetest(id) {
+  state[id].status = 'retest'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-retest'; ['p','f','s'].forEach(k => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn' }) }
+  updateStats(); saveState(); showBugReport()
+}
+
+function unmarkRetest(id) {
+  state[id].status = 'fail'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-fail'; const b = document.getElementById('f-'+id); if(b) b.className='tbtn af' }
+  updateStats(); saveState(); showBugReport()
+}
+
+function retestPass(id) {
+  state[id].status = 'pass'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-pass'; ['p','f','s'].forEach((k,i) => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn'+(i===0?' ap':'') }) }
+  updateStats(); saveState(); showBugReport()
+}
+
 function showBugReport() {
   const fails = []
   let num = 1
   SECTIONS.forEach(sec => { num = collectFails(sec.tcs, sec.name, fails, num) })
   num = collectFails(customTcs, 'เพิ่มเติม', fails, num)
+  const retests = []
+  SECTIONS.forEach(sec => collectRetests(sec.tcs, sec.name, retests))
+  collectRetests(customTcs, 'เพิ่มเติม', retests)
   const out = document.getElementById('bug-out')
   const list = document.getElementById('bug-list')
   const title = document.getElementById('bug-title')
   out.classList.add('open')
   document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
   document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
-  if (!fails.length) {
+  if (!fails.length && !retests.length) {
     title.textContent = ''
     list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
     out.scrollIntoView({ behavior: 'smooth', block: 'start' })
     return
   }
-  title.textContent = 'พบ ' + fails.length + ' รายการที่ Fail'
-  list.innerHTML = fails.map(f => `
+  const parts = []
+  if (fails.length) parts.push(fails.length + ' รายการที่ Fail')
+  if (retests.length) parts.push(retests.length + ' รายการรอ Retest')
+  title.textContent = 'พบ ' + parts.join(' · ')
+  const failsHtml = fails.map(f => `
     <div class="bug-item">
       <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
       <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
@@ -517,8 +560,23 @@ function showBugReport() {
       <div class="bug-line"><b>Expected:</b> ${f.expected || '—'}</div>
       <div class="bug-line"><b>Actual result:</b></div>
       <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+      <button class="bug-retest-btn" onclick="markRetest('${f.id}')">🔁 Dev แก้แล้ว — Mark Retest</button>
     </div>
   `).join('')
+  const retestsHtml = retests.length ? `
+    <div class="bug-section-title" style="margin-top:14px;color:#fbbf24">รอ Retest (${retests.length})</div>
+    ${retests.map(f => `
+      <div class="bug-item-retest">
+        <div class="bug-id" style="color:#fbbf24">${f.id}<span class="retest-badge">⏳ รอ Retest</span></div>
+        <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:4px">${f.name}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="bug-retest-btn" style="color:#7ec87e;border-color:rgba(82,168,105,0.3)" onclick="retestPass('${f.id}')">✅ Retest ผ่าน</button>
+          <button class="bug-retest-btn" style="color:#f09595;border-color:rgba(226,75,74,0.3)" onclick="unmarkRetest('${f.id}')">❌ Retest ไม่ผ่าน</button>
+        </div>
+      </div>
+    `).join('')}
+  ` : ''
+  list.innerHTML = failsHtml + retestsHtml
   out.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
