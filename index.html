@@ -2870,20 +2870,36 @@ const SECTIONS_DB = {
 ],
 }
 
-function loadSections(t) {
-  const db = SECTIONS_DB[t.file]
-  if (db) {
+async function loadSections(t) {
+  function withExtra(sections) {
     try {
       const extra = JSON.parse(localStorage.getItem(t.storageKey + '_tcs') || '[]')
-      if (extra.length) return Promise.resolve([...db, { name: 'Test Cases เพิ่มเติม (นอกเหนือ AC)', tcs: extra }])
+      if (extra.length) return [...sections, { name: 'Test Cases เพิ่มเติม (นอกเหนือ AC)', tcs: extra }]
     } catch(e) {}
-    return Promise.resolve(db)
+    return sections
   }
+
+  // fast-path: SECTIONS_DB (existing tasks)
+  const db = SECTIONS_DB[t.file]
+  if (db) return withExtra(db)
+
+  // fetch task file and parse SECTIONS
+  try {
+    const res = await fetch(t.file)
+    const html = await res.text()
+    const match = html.match(/const SECTIONS\s*=\s*(\[[\s\S]*?\n\])\s*\n/)
+    if (match) {
+      const sections = new Function('return ' + match[1])()
+      return withExtra(sections)
+    }
+  } catch(e) {}
+
+  // dynamic task: TCs stored in localStorage
   try {
     const tcs = JSON.parse(localStorage.getItem(t.storageKey + '_tcs') || '[]')
-    if (tcs.length) return Promise.resolve([{ name: '', tcs }])
+    if (tcs.length) return [{ name: '', tcs }]
   } catch(e) {}
-  return Promise.resolve([])
+  return []
 }
 
 // ── State ──
