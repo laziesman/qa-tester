@@ -13,7 +13,7 @@ import json, os, re, base64, io, sys
 import requests
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ENV_PATH   = os.path.join(SCRIPT_DIR, ".env")
+ENV_PATH   = os.path.join(SCRIPT_DIR, "..", ".env")
 PORT       = int(os.environ.get("PORT", 8765))
 
 
