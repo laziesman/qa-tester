@@ -2872,7 +2872,13 @@ const SECTIONS_DB = {
 
 function loadSections(t) {
   const db = SECTIONS_DB[t.file]
-  if (db) return Promise.resolve(db)
+  if (db) {
+    try {
+      const extra = JSON.parse(localStorage.getItem(t.storageKey + '_tcs') || '[]')
+      if (extra.length) return Promise.resolve([...db, { name: 'Test Cases เพิ่มเติม (นอกเหนือ AC)', tcs: extra }])
+    } catch(e) {}
+    return Promise.resolve(db)
+  }
   try {
     const tcs = JSON.parse(localStorage.getItem(t.storageKey + '_tcs') || '[]')
     if (tcs.length) return Promise.resolve([{ name: '', tcs }])
@@ -3149,10 +3155,7 @@ async function renderTask(tid) {
       `<div class="loading-state" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:60px 20px">
         <div style="font-size:32px;opacity:.2">📋</div>
         <div style="color:var(--dim);font-size:13px">ยังไม่มี Test Case</div>
-        ${isDynamic
-          ? `<button onclick="addTcDynamic()" style="font-size:13px;padding:7px 20px;border-radius:999px;background:var(--panel2);color:var(--dim);border:1px solid var(--line2);cursor:pointer;font-family:inherit">+ เพิ่ม Test Case</button>`
-          : `<a href="${t.file}" target="_blank" style="font-size:13px;padding:7px 16px;border-radius:999px;background:var(--panel2);color:var(--dim);text-decoration:none;border:1px solid var(--line2)">↗ เปิด Testcase</a>`
-        }
+        <button onclick="addTcDynamic()" style="font-size:13px;padding:7px 20px;border-radius:999px;background:var(--panel2);color:var(--dim);border:1px solid var(--line2);cursor:pointer;font-family:inherit">+ เพิ่ม Test Case</button>
       </div>`
     return
   }
@@ -3177,7 +3180,7 @@ async function renderTask(tid) {
               <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
               <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
               <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
-              ${isDynamic ? `<button class="tbtn del" onclick="deleteTcDynamic('${tc.id}')" title="ลบ TC นี้">✕</button>` : ''}
+              ${(isDynamic || tc.id.startsWith('EX-')) ? `<button class="tbtn del" onclick="deleteTcDynamic('${tc.id}')" title="ลบ TC นี้">✕</button>` : ''}
             </div>
           </div>
           <button class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</button>
@@ -3192,7 +3195,7 @@ async function renderTask(tid) {
         </div>`
       ).join('')}
     </div>`
-  ).join('') + (isDynamic ? `<button class="add-tc-btn-idx" onclick="addTcDynamic()">+ เพิ่ม Test Case</button>` : '')
+  ).join('') + `<button class="add-tc-btn-idx" onclick="addTcDynamic()">+ เพิ่ม Test Case</button>`
 
   sections.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
   applyTaskStateToUI(); updateTaskStats(); applyTcFilter()
@@ -3204,9 +3207,11 @@ function addTcDynamic() {
   const tcsKey = t.storageKey + '_tcs'
   let tcs = []
   try { tcs = JSON.parse(localStorage.getItem(tcsKey) || '[]') } catch(e) {}
-  const nums = tcs.map(tc => parseInt(tc.id.replace('TC-',''), 10)).filter(n => !isNaN(n))
+  const isStatic = !!SECTIONS_DB[t.file]
+  const prefix = isStatic ? 'EX-' : 'TC-'
+  const nums = tcs.map(tc => parseInt(tc.id.replace(prefix,''), 10)).filter(n => !isNaN(n))
   const next = nums.length ? Math.max(...nums) + 1 : 1
-  const id = 'TC-' + String(next).padStart(3, '0')
+  const id = prefix + String(next).padStart(3, '0')
   tcs.push({ id, name: id, precondition: '', steps: '', expected: '' })
   localStorage.setItem(tcsKey, JSON.stringify(tcs))
   renderTask(activeTask)
