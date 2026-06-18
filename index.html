@@ -143,6 +143,7 @@ a{color:inherit}
 .tc.s-pass{border-left-color:var(--pass)}
 .tc.s-fail{border-left-color:var(--fail);background:#fff6f6}
 .tc.s-skip{border-left-color:var(--skip)}
+.tc.s-retest{border-left-color:#f59e0b;background:rgba(245,158,11,0.04)}
 .tc-head{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:flex-start;padding:13px 15px}
 .tc-meta{min-width:0}
 .tc-idline{display:flex;align-items:center;gap:9px;margin-bottom:6px}
@@ -151,6 +152,7 @@ a{color:inherit}
 .tc.s-pass .tc-statustag.pass{display:inline;color:#15803d;background:var(--pass-soft)}
 .tc.s-fail .tc-statustag.fail{display:inline;color:#b91c1c;background:var(--fail-soft)}
 .tc.s-skip .tc-statustag.skip{display:inline;color:#a16207;background:var(--skip-soft)}
+.tc.s-retest .tc-statustag.retest{display:inline;color:#b45309;background:rgba(245,158,11,0.15)}
 .tc-name{font-size:14px;font-weight:500;line-height:1.45}
 .tc-btns{display:flex;gap:4px;flex-shrink:0}
 .tbtn{font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid var(--line2);background:var(--bg);color:var(--dim);transition:.1s}
@@ -192,6 +194,10 @@ a{color:inherit}
 .bug-out.open{display:block}
 .bug-title{font-size:14px;font-weight:700;margin-bottom:12px}
 .bug-item{border:1px solid #fbcaca;background:#fff6f6;border-radius:11px;padding:13px 15px;margin-bottom:9px}
+.bug-item-retest{border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);border-radius:11px;padding:13px 15px;margin-bottom:9px}
+.retest-badge{font-size:11px;background:rgba(245,158,11,0.15);color:#b45309;border-radius:999px;padding:2px 8px;margin-left:6px;font-weight:600}
+.bug-retest-btn{font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;border:1px solid rgba(245,158,11,0.3);background:transparent;color:#b45309;cursor:pointer;margin-top:8px;font-family:inherit;transition:.1s}
+.bug-retest-btn:hover{background:rgba(245,158,11,0.1)}
 .bug-id{font-size:12px;font-weight:600;color:#b91c1c;margin-bottom:6px;letter-spacing:.3px;font-family:'IBM Plex Mono',monospace}
 .bug-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.45}
 .bug-line{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:2px}
@@ -463,10 +469,10 @@ function setTaskData(key, data) {
 
 function getProgress(key) {
   const d = getTaskData(key)
-  let pass=0, fail=0, skip=0
-  Object.values(d).forEach(v => { if(v.status==='pass') pass++; else if(v.status==='fail') fail++; else if(v.status==='skip') skip++ })
+  let pass=0, fail=0, skip=0, retest=0
+  Object.values(d).forEach(v => { if(v.status==='pass') pass++; else if(v.status==='fail') fail++; else if(v.status==='skip') skip++; else if(v.status==='retest') retest++ })
   const total = Object.keys(d).length
-  return { pass, fail, skip, n: total-pass-fail-skip, total }
+  return { pass, fail, skip, retest, n: total-pass-fail-skip-retest, total }
 }
 
 function sprintTally() {
@@ -478,7 +484,7 @@ function sprintTally() {
 function barHTML(c) {
   if (!c.total) return ''
   const seg = (v,col) => v>0 ? `<span style="width:${v/c.total*100}%;background:${col}"></span>` : ''
-  return seg(c.pass,'var(--pass)') + seg(c.fail,'var(--fail)') + seg(c.skip,'var(--skip)') + seg(c.n,'var(--pending)')
+  return seg(c.pass,'var(--pass)') + seg(c.fail,'var(--fail)') + seg(c.retest,'#f59e0b') + seg(c.skip,'var(--skip)') + seg(c.n,'var(--pending)')
 }
 
 function allTcIds() {
@@ -3134,6 +3140,7 @@ async function renderTask(tid) {
                 <span class="tc-statustag pass">Pass</span>
                 <span class="tc-statustag fail">Fail</span>
                 <span class="tc-statustag skip">Skip</span>
+                <span class="tc-statustag retest">Retest</span>
               </div>
               <div class="tc-name">${tc.name}</div>
             </div>
@@ -3217,7 +3224,8 @@ function updateTaskStats() {
   const rate = c.total ? Math.round(c.pass/c.total*100) : 0
   const col = rate>=80?'var(--pass)':(c.fail>0?'#d97706':'var(--text)')
   document.getElementById('tc-legend').innerHTML =
-    [['pass','var(--pass)','Pass'],['fail','var(--fail)','Fail'],['skip','var(--skip)','Skip'],['n','var(--pending)','Pending']].map(([k,clr,l]) =>
+    [['pass','var(--pass)','Pass'],['fail','var(--fail)','Fail'],['retest','#f59e0b','Retest'],['skip','var(--skip)','Skip'],['n','var(--pending)','Pending']].map(([k,clr,l]) =>
+      (k==='retest' && !c.retest) ? '' :
       `<div class="lg"><span class="d" style="background:${clr}"></span><span class="n num">${c[k]}</span><span class="t">${l}</span></div>`
     ).join('') +
     `<div class="lg" style="margin-left:8px;border-left:1px solid var(--line2);padding-left:12px"><span class="n num" style="color:var(--dim)">${c.total}</span><span class="t">Total TC</span></div>` +
@@ -3332,26 +3340,69 @@ function resetTask() {
   renderSidebar()
 }
 
+function markRetest(id) {
+  const key = task(activeTask).storageKey
+  const data = getTaskData(key)
+  if (!data[id]) data[id] = {status:null,note:''}
+  data[id].status = 'retest'
+  setTaskData(key, data)
+  const row = document.getElementById('row-'+id)
+  if (row) row.className = 'tc s-retest'
+  ;['p','f','s'].forEach(k => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn' })
+  updateTaskStats(); applyTcFilter(); renderSidebar(); showBugReport()
+}
+
+function unmarkRetest(id) {
+  const key = task(activeTask).storageKey
+  const data = getTaskData(key)
+  if (!data[id]) data[id] = {status:null,note:''}
+  data[id].status = 'fail'
+  setTaskData(key, data)
+  const row = document.getElementById('row-'+id)
+  if (row) row.className = 'tc s-fail'
+  const fb = document.getElementById('f-'+id); if(fb) fb.className='tbtn af'
+  updateTaskStats(); applyTcFilter(); renderSidebar(); showBugReport()
+}
+
+function retestPass(id) {
+  const key = task(activeTask).storageKey
+  const data = getTaskData(key)
+  if (!data[id]) data[id] = {status:null,note:''}
+  data[id].status = 'pass'
+  setTaskData(key, data)
+  const row = document.getElementById('row-'+id)
+  if (row) row.className = 'tc s-pass'
+  const pb = document.getElementById('p-'+id); if(pb) pb.className='tbtn ap'
+  ;['f','s'].forEach(k => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn' })
+  updateTaskStats(); applyTcFilter(); renderSidebar(); showBugReport()
+}
+
 function showBugReport() {
   const t = task(activeTask)
   const data = getTaskData(t.storageKey)
   const fails = []; let num = 1
+  const retests = []
   currentSections.forEach(sec => sec.tcs.forEach(tc => {
     if (data[tc.id]?.status==='fail') {
       const ed = document.getElementById('actual-'+tc.id)
       fails.push({...tc, section:sec.name, actualHtml:ed?ed.innerHTML.trim():'', num:num++})
+    } else if (data[tc.id]?.status==='retest') {
+      retests.push({...tc, section:sec.name})
     }
   }))
   const out=document.getElementById('bug-out'), list=document.getElementById('bug-list'), title=document.getElementById('bug-title')
   out.classList.add('open')
   document.getElementById('export-btn').style.display = fails.length ? 'inline-block' : 'none'
   document.getElementById('send-btn').style.display   = fails.length ? 'inline-block' : 'none'
-  if (!fails.length) {
+  if (!fails.length && !retests.length) {
     title.textContent=''; list.innerHTML='<div class="no-fail"><span style="width:9px;height:9px;border-radius:3px;background:var(--pass);display:inline-block"></span>ไม่มี Test Case ที่ Fail — ผ่านทั้งหมด</div>'
     out.scrollIntoView({behavior:'smooth',block:'start'}); return
   }
-  title.textContent = 'พบ '+fails.length+' รายการที่ Fail'
-  list.innerHTML = fails.map(f => `<div class="bug-item">
+  const parts = []
+  if (fails.length) parts.push(fails.length + ' รายการที่ Fail')
+  if (retests.length) parts.push(retests.length + ' รายการรอ Retest')
+  title.textContent = 'พบ ' + parts.join(' · ')
+  const failsHtml = fails.map(f => `<div class="bug-item">
     <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
     <div class="bug-name">${f.name}</div>
     ${f.precondition?`<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>`:''}
@@ -3359,7 +3410,20 @@ function showBugReport() {
     <div class="bug-line"><b>Expected:</b> ${f.expected}</div>
     <div class="bug-line"><b>Actual result:</b></div>
     <div class="bug-actual">${f.actualHtml||'<span style="color:var(--faint)">ยังไม่ได้ระบุ</span>'}</div>
+    <button class="bug-retest-btn" onclick="markRetest('${f.id}')">🔁 Dev แก้แล้ว — Mark Retest</button>
   </div>`).join('')
+  const retestsHtml = retests.length ? `
+    <div class="bug-title" style="margin-top:16px;color:#b45309">รอ Retest (${retests.length})</div>
+    ${retests.map(f => `<div class="bug-item-retest">
+      <div class="bug-id" style="color:#b45309">${f.id}<span class="retest-badge">⏳ รอ Retest</span></div>
+      <div class="bug-name">${f.name}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="bug-retest-btn" style="color:#15803d;border-color:rgba(82,168,105,0.4)" onclick="retestPass('${f.id}')">✅ Retest ผ่าน</button>
+        <button class="bug-retest-btn" style="color:#b91c1c;border-color:rgba(239,83,80,0.3)" onclick="unmarkRetest('${f.id}')">❌ Retest ไม่ผ่าน</button>
+      </div>
+    </div>`).join('')}
+  ` : ''
+  list.innerHTML = failsHtml + retestsHtml
   out.scrollIntoView({behavior:'smooth',block:'start'})
 }
 
