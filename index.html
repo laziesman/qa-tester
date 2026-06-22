@@ -428,6 +428,7 @@ const PROJECTS = [
       { id:'430', title:'4.2.1 ปรับกะ (Shift Change)', file:'HR/Sprint-6/task-430.html', storageKey:'qa_task_430' },
       { id:'431', title:'4.2.2 สลับกะ (Shift Swap) — พนักงาน 2 คนสลับกะกัน', file:'HR/Sprint-6/task-431.html', storageKey:'qa_task_431' },
       { id:'433', title:'4.4.1 หน้า Publish ตารางกะ', file:'HR/Sprint-6/task-433.html', storageKey:'qa_task_433' },
+      { id:'434', title:'4.4.2 สถานะการ Publish (Publish Status)', file:'HR/Sprint-6/task-434.html', storageKey:'qa_task_434' },
     ]}
   ]}
 ]
@@ -2991,6 +2992,53 @@ const SECTIONS_DB = {
     { id: 'TC-030', name: 'ไม่มีสิทธิ์ R → GET Preview → 403 Forbidden', precondition: 'Login เป็น user ที่ไม่มีสิทธิ์ R บน module shift_publish', steps: '1. Login user ที่ไม่มีสิทธิ์ R\n2. พยายามเปิดหน้า Publish / กด Preview', expected: '403 Forbidden — ไม่สามารถดู Preview ได้' },
     { id: 'TC-031', name: 'สิทธิ์ C เท่านั้น → Draft ได้ แต่ Publish ไม่ได้', precondition: 'Login เป็น user ที่มีสิทธิ์ C แต่ไม่มี X', steps: '1. Login user ที่มีสิทธิ์ C ไม่มี X\n2. ทดสอบบันทึก Draft\n3. ทดสอบ Publish', expected: 'Draft สำเร็จ — Publish ถูก block ด้วย 403' },
     { id: 'TC-032', name: 'Data Isolation — ไม่สามารถ Publish พนักงานบริษัทอื่น', precondition: 'Login เป็น user บริษัท A', steps: '1. ทดสอบ Publish โดย POST /api/v1/shift-publish/ ด้วย employee_ids ของบริษัท B', expected: 'ระบบ Publish เฉพาะพนักงานของบริษัทตาม X-Company-ID เท่านั้น — ไม่สามารถ Publish ข้ามบริษัท' }
+  ]}
+],
+  'HR/Sprint-6/task-434.html': [
+  { name: 'ส่วนที่ 1 — ตัวกรอง (Filter)', tcs: [
+    { id: 'TC-001', name: 'กรองด้วยช่วงวันที่ → ตารางโหลดข้อมูลตามช่วงวันที่', precondition: 'มีข้อมูล Publish Status อยู่ในระบบ', steps: '1. เปิดหน้า Publish Status\n2. เลือก period_start และ period_end\n3. กดค้นหา', expected: 'ตารางแสดงเฉพาะรายการที่อยู่ในช่วงวันที่ที่เลือก' },
+    { id: 'TC-002', name: 'กรองสถานะ \'Published\' → แสดงเฉพาะ PUBLISHED', precondition: 'มีรายการที่สถานะ Published', steps: '1. เลือกสถานะ = Published\n2. กดค้นหา', expected: 'ทุก row มี badge Published เท่านั้น' },
+    { id: 'TC-003', name: 'กรองสถานะ \'Draft\' → แสดงเฉพาะ DRAFT', precondition: 'มีรายการที่สถานะ Draft', steps: '1. เลือกสถานะ = Draft\n2. กดค้นหา', expected: 'ทุก row มี badge Draft เท่านั้น' },
+    { id: 'TC-004', name: 'กรองสถานะ \'Partially Published\' → แสดงเฉพาะ PARTIAL', precondition: 'มีรายการที่สถานะ Partially Published', steps: '1. เลือกสถานะ = Partially Published\n2. กดค้นหา', expected: 'ทุก row มี badge Partially Published เท่านั้น' },
+    { id: 'TC-005', name: 'กรองสถานะ \'ทั้งหมด\' → แสดงทุกสถานะ', precondition: 'มีรายการหลายสถานะในระบบ', steps: '1. เลือกสถานะ = ทั้งหมด\n2. กดค้นหา', expected: 'ตารางแสดง Published, Draft, Partially Published ปะปนกัน' },
+    { id: 'TC-006', name: 'กรองด้วยแผนก/ฝ่าย → แสดงเฉพาะแผนกที่เลือก', precondition: 'มีพนักงานหลายแผนก', steps: '1. เลือก department_id\n2. กดค้นหา', expected: 'ตารางแสดงเฉพาะพนักงานในแผนก/ฝ่ายที่เลือก' },
+    { id: 'TC-007', name: 'กดปุ่ม \'ล้างตัวกรอง\' → รีเซ็ตค่ากรองทั้งหมด', precondition: 'เลือกตัวกรองไว้แล้วอย่างน้อย 1 ค่า', steps: '1. เลือก date range + สถานะ + แผนก\n2. กด \'ล้างตัวกรอง\'', expected: 'ค่าตัวกรองทั้งหมดคืนค่าเริ่มต้น ตารางโหลดใหม่' }
+  ]},
+  { name: 'ส่วนที่ 2 — ตาราง (Table Display)', tcs: [
+    { id: 'TC-008', name: 'ตารางแสดง columns ครบทุก column ตาม spec', precondition: 'มีข้อมูลในตาราง', steps: '1. เปิดหน้า Publish Status\n2. ตรวจสอบ header ของตาราง', expected: 'มี columns: Action · รหัสพนักงาน · ชื่อ-สกุล · แผนก/ฝ่าย · ช่วงวันที่ · สถานะ · วันที่ Publish · ผู้ Publish' },
+    { id: 'TC-009', name: 'Pagination แสดงสูงสุด 10 รายการ/หน้า', precondition: 'มีข้อมูลมากกว่า 10 รายการ', steps: '1. เปิดหน้า\n2. นับจำนวน rows', expected: 'หน้าแรกแสดงสูงสุด 10 รายการ พร้อม pagination control' },
+    { id: 'TC-010', name: 'กดหน้าถัดไป → โหลด page 2 ได้', precondition: 'มีข้อมูลมากกว่า 10 รายการ', steps: '1. กด Next หรือเลขหน้า 2', expected: 'โหลด page 2 สำเร็จ แสดงรายการที่ 11 เป็นต้นไป' }
+  ]},
+  { name: 'ส่วนที่ 3 — Badge สี (Status Badge)', tcs: [
+    { id: 'TC-011', name: 'รายการ Published → Badge สีเขียว', precondition: 'มีรายการสถานะ Published', steps: '1. หา row ที่สถานะ Published\n2. ตรวจสีของ badge', expected: 'Badge แสดงข้อความ Published สีเขียว' },
+    { id: 'TC-012', name: 'รายการ Draft → Badge สีเทา', precondition: 'มีรายการสถานะ Draft', steps: '1. หา row ที่สถานะ Draft\n2. ตรวจสีของ badge', expected: 'Badge แสดงข้อความ Draft สีเทา' },
+    { id: 'TC-013', name: 'รายการ Partially Published → Badge สีส้ม', precondition: 'มีรายการสถานะ Partially Published', steps: '1. หา row ที่สถานะ Partially Published\n2. ตรวจสีของ badge', expected: 'Badge แสดงข้อความ Partially Published สีส้ม' }
+  ]},
+  { name: 'ส่วนที่ 4 — Quick Publish (Draft → Published)', tcs: [
+    { id: 'TC-014', name: 'Draft row → icon Publish (สีเขียว) แสดงใน column Action', precondition: 'Login user มีสิทธิ์ C · มีรายการ Draft', steps: '1. หา row ที่สถานะ Draft\n2. ดู column Action', expected: 'แสดง icon Publish (สีเขียว)' },
+    { id: 'TC-015', name: 'กด icon Publish บน Draft row → Quick Publish Modal เปิด', precondition: 'Login user มีสิทธิ์ C · มีรายการ Draft', steps: '1. กด icon Publish (สีเขียว)', expected: 'Quick Publish Modal เปิดขึ้น' },
+    { id: 'TC-016', name: 'Quick Publish Modal แสดงชื่อพนักงาน + ช่วงวันที่ถูกต้อง', precondition: 'Quick Publish Modal เปิดอยู่', steps: '1. ตรวจสอบข้อมูลใน Modal', expected: 'Modal แสดงชื่อพนักงาน + ช่วงวันที่ตรงกับรายการที่เลือก' },
+    { id: 'TC-017', name: 'Quick Publish Modal มี notification toggle (default เปิด)', precondition: 'Quick Publish Modal เปิดอยู่', steps: '1. ดู notification toggle ใน Modal', expected: 'Toggle ส่ง Notification แสดงอยู่และ default เปิด' },
+    { id: 'TC-018', name: 'กด ยืนยัน → Draft เปลี่ยนเป็น Published ทันที + Toast', precondition: 'Quick Publish Modal เปิดอยู่', steps: '1. กดปุ่ม ยืนยัน\n2. สังเกต Toast + สถานะ row', expected: 'Toast Publish ตารางกะสำเร็จ 1 รายการ · badge เปลี่ยนเป็น Published ทันที' },
+    { id: 'TC-019', name: 'หลัง Quick Publish → row status เปลี่ยนเป็น Published โดยไม่ต้อง reload', precondition: 'กด ยืนยัน Quick Publish แล้ว', steps: '1. สังเกต row หลังปิด Modal ไม่กด reload', expected: 'Badge เปลี่ยนเป็น Published (สีเขียว) ทันที' },
+    { id: 'TC-020', name: 'หลัง Quick Publish → ปรากฏในประวัติ (4.4.4) ทันที (scope=INDIVIDUAL)', precondition: 'Quick Publish สำเร็จแล้ว', steps: '1. ไปหน้า 4.4.4 ประวัติการ Publish\n2. ค้นหารายการที่เพิ่ง Publish', expected: 'มี history entry ใหม่ action=PUBLISH, scope=INDIVIDUAL' }
+  ]},
+  { name: 'ส่วนที่ 5 — Unpublish', tcs: [
+    { id: 'TC-021', name: 'Published row → icon Unpublish (สีแดง) แสดงใน column Action', precondition: 'Login user มีสิทธิ์ X · มีรายการ Published', steps: '1. หา row ที่สถานะ Published\n2. ดู column Action', expected: 'แสดง icon Unpublish (สีแดง)' },
+    { id: 'TC-022', name: 'Partially Published row → icon Unpublish (สีแดง) แสดงด้วย', precondition: 'Login user มีสิทธิ์ X · มีรายการ Partially Published', steps: '1. หา row ที่สถานะ Partially Published\n2. ดู column Action', expected: 'แสดง icon Unpublish (สีแดง) ด้วย' },
+    { id: 'TC-023', name: 'Draft-only row → ไม่มี icon Unpublish', precondition: 'มีรายการ Draft', steps: '1. หา row ที่สถานะ Draft\n2. ดู column Action', expected: 'ไม่มี icon Unpublish บน Draft row' },
+    { id: 'TC-024', name: 'กด icon Unpublish → Unpublish Modal (4.4.3) เปิด', precondition: 'Login user มีสิทธิ์ X · มีรายการ Published', steps: '1. กด icon Unpublish (สีแดง)', expected: 'Unpublish Modal เปิดขึ้น' }
+  ]},
+  { name: 'ส่วนที่ 6 — Permission / RBAC', tcs: [
+    { id: 'TC-025', name: 'ผู้ใช้มีสิทธิ์ C → เห็น icon Publish บน Draft/Partial rows', precondition: 'Login user มีสิทธิ์ C เท่านั้น', steps: '1. Login user มีสิทธิ์ C\n2. ดู column Action ของ Draft rows', expected: 'เห็น icon Publish (สีเขียว)' },
+    { id: 'TC-026', name: 'ผู้ใช้ไม่มีสิทธิ์ C → ไม่เห็น icon Publish', precondition: 'Login user ไม่มีสิทธิ์ C', steps: '1. Login user ไม่มีสิทธิ์ C\n2. ดู column Action ของ Draft rows', expected: 'ไม่เห็น icon Publish' },
+    { id: 'TC-027', name: 'ผู้ใช้มีสิทธิ์ X → เห็น icon Unpublish บน Published/Partial rows', precondition: 'Login user มีสิทธิ์ X เท่านั้น', steps: '1. Login user มีสิทธิ์ X\n2. ดู column Action ของ Published rows', expected: 'เห็น icon Unpublish (สีแดง)' },
+    { id: 'TC-028', name: 'ผู้ใช้ไม่มีสิทธิ์ X → ไม่เห็น icon Unpublish', precondition: 'Login user ไม่มีสิทธิ์ X', steps: '1. Login user ไม่มีสิทธิ์ X\n2. ดู column Action ของ Published rows', expected: 'ไม่เห็น icon Unpublish' },
+    { id: 'TC-029', name: 'ผู้ใช้ไม่มีสิทธิ์ R → ไม่สามารถเข้าหน้านี้ได้', precondition: 'Login user ไม่มีสิทธิ์ R', steps: '1. Login user ไม่มีสิทธิ์ R\n2. พยายามเปิดหน้า Publish Status', expected: 'ไม่สามารถเข้าหน้าได้ — redirect หรือ 403' },
+    { id: 'TC-030', name: 'Data Isolation — แสดงเฉพาะข้อมูลของบริษัทตาม X-Company-ID', precondition: 'มีข้อมูลหลายบริษัท', steps: '1. Login user บริษัท A\n2. ตรวจว่าเห็นข้อมูลบริษัท B หรือไม่', expected: 'ไม่เห็นข้อมูลบริษัท B' }
+  ]},
+  { name: 'ส่วนที่ 7 — API Validation & Error Cases', tcs: [
+    { id: 'TC-031', name: 'POST Publish บนรายการสถานะ Published → 400 Bad Request', precondition: 'มีรายการ Published', steps: '1. POST /api/v1/shift-publish/employees/{id}/publish/ โดย id เป็นรายการ Published', expected: 'Response 400: { errorCode: 4000, message: [{ status: รายการไม่ใช่สถานะ Draft }] }' }
   ]}
 ],
 }
