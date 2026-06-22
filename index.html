@@ -2945,6 +2945,54 @@ const SECTIONS_DB = {
     { id: 'TC-016', name: 'ข้อมูลในรายการแสดงถูกต้องครบถ้วน', precondition: 'สถานที่ใหม่ปรากฏในรายการแล้ว', steps: '1. ดูรายการสถานที่ที่เพิ่งเพิ่ม\n2. ตรวจสอบข้อมูลที่แสดง', expected: 'แสดงชื่อสถานที่, บริษัท, ระยะรัศมีถูกต้องตรงกับที่กรอก' }
   ]}
 ],
+  'HR/Sprint-6/task-433.html': [
+  { name: 'ส่วนที่ 1 — ขอบเขต (Scope)', tcs: [
+    { id: 'TC-001', name: 'บริษัท auto-fill จาก context และไม่สามารถแก้ไขได้', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. เปิดหน้า Publish ตารางกะ\n2. สังเกต field บริษัท\n3. พยายามแก้ไข field บริษัท', expected: 'บริษัท auto-fill จาก context อัตโนมัติ และเป็น read-only ไม่สามารถแก้ไขได้' },
+    { id: 'TC-002', name: 'เลือก/ไม่เลือก สาขา (optional)', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. ทดสอบไม่เลือกสาขา → กด Preview\n2. ทดสอบเลือกสาขา → กด Preview', expected: 'สาขาเป็น optional — ไม่เลือกก็ Preview ได้, เลือกสาขาก็ filter scope ได้' },
+    { id: 'TC-003', name: 'เลือก/ไม่เลือก แผนก/ฝ่าย (optional)', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. ทดสอบไม่เลือกแผนก/ฝ่าย → กด Preview\n2. ทดสอบเลือกแผนก/ฝ่าย → กด Preview', expected: 'แผนก/ฝ่ายเป็น optional — ไม่เลือกก็ Preview ได้, เลือกก็ filter scope ได้' },
+    { id: 'TC-004', name: 'กรองเฉพาะพนักงาน (multi-select, optional)', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. กด field กรองเฉพาะพนักงาน\n2. เลือกพนักงานมากกว่า 1 คน\n3. กด Preview', expected: 'กรองพนักงานแบบ multi-select ได้ — Preview แสดงเฉพาะพนักงานที่เลือก' }
+  ]},
+  { name: 'ส่วนที่ 2 — ช่วงเวลา (Date Range)', tcs: [
+    { id: 'TC-005', name: 'ต้องเลือกช่วงวันที่ก่อน Publish หรือ Draft เสมอ (required)', precondition: 'เปิดหน้า Publish ตารางกะ ยังไม่ได้เลือกวันที่', steps: '1. ไม่เลือกช่วงวันที่\n2. กด \'Publish ตาราง\'\n3. ไม่เลือกช่วงวันที่\n4. กด \'บันทึก Draft\'', expected: 'ทั้ง Publish และ Draft ถูก block — แสดง validation ว่าต้องเลือกช่วงวันที่' },
+    { id: 'TC-006', name: 'Preset \'สัปดาห์นี้\' → ช่วงวันที่ถูก set อัตโนมัติ', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. กดปุ่ม Preset \'สัปดาห์นี้\'\n2. สังเกต date range', expected: 'ช่วงวันที่ถูก set เป็นวันจันทร์–อาทิตย์ของสัปดาห์ปัจจุบัน' },
+    { id: 'TC-007', name: 'Preset \'เดือนนี้\' → ช่วงวันที่ถูก set อัตโนมัติ', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. กดปุ่ม Preset \'เดือนนี้\'\n2. สังเกต date range', expected: 'ช่วงวันที่ถูก set เป็นวันที่ 1 ถึงวันสุดท้ายของเดือนปัจจุบัน' },
+    { id: 'TC-008', name: 'Preset \'เดือนหน้า\' → ช่วงวันที่ถูก set อัตโนมัติ', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. กดปุ่ม Preset \'เดือนหน้า\'\n2. สังเกต date range', expected: 'ช่วงวันที่ถูก set เป็นวันที่ 1 ถึงวันสุดท้ายของเดือนถัดไป' },
+    { id: 'TC-009', name: 'เลือกช่วงวันที่อดีต → warning แจ้ง (ไม่บล็อก)', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. เลือกช่วงวันที่ที่มีบางส่วนอยู่ในอดีต\n2. สังเกต warning', expected: 'แสดง warning \'ช่วงวันที่ที่เลือกมีบางส่วนที่ผ่านมาแล้ว ต้องการ Publish ย้อนหลังหรือไม่?\' — ยังสามารถ Publish ต่อได้ (ไม่บล็อก)' }
+  ]},
+  { name: 'ส่วนที่ 3 — Preview', tcs: [
+    { id: 'TC-010', name: 'กด \'ดู Preview\' → แสดงตารางกะ + สรุปจำนวน', precondition: 'เลือกช่วงวันที่แล้ว', steps: '1. เลือกช่วงวันที่\n2. กดปุ่ม \'ดู Preview\'\n3. สังเกตผลลัพธ์', expected: 'แสดงตารางกะ + จำนวนพนักงานทั้งหมด / มีกะครบ / ยังไม่มีกะ + รายชื่อพนักงาน' },
+    { id: 'TC-011', name: 'พนักงานที่ยังไม่มีกะแสดง badge สีส้มใน Preview', precondition: 'มีพนักงานที่ยังไม่มีกะในช่วงที่เลือก', steps: '1. เลือกช่วงวันที่ที่มีพนักงานไม่มีกะ\n2. กด \'ดู Preview\'\n3. สังเกต badge พนักงานที่ไม่มีกะ', expected: 'พนักงานที่ยังไม่มีกะแสดง badge สีส้ม (has_shift: false) แยกออกจากพนักงานที่มีกะ' },
+    { id: 'TC-012', name: 'Preview แสดงเฉพาะพนักงานของบริษัทตาม X-Company-ID (Data Isolation)', precondition: 'Login เป็น user บริษัท A', steps: '1. กด \'ดู Preview\'\n2. ตรวจสอบรายชื่อพนักงานใน Preview', expected: 'แสดงเฉพาะพนักงานของบริษัทที่ login อยู่ ไม่มีข้อมูลของบริษัทอื่น' },
+    { id: 'TC-013', name: 'Preview filter scope ตามสาขา/แผนกที่เลือก', precondition: 'เลือกสาขาหรือแผนกใน scope', steps: '1. เลือกสาขา X\n2. กด \'ดู Preview\'\n3. ตรวจสอบรายชื่อพนักงาน', expected: 'แสดงเฉพาะพนักงานของสาขา/แผนกที่เลือก ไม่รวมพนักงานสาขาอื่น' }
+  ]},
+  { name: 'ส่วนที่ 4 — แจ้งเตือน (Notification)', tcs: [
+    { id: 'TC-014', name: 'Toggle \'ส่ง Notification\' default เปิด', precondition: 'เปิดหน้า Publish ตารางกะ', steps: '1. เปิดหน้าใหม่\n2. สังเกต toggle ส่ง Notification', expected: 'Toggle ส่ง Notification เปิดอยู่ (default on)' },
+    { id: 'TC-015', name: 'เลือกช่องทาง In-App และ/หรือ Email', precondition: 'Toggle ส่ง Notification เปิดอยู่', steps: '1. เลือกช่องทาง In-App\n2. เลือกช่องทาง Email\n3. ลอง uncheck ทีละช่อง', expected: 'สามารถเลือก In-App และ/หรือ Email ได้อิสระ' },
+    { id: 'TC-016', name: 'แก้ไขข้อความ notification ได้', precondition: 'Toggle ส่ง Notification เปิดอยู่', steps: '1. คลิกที่ field ข้อความ notification\n2. แก้ไขข้อความ', expected: 'แก้ไขข้อความ notification ได้ — ข้อความที่แก้ถูกส่งไปพร้อม Publish' },
+    { id: 'TC-017', name: 'ปิด Toggle ส่ง Notification → ไม่ส่ง notification', precondition: 'Toggle ส่ง Notification เปิดอยู่', steps: '1. ปิด Toggle ส่ง Notification\n2. Publish ตาราง\n3. ตรวจสอบ notification', expected: 'เมื่อ notify_enabled=false → ไม่มี notification ถูกส่ง' }
+  ]},
+  { name: 'ส่วนที่ 5 — บันทึก Draft', tcs: [
+    { id: 'TC-018', name: 'กด \'บันทึก Draft\' → ไม่มี Modal ยืนยัน → Toast สำเร็จ', precondition: 'เลือกช่วงวันที่แล้ว', steps: '1. เลือกช่วงวันที่\n2. กด \'บันทึก Draft\'\n3. สังเกตพฤติกรรม', expected: 'ไม่มี Modal ยืนยัน — บันทึก Draft ทันที พร้อม Toast \'บันทึก Draft สำเร็จ [จำนวน] รายการ\'' },
+    { id: 'TC-019', name: 'Draft ปรากฏในแท็บ \'สถานะการ Publish\' ทันที พร้อม badge Draft (สีเทา)', precondition: 'บันทึก Draft สำเร็จแล้ว', steps: '1. บันทึก Draft\n2. ไปที่แท็บ \'สถานะการ Publish\'\n3. สังเกต batch ที่เพิ่งสร้าง', expected: 'batch ปรากฏในแท็บ \'สถานะการ Publish\' ทันที พร้อม badge Draft (สีเทา) — status=DRAFT' },
+    { id: 'TC-020', name: 'Draft ไม่ส่ง notification', precondition: 'Toggle ส่ง Notification เปิดอยู่', steps: '1. เปิด Toggle notification\n2. กด \'บันทึก Draft\'\n3. ตรวจสอบ notification บน Mobile App', expected: 'Draft ไม่ส่ง notification — Mobile App ไม่ได้รับแจ้งเตือน' },
+    { id: 'TC-021', name: 'Draft ต้องการสิทธิ์ C (Create) เท่านั้น — ไม่ต้องสิทธิ์ X', precondition: 'Login เป็น user ที่มีสิทธิ์ C แต่ไม่มี X บน module shift_publish', steps: '1. Login user ที่มีเฉพาะสิทธิ์ C\n2. เลือกวันที่ → กด \'บันทึก Draft\'', expected: 'บันทึก Draft สำเร็จ — ไม่ถูก block ด้วย 403' }
+  ]},
+  { name: 'ส่วนที่ 6 — Publish ตาราง', tcs: [
+    { id: 'TC-022', name: 'กด Publish → Modal ยืนยันปรากฏพร้อมข้อมูลถูกต้อง', precondition: 'เลือกช่วงวันที่แล้ว และ Preview แล้ว', steps: '1. เลือกช่วงวันที่\n2. กด \'Publish ตาราง\'\n3. สังเกต Modal', expected: 'Modal ยืนยัน \'Publish ตารางกะสำหรับ [จำนวน] คน ช่วง [วันที่] ใช่หรือไม่?\' ปรากฏพร้อมข้อมูลถูกต้อง' },
+    { id: 'TC-023', name: 'ยืนยัน Publish → status เปลี่ยนเป็น Published ทันที', precondition: 'มี Draft batch หรือ Publish ใหม่', steps: '1. กด \'Publish ตาราง\'\n2. กด ยืนยัน ใน Modal\n3. ตรวจสอบ status ใน \'สถานะการ Publish\'', expected: 'status เปลี่ยนจาก DRAFT → PUBLISHED ทันที (หรือสร้าง batch ใหม่ status=PUBLISHED)' },
+    { id: 'TC-024', name: 'Toast \'Publish ตารางกะสำเร็จ [จำนวน] รายการ\' ปรากฏ', precondition: 'Publish สำเร็จ', steps: '1. Publish ตาราง\n2. ยืนยัน Modal\n3. สังเกต Toast', expected: 'Toast \'Publish ตารางกะสำเร็จ [จำนวน] รายการ\' ปรากฏหลัง Publish สำเร็จ' },
+    { id: 'TC-025', name: 'Mobile App เห็นตารางกะ Published ทันทีหลัง Publish', precondition: 'Publish สำเร็จ', steps: '1. Publish ตาราง\n2. เปิด Mobile App / ตรวจสอบ API response', expected: 'Mobile App แสดงตารางกะที่ Published ทันที — ไม่ต้อง refresh' },
+    { id: 'TC-026', name: 'ส่ง notification ตามช่องทางที่เลือกหลัง Publish สำเร็จ', precondition: 'notify_enabled=true และเลือกช่องทาง In-App/Email', steps: '1. เปิด Toggle notification\n2. เลือกช่องทาง In-App\n3. Publish\n4. ตรวจสอบ notification', expected: 'พนักงานได้รับ notification ตามช่องทางที่เลือก (In-App / Email)' },
+    { id: 'TC-027', name: 'Publish บันทึก Audit Log', precondition: 'Publish สำเร็จ', steps: '1. Publish ตาราง\n2. ตรวจสอบ Audit Log / History', expected: 'บันทึก history ใน ShiftPublishHistories และ AuditLog — มี action=PUBLISH, period, affected_employees' },
+    { id: 'TC-028', name: 'Publish โดยไม่มีสิทธิ์ X → 403 Forbidden', precondition: 'Login เป็น user ที่มีสิทธิ์ C แต่ไม่มี X บน module shift_publish', steps: '1. Login user ที่ไม่มีสิทธิ์ X\n2. กด \'Publish ตาราง\'', expected: 'ถูก block — แสดง 403 Forbidden หรือ error message ว่าไม่มีสิทธิ์' },
+    { id: 'TC-029', name: 'Publish โดยไม่ส่ง period_start/period_end → 400 Bad Request', precondition: 'ทดสอบผ่าน API โดยตรง', steps: '1. เรียก POST /api/v1/shift-publish/ โดยไม่ใส่ period_start และ period_end\n2. ตรวจสอบ response', expected: 'ได้รับ 400 Bad Request พร้อม message validation error' }
+  ]},
+  { name: 'ส่วนที่ 7 — Permission & Data Isolation', tcs: [
+    { id: 'TC-030', name: 'ไม่มีสิทธิ์ R → GET Preview → 403 Forbidden', precondition: 'Login เป็น user ที่ไม่มีสิทธิ์ R บน module shift_publish', steps: '1. Login user ที่ไม่มีสิทธิ์ R\n2. พยายามเปิดหน้า Publish / กด Preview', expected: '403 Forbidden — ไม่สามารถดู Preview ได้' },
+    { id: 'TC-031', name: 'สิทธิ์ C เท่านั้น → Draft ได้ แต่ Publish ไม่ได้', precondition: 'Login เป็น user ที่มีสิทธิ์ C แต่ไม่มี X', steps: '1. Login user ที่มีสิทธิ์ C ไม่มี X\n2. ทดสอบบันทึก Draft\n3. ทดสอบ Publish', expected: 'Draft สำเร็จ — Publish ถูก block ด้วย 403' },
+    { id: 'TC-032', name: 'Data Isolation — ไม่สามารถ Publish พนักงานบริษัทอื่น', precondition: 'Login เป็น user บริษัท A', steps: '1. ทดสอบ Publish โดย POST /api/v1/shift-publish/ ด้วย employee_ids ของบริษัท B', expected: 'ระบบ Publish เฉพาะพนักงานของบริษัทตาม X-Company-ID เท่านั้น — ไม่สามารถ Publish ข้ามบริษัท' }
+  ]}
+],
 }
 
 async function loadSections(t) {
