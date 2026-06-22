@@ -425,6 +425,7 @@ const PROJECTS = [
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
       { id:'439', title:'เพิ่มสถานที่ทำงาน', file:'HR/Sprint-6/task-439.html', storageKey:'qa_task_439' },
+      { id:'430', title:'4.2.1 ปรับกะ (Shift Change)', file:'HR/Sprint-6/task-430.html', storageKey:'qa_task_430' },
     ]}
   ]}
 ]
@@ -2887,7 +2888,7 @@ async function loadSections(t) {
   try {
     const res = await fetch(t.file)
     const html = await res.text()
-    const match = html.match(/const SECTIONS\s*=\s*(\[[\s\S]*?\n\])\s*\n/)
+    const match = html.match(/const SECTIONS\s*=\s*(\[[\s\S]*?\])/)
     if (match) {
       const sections = new Function('return ' + match[1])()
       return withExtra(sections)
