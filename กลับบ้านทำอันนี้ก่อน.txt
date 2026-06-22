@@ -1,0 +1,22 @@
+ครั้งแรกครั้งเดียว — เปิด PowerShell as Administrator:
+
+# หา username ก่อน
+echo $env:USERNAME
+
+แล้วเปลี่ยน {username} เป็นชื่อที่ได้ แล้วรัน:
+
+# 1. symlink memory
+$drive = "G:\My Drive\work\Claude\Tester\qa-tester\.claude-memory"
+$local = "C:\Users\{username}\.claude\projects\g--My-Drive-work-Claude-Tester-qa-tester\memory"
+New-Item -ItemType Directory -Force -Path (Split-Path $local)
+Remove-Item $local -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType SymbolicLink -Path $local -Target $drive
+
+# 2. copy /qa command
+New-Item -ItemType Directory -Force -Path "C:\Users\{username}\.claude\commands"
+Copy-Item "G:\My Drive\work\Claude\Tester\qa-tester\.claude\commands\qa.md" "C:\Users\{username}\.claude\commands\qa.md" -Force
+
+---
+ทุกครั้งที่กลับบ้านหลังจากนั้น:
+
+เปิด Claude Code แล้วพิมพ์ /qa ได้เลยครับ

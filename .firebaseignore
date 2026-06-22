@@ -1,0 +1,21 @@
+*.bat
+*.exe
+*.py
+*.pyc
+__pycache__/
+.env
+.git/
+.claude/
+.claude-memory/
+node_modules/
+screenshots/
+tests/
+scripts/
+_misc/
+requirements.txt
+Procfile
+*.md
+*.skill
+*.json.bak
+New Text Document.txt
+กลับบ้านทำอันนี้ก่อน.txt

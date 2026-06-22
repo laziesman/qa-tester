@@ -28,7 +28,15 @@
       "**/*.md",
       "**/test-results-*.json",
       "**/bug-report-*.json",
-      "Procfile"
+      "Procfile",
+      "**/*.bat",
+      "**/*.exe",
+      "**/*.json",
+      "agent-browser.json",
+      ".mcp.json",
+      "requirements.txt",
+      "กลับบ้านทำอันนี้ก่อน.txt",
+      "New Text Document.txt"
     ]
   }
 }
