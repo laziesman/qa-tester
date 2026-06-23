@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'445', title:'5.2.3 คัดลอกปฏิทิน', file:'HR/Sprint-6/task-445.html', storageKey:'qa_task_445' },
       { id:'444', title:'5.2.2 แก้ไขปฏิทิน', file:'HR/Sprint-6/task-444.html', storageKey:'qa_task_444' },
       { id:'443', title:'5.2.1 เพิ่มปฏิทิน', file:'HR/Sprint-6/task-443.html', storageKey:'qa_task_443' },
       { id:'441', title:'5.1.4 ลบสถานที่ทำงาน', file:'HR/Sprint-6/task-441.html', storageKey:'qa_task_441' },
@@ -2924,6 +2925,24 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-445.html': [
+  { name: 'ส่วนที่ 1 — ฟอร์มคัดลอกปฏิทิน', tcs: [
+    { id: 'TC-001', name: 'กด "จัดการปฏิทิน" → เลือก "คัดลอกวันหยุด" → form คัดลอกปรากฏ', precondition: 'มีปฏิทินที่เลือกอยู่ใน dropdown', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. เลือกปฏิทินจาก dropdown\n3. กด "จัดการปฏิทิน" → เลือก "คัดลอกวันหยุด"\n4. ตรวจสอบ form ที่ปรากฏ', expected: 'form คัดลอกปฏิทินปรากฏ มี field ชื่อ + ปี ของปฏิทินใหม่ และปุ่มบันทึก/ยกเลิก' },
+    { id: 'TC-002', name: 'form คัดลอก — field ชื่อปฏิทินใหม่มีเครื่องหมาย * (required)', precondition: 'form คัดลอกปฏิทินเปิดอยู่', steps: '1. เปิด form คัดลอกปฏิทิน\n2. สังเกต label ของ field ชื่อปฏิทิน', expected: 'label ชื่อปฏิทินมีเครื่องหมาย * แสดงให้เห็นว่าบังคับกรอก' }
+  ]},
+  { name: 'ส่วนที่ 2 — คัดลอกสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'กรอกชื่อ + ปีปฏิทินใหม่ → บันทึก → สำเร็จ (toast/success)', precondition: 'form คัดลอกปฏิทินเปิดอยู่', steps: '1. กรอกชื่อปฏิทินใหม่ เช่น "สำเนา ปฏิทินทดสอบ QA"\n2. ระบุปีของปฏิทินใหม่\n3. กดบันทึก', expected: 'บันทึกสำเร็จ แสดง toast/success message form ปิด' },
+    { id: 'TC-004', name: 'หลังคัดลอก → ปฏิทินใหม่ปรากฏใน dropdown ปฏิทิน', precondition: 'TC-003 ผ่านแล้ว', steps: '1. หลังบันทึกใน TC-003\n2. ตรวจสอบ dropdown ปฏิทิน', expected: 'ปฏิทินที่คัดลอกใหม่ปรากฏใน dropdown ปฏิทิน' },
+    { id: 'TC-005', name: 'Network POST /api/v1/holiday-calendars/{id}/copy/ → 201 Created, response มี copied_holidays', precondition: 'เปิด DevTools Network tab ก่อนคัดลอก', steps: '1. เปิด DevTools > Network\n2. กรอก form คัดลอก กดบันทึก\n3. ตรวจสอบ API call', expected: 'POST /api/v1/holiday-calendars/{id}/copy/ → 201 Created, body: { message: "success", data: { id, copied_holidays } }' }
+  ]},
+  { name: 'ส่วนที่ 3 — วันหยุดถูกคัดลอกมาครบ', tcs: [
+    { id: 'TC-006', name: 'จำนวนวันหยุดในปฏิทินใหม่ตรงกับ copied_holidays ใน API response', precondition: 'คัดลอกปฏิทินที่มีวันหยุด ≥ 1 รายการแล้ว', steps: '1. เลือกปฏิทินใหม่ที่คัดลอกมาใน dropdown\n2. ดูจำนวน holiday ในหน้า\n3. เปรียบเทียบกับ copied_holidays ใน API response', expected: 'จำนวนวันหยุดในปฏิทินใหม่ (UI) = copied_holidays ที่ได้จาก API' },
+    { id: 'TC-007', name: 'รายการวันหยุดในปฏิทินใหม่ตรงกับปฏิทินต้นฉบับ (ชื่อ, วันที่, ประเภท)', precondition: 'คัดลอกปฏิทินที่มีวันหยุดแล้ว', steps: '1. เปรียบเทียบรายการวันหยุดในปฏิทินต้นฉบับ\n2. กับปฏิทินที่คัดลอกมา', expected: 'รายการวันหยุด (ชื่อ, วันที่, holiday_type) ครบตามต้นฉบับ' }
+  ]},
+  { name: 'ส่วนที่ 4 — Validation', tcs: [
+    { id: 'TC-008', name: 'ชื่อปฏิทินใหม่ว่าง → block บันทึก (required)', precondition: 'form คัดลอกปฏิทินเปิดอยู่', steps: '1. เปิด form คัดลอกปฏิทิน\n2. ไม่กรอกชื่อปฏิทินใหม่ (ปล่อยว่าง)\n3. กดบันทึก', expected: 'ระบบ block บันทึก แสดง error ว่าชื่อปฏิทินเป็น required' }
   ]}
 ],
   'HR/Sprint-6/task-444.html': [
