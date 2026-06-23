@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'444', title:'5.2.2 แก้ไขปฏิทิน', file:'HR/Sprint-6/task-444.html', storageKey:'qa_task_444' },
       { id:'443', title:'5.2.1 เพิ่มปฏิทิน', file:'HR/Sprint-6/task-443.html', storageKey:'qa_task_443' },
       { id:'441', title:'5.1.4 ลบสถานที่ทำงาน', file:'HR/Sprint-6/task-441.html', storageKey:'qa_task_441' },
       { id:'440', title:'5.1.3 แก้ไขสถานที่ทำงาน', file:'HR/Sprint-6/task-440.html', storageKey:'qa_task_440' },
@@ -2923,6 +2924,24 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-444.html': [
+  { name: 'ส่วนที่ 1 — ฟอร์มแก้ไขปฏิทิน', tcs: [
+    { id: 'TC-001', name: 'กด "จัดการปฏิทิน" → มีตัวเลือก แก้ไข ปรากฏ', precondition: 'มีปฏิทินที่เลือกอยู่ใน dropdown', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. เลือกปฏิทินจาก dropdown\n3. กดปุ่ม "จัดการปฏิทิน"\n4. ตรวจสอบ options ที่แสดง', expected: 'มีตัวเลือก "แก้ไข" (Edit) ปรากฏใน menu/dropdown' },
+    { id: 'TC-002', name: 'เปิด form แก้ไข → field ชื่อปฏิทินแสดงข้อมูลเดิม (pre-filled)', precondition: 'กดแก้ไขปฏิทินที่มีชื่ออยู่แล้ว', steps: '1. กด "จัดการปฏิทิน" → เลือก แก้ไข\n2. ตรวจสอบ field ชื่อปฏิทินใน form', expected: 'field ชื่อปฏิทินแสดงชื่อเดิมของปฏิทินที่เลือก (pre-filled)' }
+  ]},
+  { name: 'ส่วนที่ 2 — แก้ไขสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'แก้ชื่อปฏิทิน → บันทึก → สำเร็จ (toast/success)', precondition: 'form แก้ไขปฏิทินเปิดอยู่ มีชื่อเดิม', steps: '1. ลบชื่อเดิมออก\n2. พิมพ์ชื่อใหม่ เช่น "ปฏิทินแก้ไขแล้ว QA"\n3. กดบันทึก', expected: 'บันทึกสำเร็จ แสดง toast/success message form ปิด' },
+    { id: 'TC-004', name: 'หลังบันทึก → ชื่อใหม่ปรากฏใน dropdown ปฏิทิน', precondition: 'TC-003 ผ่านแล้ว', steps: '1. หลังบันทึกใน TC-003\n2. ตรวจสอบ dropdown ปฏิทินในหน้า', expected: 'ชื่อปฏิทินใน dropdown เปลี่ยนเป็นชื่อใหม่ที่แก้ไข' },
+    { id: 'TC-005', name: 'Network PATCH /api/v1/holiday-calendars/{id}/update/ → 200 OK', precondition: 'เปิด DevTools Network tab', steps: '1. เปิด DevTools > Network\n2. แก้ไขชื่อปฏิทิน กดบันทึก\n3. ตรวจสอบ API call', expected: 'PATCH /api/v1/holiday-calendars/{id}/update/ → 200 OK, body: { message: "success", data: null }' }
+  ]},
+  { name: 'ส่วนที่ 3 — Validation', tcs: [
+    { id: 'TC-006', name: 'ลบชื่อปฏิทินให้ว่าง → กดบันทึก → block (required)', precondition: 'form แก้ไขปฏิทินเปิดอยู่', steps: '1. เปิด form แก้ไขปฏิทิน\n2. ลบชื่อทั้งหมดให้ว่าง\n3. กดบันทึก', expected: 'ระบบ block บันทึก แสดง error ว่าชื่อปฏิทินเป็น required' },
+    { id: 'TC-007', name: 'แก้ปีซ้ำกับปฏิทินอื่น → error unique constraint', precondition: 'มีปฏิทิน 2 รายการปีต่างกัน', steps: '1. เปิด form แก้ไขปฏิทิน ปี A\n2. เปลี่ยนปีเป็นปีของปฏิทินอีกรายการ (ปี B)\n3. กดบันทึก', expected: 'ระบบแจ้ง error ว่าปีนี้มีปฏิทินอยู่แล้ว (unique company_id + year)' }
+  ]},
+  { name: 'ส่วนที่ 4 — ยกเลิก', tcs: [
+    { id: 'TC-008', name: 'กด ยกเลิก → form ปิด ข้อมูลเดิมไม่เปลี่ยน', precondition: 'form แก้ไขปฏิทินเปิดอยู่ มีการแก้ไขบางส่วน', steps: '1. เปิด form แก้ไขปฏิทิน\n2. แก้ชื่อบางส่วน (อย่าบันทึก)\n3. กด "ยกเลิก"', expected: 'form ปิด ชื่อปฏิทินใน dropdown ยังเป็นชื่อเดิม (ไม่บันทึก)' }
   ]}
 ],
   'HR/Sprint-6/task-443.html': [
