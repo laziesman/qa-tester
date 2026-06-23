@@ -2995,6 +2995,45 @@ const SECTIONS_DB = {
     { id: 'TC-032', name: 'Data Isolation — ไม่สามารถ Publish พนักงานบริษัทอื่น', precondition: 'Login เป็น user บริษัท A', steps: '1. ทดสอบ Publish โดย POST /api/v1/shift-publish/ ด้วย employee_ids ของบริษัท B', expected: 'ระบบ Publish เฉพาะพนักงานของบริษัทตาม X-Company-ID เท่านั้น — ไม่สามารถ Publish ข้ามบริษัท' }
   ]}
 ],
+  'HR/Sprint-6/task-435.html': [
+  { name: 'ส่วนที่ 1 — UNPUBLISH ทั้งช่วง (BATCH)', tcs: [
+    { id: 'TC-001', name: 'คลิก Unpublish ทั้งช่วง → Modal ยืนยันแสดงก่อนเสมอ (ไม่ Unpublish ทันที)', precondition: 'มี batch ที่สถานะ Published อยู่ในตาราง', steps: '1. เปิดหน้า Publish Status\n2. หา batch ที่สถานะ เผยแพร่แล้ว\n3. คลิกปุ่ม Unpublish ทั้งช่วง\n4. สังเกตว่ามี Modal ขึ้นหรือ Unpublish ทันที', expected: 'Modal ยืนยัน Unpublish ต้องแสดงขึ้นมาก่อน — ไม่มี Unpublish โดยไม่ผ่าน Modal' },
+    { id: 'TC-002', name: 'Modal แสดงข้อมูลครบ: ชื่อ/ขอบเขต, ช่วงวันที่, ผลที่จะเกิด', precondition: 'Modal ยืนยัน Unpublish batch เปิดอยู่', steps: '1. เปิด Modal Unpublish ทั้งช่วง\n2. ตรวจสอบว่า Modal มีข้อมูล: ชื่อ batch / ขอบเขต, ช่วงวันที่, คำอธิบายผลที่จะเกิด', expected: 'Modal แสดง: ชื่อ/ขอบเขต batch · ช่วงวันที่ · ข้อความชี้แจงผลที่จะเกิด' },
+    { id: 'TC-003', name: 'Notification toggle default ON + แก้ข้อความแจ้งเตือนได้', precondition: 'Modal ยืนยัน Unpublish batch เปิดอยู่', steps: '1. สังเกต toggle การแจ้งเตือน\n2. ลอง toggle ปิด/เปิด\n3. ลองแก้ไขข้อความแจ้งเตือน', expected: 'Toggle notification default = ON · ข้อความแจ้งเตือนแก้ได้ · toggle ปิดได้' },
+    { id: 'TC-004', name: 'กด ยืนยัน Unpublish → batch เปลี่ยนจาก Published→Draft ทันที', precondition: 'Modal ยืนยัน Unpublish batch เปิดอยู่', steps: '1. กดปุ่ม ยืนยัน Unpublish ใน Modal\n2. สังเกตสถานะ badge ของ batch ในตาราง', expected: 'สถานะ batch เปลี่ยนจาก เผยแพร่แล้ว → ยังไม่เผยแพร่ ทันที · API 200 OK' },
+    { id: 'TC-005', name: "Toast 'Unpublish ตารางกะสำเร็จ' แสดงหลัง Unpublish batch", precondition: 'กด ยืนยัน Unpublish batch แล้ว', steps: '1. สังเกต toast notification หลังกด ยืนยัน', expected: "Toast แสดงข้อความ 'Unpublish ตารางกะสำเร็จ'" },
+    { id: 'TC-006', name: 'หลัง Unpublish batch → สถานะ Draft พร้อมให้ Publish ใหม่ได้', precondition: 'Unpublish batch สำเร็จแล้ว', steps: '1. หา batch ที่เพิ่ง Unpublish\n2. ลอง Publish ซ้ำ', expected: 'batch ที่ Unpublish แล้วกลับมา Publish ใหม่ได้' }
+  ]},
+  { name: 'ส่วนที่ 2 — UNPUBLISH รายคน (INDIVIDUAL)', tcs: [
+    { id: 'TC-007', name: "Published row → ⋮ มีตัวเลือก 'ยกเลิกการเผยแพร่' → Modal แสดงก่อนเสมอ", precondition: 'มีพนักงานที่สถานะ Published ใน Status tab', steps: '1. เปิด Status tab\n2. หาแถวพนักงานที่สถานะ เผยแพร่แล้ว\n3. คลิก ⋮ → เลือก ยกเลิกการเผยแพร่', expected: 'Modal ยืนยัน Unpublish รายคนต้องแสดงก่อน' },
+    { id: 'TC-008', name: 'Modal Unpublish รายคน แสดงชื่อพนักงาน + ช่วงวันที่ + ผลที่จะเกิด', precondition: 'Modal Unpublish รายคนเปิดอยู่', steps: '1. ตรวจสอบข้อมูลใน Modal', expected: 'Modal แสดง: ชื่อพนักงาน · ช่วงวันที่ · ผลที่จะเกิด' },
+    { id: 'TC-009', name: 'Modal Unpublish รายคน: Notification toggle default ON + ข้อความแก้ได้', precondition: 'Modal Unpublish รายคนเปิดอยู่', steps: '1. สังเกต toggle notification\n2. ลอง toggle / แก้ข้อความ', expected: 'Toggle notification default = ON · ข้อความแจ้งเตือนแก้ได้' },
+    { id: 'TC-010', name: 'กด ยืนยัน Unpublish รายคน → พนักงานเปลี่ยนจาก Published→Draft ทันที', precondition: 'Modal Unpublish รายคนเปิดอยู่', steps: '1. กด ยืนยัน Unpublish\n2. สังเกต badge สถานะพนักงานในตาราง', expected: 'status badge เปลี่ยนจาก เผยแพร่แล้ว → ยังไม่เผยแพร่ ทันที · API 200 OK' },
+    { id: 'TC-011', name: 'Toast สำเร็จแสดงหลัง Unpublish รายคน', precondition: 'กด ยืนยัน Unpublish รายคนแล้ว', steps: '1. สังเกต toast หลัง Unpublish', expected: 'Toast แสดงข้อความยืนยันความสำเร็จ' },
+    { id: 'TC-012', name: 'กด ยกเลิก ใน Modal → ปิด Modal ไม่ Unpublish', precondition: 'Modal Unpublish รายคนเปิดอยู่', steps: '1. กดปุ่ม ยกเลิก ใน Modal\n2. สังเกตสถานะพนักงาน', expected: 'Modal ปิด · สถานะพนักงานไม่เปลี่ยน (ยังเป็น Published)' }
+  ]},
+  { name: 'ส่วนที่ 3 — QUICK PUBLISH รายคน (DRAFT → PUBLISHED)', tcs: [
+    { id: 'TC-013', name: 'Draft row → ⋮ มีตัวเลือก Quick Publish → Modal แสดงก่อนเสมอ', precondition: 'มีพนักงานที่สถานะ Draft ใน Status tab', steps: '1. เปิด Status tab\n2. หาแถวพนักงานที่สถานะ ยังไม่เผยแพร่\n3. คลิก ⋮ → เลือก Publish', expected: 'Modal ยืนยัน Quick Publish ต้องแสดงก่อน' },
+    { id: 'TC-014', name: 'Modal Quick Publish แสดงชื่อพนักงาน + ช่วงวันที่ + notification toggle + ข้อความ', precondition: 'Modal Quick Publish เปิดอยู่', steps: '1. ตรวจสอบข้อมูลใน Modal Quick Publish', expected: 'Modal แสดง: ชื่อพนักงาน · ช่วงวันที่ · notification toggle (default ON) · ข้อความแก้ได้' },
+    { id: 'TC-015', name: 'กด ยืนยัน Quick Publish → พนักงานเปลี่ยนจาก Draft→Published ทันที', precondition: 'Modal Quick Publish เปิดอยู่', steps: '1. กด ยืนยัน ใน Modal\n2. สังเกต badge สถานะพนักงาน', expected: 'status badge เปลี่ยนจาก ยังไม่เผยแพร่ → เผยแพร่แล้ว ทันที · API 200 OK' },
+    { id: 'TC-016', name: 'Toast สำเร็จแสดงหลัง Quick Publish รายคน', precondition: 'กด ยืนยัน Quick Publish แล้ว', steps: '1. สังเกต toast หลัง Publish', expected: 'Toast แสดงข้อความยืนยันความสำเร็จ' },
+    { id: 'TC-017', name: 'กด ยกเลิก ใน Modal Quick Publish → ปิด Modal ไม่ Publish', precondition: 'Modal Quick Publish เปิดอยู่', steps: '1. กดปุ่ม ยกเลิก ใน Modal\n2. สังเกตสถานะพนักงาน', expected: 'Modal ปิด · สถานะพนักงานไม่เปลี่ยน (ยังเป็น Draft)' }
+  ]},
+  { name: 'ส่วนที่ 4 — ประวัติ (HISTORY TAB 4.4.4)', tcs: [
+    { id: 'TC-018', name: 'Unpublish batch → ปรากฏใน Tab ประวัติทันที (action=UNPUBLISH)', precondition: 'ทำ Unpublish batch สำเร็จแล้ว', steps: '1. ไปที่ Tab ประวัติ\n2. ตรวจสอบ entry ของ Unpublish ที่เพิ่งทำ', expected: 'Tab ประวัติแสดง entry: action=UNPUBLISH · batch scope · ผู้ทำ · วันเวลา' },
+    { id: 'TC-019', name: 'Unpublish รายคน → ปรากฏใน Tab ประวัติทันที (action=UNPUBLISH, scope=INDIVIDUAL)', precondition: 'ทำ Unpublish รายคนสำเร็จแล้ว', steps: '1. ไปที่ Tab ประวัติ\n2. ตรวจสอบ entry ใหม่', expected: 'Tab ประวัติแสดง entry: action=UNPUBLISH · scope=INDIVIDUAL · ชื่อพนักงาน · ผู้ทำ · วันเวลา' },
+    { id: 'TC-020', name: 'Quick Publish รายคน → ปรากฏใน Tab ประวัติทันที (action=PUBLISH, scope=INDIVIDUAL)', precondition: 'ทำ Quick Publish รายคนสำเร็จแล้ว', steps: '1. ไปที่ Tab ประวัติ\n2. ตรวจสอบ entry ใหม่', expected: 'Tab ประวัติแสดง entry: action=PUBLISH · scope=INDIVIDUAL · ชื่อพนักงาน · ผู้ทำ · วันเวลา' }
+  ]},
+  { name: 'ส่วนที่ 5 — RBAC (สิทธิ์)', tcs: [
+    { id: 'TC-021', name: 'ผู้ใช้ไม่มีสิทธิ์ X (Execute) → ไม่สามารถ Unpublish ได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ X module shift_publish', steps: '1. Login ด้วย user ที่ไม่มีสิทธิ์ X\n2. ลอง Unpublish batch หรือรายคน', expected: 'ปุ่ม Unpublish ไม่แสดง หรือ 403 Forbidden' },
+    { id: 'TC-022', name: 'ผู้ใช้ไม่มีสิทธิ์ C (Create) → ไม่สามารถ Quick Publish รายคนได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ C module shift_publish', steps: '1. Login ด้วย user ที่ไม่มีสิทธิ์ C\n2. ลอง Quick Publish รายคน', expected: 'ตัวเลือก Quick Publish ไม่แสดง หรือ 403 Forbidden' }
+  ]},
+  { name: 'ส่วนที่ 6 — API VALIDATION', tcs: [
+    { id: 'TC-023', name: 'POST Unpublish Batch → batch ที่ไม่ใช่ Published → 400 Bad Request', precondition: 'มี batch ที่สถานะ Draft', steps: '1. เรียก POST /api/v1/shift-publish/{id}/unpublish/ กับ batch ที่สถานะ Draft\n2. ดู HTTP response', expected: '400 Bad Request · errorCode: 4000 · message: batch ไม่ใช่สถานะ Published' },
+    { id: 'TC-024', name: 'POST Unpublish Employee → employee ที่ไม่ใช่ Published → 400 Bad Request', precondition: 'มี employee record ที่สถานะ Draft', steps: '1. เรียก POST /api/v1/shift-publish/employees/{id}/unpublish/ กับ employee ที่ Draft\n2. ดู HTTP response', expected: '400 Bad Request · validation error: รายการไม่ใช่สถานะ Published' },
+    { id: 'TC-025', name: 'POST Quick Publish Employee → employee ที่ไม่ใช่ Draft → 400 Bad Request', precondition: 'มี employee record ที่สถานะ Published', steps: '1. เรียก POST /api/v1/shift-publish/employees/{id}/publish/ กับ employee ที่ Published\n2. ดู HTTP response', expected: '400 Bad Request · errorCode: 4000 · message: รายการไม่ใช่สถานะ Draft' }
+  ]}
+],
   'HR/Sprint-6/task-434.html': [
   { name: 'ส่วนที่ 1 — ตัวกรอง (Filter)', tcs: [
     { id: 'TC-001', name: 'กรองด้วยช่วงวันที่ → ตารางโหลดข้อมูลตามช่วงวันที่', precondition: 'มีข้อมูล Publish Status อยู่ในระบบ', steps: '1. เปิดหน้า Publish Status\n2. เลือก period_start และ period_end\n3. กดค้นหา', expected: 'ตารางแสดงเฉพาะรายการที่อยู่ในช่วงวันที่ที่เลือก' },
