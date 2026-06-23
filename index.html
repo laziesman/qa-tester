@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'443', title:'5.2.1 เพิ่มปฏิทิน', file:'HR/Sprint-6/task-443.html', storageKey:'qa_task_443' },
       { id:'441', title:'5.1.4 ลบสถานที่ทำงาน', file:'HR/Sprint-6/task-441.html', storageKey:'qa_task_441' },
       { id:'440', title:'5.1.3 แก้ไขสถานที่ทำงาน', file:'HR/Sprint-6/task-440.html', storageKey:'qa_task_440' },
       { id:'439', title:'เพิ่มสถานที่ทำงาน', file:'HR/Sprint-6/task-439.html', storageKey:'qa_task_439' },
@@ -2922,6 +2923,25 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-443.html': [
+  { name: 'ส่วนที่ 1 — ฟอร์มเพิ่มปฏิทิน', tcs: [
+    { id: 'TC-001', name: 'กด "เพิ่มปฏิทินวันหยุด" → ฟอร์มปรากฏ พร้อม field ชื่อ* + ปี', precondition: 'เปิดหน้า ปฏิทินวันหยุด', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. กดปุ่ม "เพิ่มปฏิทินวันหยุด" หรือ + เพิ่ม\n3. ตรวจสอบ form ที่ปรากฏ', expected: 'form ปรากฏ มี field: ชื่อปฏิทิน (required *) + ปี (year) และปุ่มบันทึก/ยกเลิก' },
+    { id: 'TC-002', name: 'field ชื่อปฏิทินมีเครื่องหมาย * (required) ชัดเจน', precondition: 'form เพิ่มปฏิทินเปิดอยู่', steps: '1. เปิด form เพิ่มปฏิทิน\n2. สังเกต label ของ field ชื่อปฏิทิน', expected: 'label ชื่อปฏิทินมีเครื่องหมาย * แสดงให้เห็นว่าบังคับกรอก' }
+  ]},
+  { name: 'ส่วนที่ 2 — เพิ่มปฏิทินสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'กรอกชื่อปฏิทิน + ปี → บันทึก → สำเร็จ', precondition: 'form เพิ่มปฏิทินเปิดอยู่', steps: '1. กรอกชื่อปฏิทิน เช่น "ปฏิทินทดสอบ QA"\n2. กรอกปี (ถ้ามี field ปี)\n3. กดบันทึก', expected: 'บันทึกสำเร็จ แสดง toast/success message' },
+    { id: 'TC-004', name: 'หลังบันทึก → ปฏิทินปรากฏในรายการ', precondition: 'TC-003 ผ่านแล้ว', steps: '1. หลังบันทึกสำเร็จใน TC-003\n2. ตรวจสอบรายการปฏิทินวันหยุด', expected: 'ปฏิทินที่สร้างใหม่ปรากฏในรายการ แสดงชื่อ + ปี' },
+    { id: 'TC-005', name: 'Network POST /api/v1/holiday-calendars/ → 201 Created', precondition: 'เปิด DevTools Network tab', steps: '1. เปิด DevTools > Network\n2. กรอกและบันทึกปฏิทินใหม่\n3. ตรวจสอบ API call', expected: 'POST /api/v1/holiday-calendars/ → 201 Created, body: { message: "success", data: { id, name, year } }' }
+  ]},
+  { name: 'ส่วนที่ 3 — Validation Required Field', tcs: [
+    { id: 'TC-006', name: 'ชื่อปฏิทินว่าง → block บันทึก (required field)', precondition: 'form เพิ่มปฏิทินเปิดอยู่', steps: '1. เปิด form เพิ่มปฏิทิน\n2. ไม่กรอกชื่อปฏิทิน (ปล่อยว่าง)\n3. กดบันทึก', expected: 'ระบบ block บันทึก แสดง error ว่าชื่อปฏิทินเป็น required field' },
+    { id: 'TC-007', name: 'สร้างปฏิทินชื่อซ้ำ + ปีเดียวกัน → error (unique company_id + year)', precondition: 'มีปฏิทินที่บันทึกไว้แล้วอย่างน้อย 1 รายการ (ปีเดิม)', steps: '1. เปิด form เพิ่มปฏิทิน\n2. กรอกปีที่มีปฏิทินอยู่แล้ว\n3. กดบันทึก', expected: 'ระบบแจ้ง error ว่าปฏิทินปีนี้มีอยู่แล้ว (unique constraint company_id + year)' }
+  ]},
+  { name: 'ส่วนที่ 4 — แสดงรายการปฏิทิน (GET)', tcs: [
+    { id: 'TC-008', name: 'เปิดหน้าปฏิทินวันหยุด → แสดงรายการปฏิทินที่มี (is_deleted=false)', precondition: 'มีปฏิทินวันหยุดในระบบ', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. ตรวจสอบรายการที่แสดง', expected: 'รายการปฏิทินที่ is_active และ is_deleted=false แสดงขึ้นมา' },
+    { id: 'TC-009', name: 'รายการปฏิทินแสดงชื่อ + ปี + จำนวนวันหยุด (holiday_count)', precondition: 'มีปฏิทินในระบบ', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. สังเกตข้อมูลที่แสดงในแต่ละรายการ', expected: 'แต่ละรายการแสดง: ชื่อปฏิทิน, ปี, และจำนวนวันหยุด (holiday_count)' }
   ]}
 ],
   'HR/Sprint-6/task-441.html': [
