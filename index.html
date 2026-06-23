@@ -3213,6 +3213,99 @@ const SECTIONS_DB = {
     { id: 'TC-031', name: 'POST Publish บนรายการสถานะ Published → 400 Bad Request', precondition: 'มีรายการ Published', steps: '1. POST /api/v1/shift-publish/employees/{id}/publish/ โดย id เป็นรายการ Published', expected: 'Response 400: { errorCode: 4000, message: [{ status: รายการไม่ใช่สถานะ Draft }] }' }
   ]}
 ],
+  'HR/Sprint-6/task-447.html': [
+  { name: 'ส่วนที่ 1 — UI แสดงรายการวันหยุด', tcs: [
+    { id: 'TC-001', name: 'เลือกปฏิทินที่มีวันหยุด → รายการแสดงครบทุกคอลัมน์ (วันที่/ชื่อ/ชื่อ EN/ประเภท/สถานะ)', precondition: 'มีปฏิทินที่มีวันหยุดอย่างน้อย 1 รายการ', steps: '1. เปิดหน้า Holiday Calendar\n2. เลือกปฏิทินที่มีวันหยุด\n3. ดูตารางรายการวันหยุด\n4. ตรวจสอบคอลัมน์ทั้งหมด', expected: 'แสดงคอลัมน์ครบ: วันที่, ชื่อวันหยุด, ชื่อวันหยุด (EN), ประเภทวันหยุด, สถานะใช้งาน' },
+    { id: 'TC-002', name: 'รายการวันหยุดเรียงตามวันที่ ascending (วันที่น้อยไปมาก)', precondition: 'มีวันหยุดหลายรายการในปฏิทิน', steps: '1. เลือกปฏิทินที่มีวันหยุด ≥ 2 รายการ\n2. ตรวจสอบลำดับวันที่ในตาราง', expected: 'วันหยุดเรียงจากวันที่น้อยไปมาก (ascending) ตลอดรายการ' }
+  ]},
+  { name: 'ส่วนที่ 2 — API GET /api/v1/holidays/', tcs: [
+    { id: 'TC-003', name: 'GET /api/v1/holidays/?calendar_id={id} → 200, response มี fields ครบ', precondition: 'เปิด DevTools > Network tab', steps: '1. เปิด DevTools > Network\n2. เลือกปฏิทินในหน้า UI\n3. หา request GET /api/v1/holidays/?calendar_id=\n4. ตรวจ response body', expected: 'status 200 OK, response มี fields: id, date, name, name_en, holiday_type, is_active ครบทุกรายการ' },
+    { id: 'TC-004', name: 'holiday_type ∈ {COMPANY, TRADITIONAL} เท่านั้น ไม่มีค่าอื่น', precondition: 'มีวันหยุดทั้งประเภท COMPANY และ TRADITIONAL', steps: '1. ดู holiday_type ใน API response\n2. ตรวจสอบค่าที่ได้', expected: 'holiday_type เป็น \'COMPANY\' หรือ \'TRADITIONAL\' เท่านั้น ไม่มีค่านอก enum' }
+  ]},
+  { name: 'ส่วนที่ 3 — Edge Cases', tcs: [
+    { id: 'TC-005', name: 'ปฏิทินที่ไม่มีวันหยุด → แสดง empty state (0 วัน)', precondition: 'มีปฏิทินที่ยังไม่มีวันหยุดใดเลย', steps: '1. เลือกปฏิทินที่ไม่มีวันหยุด\n2. ดูรายการในแท็บ วันหยุด', expected: 'แสดง empty state หรือข้อความ \'ไม่มีวันหยุด\' ไม่มีแถวข้อมูล' },
+    { id: 'TC-006', name: 'เปลี่ยนปฏิทิน → รายการวันหยุดอัปเดตตาม calendar_id ใหม่ทันที', precondition: 'มีปฏิทินอย่างน้อย 2 รายการ', steps: '1. เลือกปฏิทิน A → บันทึกรายการวันหยุด\n2. เปลี่ยนเป็นปฏิทิน B\n3. ตรวจสอบรายการวันหยุดใหม่', expected: 'รายการวันหยุดอัปเดตตาม calendar ที่เลือกใหม่ทันที ไม่แสดงข้อมูลของปฏิทินเก่า' }
+  ]}
+],
+  'HR/Sprint-6/task-448.html': [
+  { name: 'ส่วนที่ 1 — ฟอร์มเพิ่มวันหยุด', tcs: [
+    { id: 'TC-001', name: 'กดปุ่ม "เพิ่มวันหยุด" → form ปรากฏ มีฟิลด์ครบ', precondition: 'เลือกปฏิทินอยู่แล้วใน dropdown', steps: '1. เลือกปฏิทินใน dropdown\n2. กดปุ่ม "เพิ่มวันหยุด" หรือ "+" \n3. ตรวจสอบ form', expected: 'form ปรากฏ มีฟิลด์: วันที่*, ประเภท, ชื่อวันหยุด TH*, ชื่อวันหยุด EN, เปิดใช้งานในปฏิทิน, เปิดใช้งาน' },
+    { id: 'TC-002', name: 'ประเภทวันหยุดมี 2 ตัวเลือก: วันหยุดบริษัท / วันหยุดตามประเพณี', precondition: 'form เพิ่มวันหยุดเปิดอยู่แล้ว', steps: '1. เปิด dropdown ประเภทวันหยุด\n2. ดูตัวเลือกทั้งหมดที่มี', expected: 'แสดงตัวเลือก 2 ตัว: วันหยุดบริษัท (COMPANY) และ วันหยุดตามประเพณี (TRADITIONAL) เลือกได้' }
+  ]},
+  { name: 'ส่วนที่ 2 — เพิ่มสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'กรอกข้อมูลครบ กดบันทึก → สำเร็จ toast/success', precondition: 'form เพิ่มวันหยุดเปิดอยู่แล้ว', steps: '1. กรอก วันที่, ชื่อ TH, ชื่อ EN, ประเภท\n2. กดบันทึก\n3. ดูผลลัพธ์ UI', expected: 'บันทึกสำเร็จ แสดง toast/success form ปิด/ว่าง' },
+    { id: 'TC-004', name: 'POST /api/v1/holidays/ → 201 Created, วันหยุดใหม่ปรากฏในรายการ', precondition: 'DevTools Network เปิดไว้', steps: '1. กรอก form ครบ กดบันทึก\n2. ตรวจ Network tab\n3. ตรวจสอบวันหยุดใหม่ใน UI', expected: 'POST /api/v1/holidays/ → 201 Created, วันหยุดใหม่ปรากฏในรายการโดยไม่ต้อง reload' }
+  ]},
+  { name: 'ส่วนที่ 3 — Validation', tcs: [
+    { id: 'TC-005', name: 'ฟิลด์ required (วันที่, ชื่อ) ว่าง → block บันทึก', precondition: 'form เพิ่มวันหยุดเปิดอยู่แล้ว', steps: '1. ไม่กรอกวันที่และชื่อวันหยุด\n2. กดบันทึก', expected: 'ระบบ block บันทึก แสดง error required ใต้ฟิลด์วันที่และชื่อ TH ไม่มี API call' },
+    { id: 'TC-006', name: 'เพิ่มวันหยุดซ้ำวันเดียวกันในปฏิทินเดียวกัน → error unique constraint', precondition: 'มีวันหยุดใน calendar นั้นอยู่แล้ว', steps: '1. เพิ่มวันหยุดซ้ำวันที่เดิมในปฏิทินเดียวกัน\n2. กดบันทึก\n3. ดู response และ UI', expected: 'API ส่งกลับ 400/4000 แจ้ง unique constraint UI แสดงข้อความ error' }
+  ]},
+  { name: 'ส่วนที่ 4 — Mapping ประเภท', tcs: [
+    { id: 'TC-007', name: 'เลือก "วันหยุดบริษัท" → API รับ holiday_type = COMPANY; TRADITIONAL mapping ถูกต้อง', precondition: 'form เพิ่มวันหยุดเปิดอยู่', steps: '1. เลือก วันหยุดบริษัท\n2. บันทึก\n3. ตรวจ request body\n4. ทำซ้ำกับ วันหยุดตามประเพณี', expected: 'วันหยุดบริษัท → holiday_type=COMPANY, วันหยุดตามประเพณี → holiday_type=TRADITIONAL ใน POST body' }
+  ]}
+],
+  'HR/Sprint-6/task-449.html': [
+  { name: 'ส่วนที่ 1 — เปิดหน้าประวัติการแก้ไข', tcs: [
+    { id: 'TC-001', name: 'กดปุ่ม/เมนูดูประวัติการแก้ไขปฏิทิน → หน้าประวัติเปิดขึ้น', precondition: 'เลือกปฏิทินที่มีประวัติการแก้ไขแล้ว', steps: '1. เลือกปฏิทิน\n2. หาปุ่มหรือเมนู \'ประวัติการแก้ไข\' หรือ History\n3. กดเปิด', expected: 'หน้าประวัติการแก้ไขเปิดขึ้น แสดงรายการ log' },
+    { id: 'TC-002', name: 'ประวัติแสดงข้อมูลครบ: ใคร (by) / เมื่อไหร่ (at) / แก้อะไร (action/detail)', precondition: 'หน้าประวัติมี log อย่างน้อย 1 รายการ', steps: '1. เปิดหน้าประวัติ\n2. ตรวจสอบคอลัมน์/fields ของแต่ละ log', expected: 'แต่ละ log แสดง: action (สิ่งที่ทำ), detail (รายละเอียด), by (ใคร), at (เวลา) ครบทุก log' }
+  ]},
+  { name: 'ส่วนที่ 2 — API GET /api/v1/holiday-calendars/{id}/history/', tcs: [
+    { id: 'TC-003', name: 'GET /holiday-calendars/{id}/history/ → 200, list เรียงล่าสุดก่อน (descending)', precondition: 'DevTools Network เปิดไว้, มี log ≥ 2 รายการ', steps: '1. เปิด DevTools > Network\n2. เปิดหน้าประวัติ\n3. ตรวจ API call และ response\n4. ตรวจลำดับ at timestamp', expected: 'GET /api/v1/holiday-calendars/{id}/history/ → 200 OK, log เรียง by at descending (ล่าสุดก่อน)' },
+    { id: 'TC-004', name: 'log บันทึกหลังจากมีการ create/edit/delete วันหยุด — audit trail ครบ', precondition: 'เพิ่มหรือแก้ไขวันหยุดในปฏิทินนี้แล้ว', steps: '1. เพิ่มหรือแก้ไขวันหยุด\n2. เปิดหน้าประวัติของปฏิทินนั้น\n3. ตรวจว่า action ใหม่ปรากฏ', expected: 'log ใหม่ปรากฏใน history พร้อม action ที่ถูกต้อง (create/update/delete) และ timestamp ถูกต้อง' }
+  ]},
+  { name: 'ส่วนที่ 3 — Edge Cases', tcs: [
+    { id: 'TC-005', name: 'ปฏิทินที่ไม่เคยแก้ไข (ใหม่มาก) → ประวัติแสดง empty หรือมีแค่ log สร้าง', precondition: 'มีปฏิทินที่เพิ่งสร้างใหม่ไม่เคยแก้ไข', steps: '1. เลือกปฏิทินที่สร้างใหม่ล่าสุด\n2. เปิดหน้าประวัติ', expected: 'แสดง empty state หรือมีเฉพาะ log \'สร้างปฏิทิน\' รายการเดียว' }
+  ]}
+],
+  'HR/Sprint-6/task-450.html': [
+  { name: 'ส่วนที่ 1 — UI ปุ่มเพิ่มปีปฏิทิน', tcs: [
+    { id: 'TC-001', name: 'กดปุ่ม "เพิ่มปีปฏิทิน" → form/dialog ปรากฏพร้อมระบุ from_year และ to_year', precondition: 'มีปฏิทินในปี from_year อย่างน้อย 1 รายการ', steps: '1. เปิดหน้า Holiday Calendar\n2. กดปุ่ม เพิ่มปีปฏิทิน\n3. ตรวจ form/dialog', expected: 'form หรือ dialog ปรากฏ มีตัวเลือก from_year และ to_year' },
+    { id: 'TC-002', name: 'ระบุ from_year → to_year ครบแล้วกด confirm → โหลดได้', precondition: 'form clone year เปิดอยู่', steps: '1. ระบุ from_year (เช่น 2568)\n2. ระบุ to_year (เช่น 2569)\n3. กดยืนยัน', expected: 'ระบุปีได้ ปุ่มยืนยันทำงาน' }
+  ]},
+  { name: 'ส่วนที่ 2 — Clone สำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'POST /api/v1/holiday-calendars/clone-year/ → success, ปฏิทินปีใหม่ปรากฏใน dropdown', precondition: 'DevTools Network เปิดไว้, มีปฏิทินใน from_year', steps: '1. ยืนยัน clone year\n2. ตรวจ Network tab\n3. ตรวจ dropdown ปฏิทิน', expected: 'POST /holiday-calendars/clone-year/ → 200/201, response มี cloned_calendars และ cloned_holidays, ปฏิทินปี to_year ปรากฏใน dropdown' },
+    { id: 'TC-004', name: 'response body มี cloned_calendars และ cloned_holidays ถูกต้อง', precondition: 'DevTools Network เปิดไว้', steps: '1. ดู response body ของ POST clone-year\n2. ตรวจสอบตัวเลข cloned_calendars และ cloned_holidays', expected: 'response: { cloned_calendars: N, cloned_holidays: M } ตรงกับจำนวนปฏิทินและวันหยุดจริงใน from_year' },
+    { id: 'TC-005', name: 'วันหยุดใน to_year มีวันที่ปรับปี +1 ถูกต้อง (เช่น 2568-04-13 → 2569-04-13)', precondition: 'clone สำเร็จแล้ว, เปิดปฏิทินใน to_year', steps: '1. เลือกปฏิทินปี to_year ใน dropdown\n2. ดูวันหยุด\n3. เปรียบเทียบกับ from_year', expected: 'วันที่ของวันหยุดใน to_year คือปี from_year +1 เดือน/วันเหมือนกัน' }
+  ]},
+  { name: 'ส่วนที่ 3 — Guard: Clone ซ้ำ', tcs: [
+    { id: 'TC-006', name: 'clone to_year ที่มีปฏิทินอยู่แล้ว → 400 error, ห้ามซ้ำ', precondition: 'to_year มีปฏิทินอยู่แล้ว (เช่น เคย clone ไปแล้ว)', steps: '1. พยายาม clone year เดิมซ้ำอีกครั้ง\n2. กด confirm', expected: 'API ส่งกลับ 400/4000 error แจ้งว่า to_year มีปฏิทินอยู่แล้ว UI แสดงข้อความเตือน' },
+    { id: 'TC-007', name: 'ปฏิทินต้นทาง (from_year) ไม่ถูกแก้ไขหลัง clone', precondition: 'clone สำเร็จแล้ว', steps: '1. เปิดปฏิทิน from_year หลัง clone\n2. ตรวจสอบข้อมูลวันหยุด', expected: 'ปฏิทิน from_year ยังคงข้อมูลเดิมครบถ้วน ไม่มีการเปลี่ยนแปลง' }
+  ]}
+],
+  'HR/Sprint-6/task-451.html': [
+  { name: 'ส่วนที่ 1 — UI ค้นหาและเลือกพนักงาน', tcs: [
+    { id: 'TC-001', name: 'tab พนักงานในปฏิทิน แสดงรายการ \'รอเลือก\' (ซ้าย) และ \'ในปฏิทินนี้\' (ขวา) พร้อมช่องค้นหา', precondition: 'เลือกปฏิทินอยู่แล้ว เปิด tab พนักงานในปฏิทิน', steps: '1. เลือกปฏิทิน\n2. กด tab พนักงานในปฏิทิน\n3. ตรวจสอบ layout', expected: 'มีรายการ \'รอเลือก\' ทางซ้าย, \'ในปฏิทินนี้\' ทางขวา, ช่องค้นหาด้วยรหัส/ชื่อ' },
+    { id: 'TC-002', name: 'ค้นหาพนักงานด้วยรหัส/ชื่อ → รายการ filter ถูกต้อง', precondition: 'มีพนักงานในระบบอย่างน้อย 2 คน', steps: '1. พิมพ์รหัสหรือชื่อพนักงานในช่องค้นหา\n2. กดค้นหา\n3. ตรวจผลลัพธ์', expected: 'รายการ \'รอเลือก\' แสดงเฉพาะพนักงานที่ตรงกับคำค้น' }
+  ]},
+  { name: 'ส่วนที่ 2 — เพิ่มพนักงานสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'เลือกพนักงาน 1 คน → กด \'เพิ่มเข้าปฏิทิน\' → สำเร็จ', precondition: 'มีพนักงานใน \'รอเลือก\'', steps: '1. เลือก checkbox พนักงาน 1 คน\n2. กดปุ่ม เพิ่มเข้าปฏิทิน\n3. ดูผลลัพธ์', expected: 'สำเร็จ แสดง toast/success, พนักงานย้ายจาก \'รอเลือก\' ไป \'ในปฏิทินนี้\'' },
+    { id: 'TC-004', name: 'POST /api/v1/holiday-calendars/{id}/employees/ → response มี added และ skipped_duplicate', precondition: 'DevTools Network เปิดไว้', steps: '1. เลือกพนักงาน → กด เพิ่มเข้าปฏิทิน\n2. ตรวจ Network tab', expected: 'POST /holiday-calendars/{id}/employees/ → 200/201, body: { added: N, skipped_duplicate: 0 }, employee_ids array ส่งไปถูกต้อง' },
+    { id: 'TC-005', name: 'พนักงานที่เพิ่มแล้วย้ายไปยัง \'ในปฏิทินนี้\' และหายจาก \'รอเลือก\'', precondition: 'เพิ่มพนักงานสำเร็จแล้ว', steps: '1. ดู column \'ในปฏิทินนี้\'\n2. ดู column \'รอเลือก\'', expected: 'พนักงานที่เพิ่มแล้วปรากฏใน \'ในปฏิทินนี้\' และหายจาก \'รอเลือก\' ทันที' }
+  ]},
+  { name: 'ส่วนที่ 3 — Guard: กันซ้ำ', tcs: [
+    { id: 'TC-006', name: 'พนักงานที่มีปฏิทินแล้ว (ปีเดียวกัน) ไม่แสดงใน \'รอเลือก\'', precondition: 'พนักงาน A อยู่ใน \'ในปฏิทินนี้\' แล้ว', steps: '1. ดู \'รอเลือก\' หลังจากเพิ่มพนักงาน A แล้ว\n2. หาพนักงาน A', expected: 'พนักงาน A ไม่ปรากฏใน \'รอเลือก\' อีกต่อไป (1:1 per year)' },
+    { id: 'TC-007', name: 'ส่ง employee_ids ซ้ำ (ที่มีในปฏิทินแล้ว) → skipped_duplicate > 0 ไม่เกิด error', precondition: 'พนักงาน X อยู่ในปฏิทินแล้ว, ส่ง ID ซ้ำผ่าน API โดยตรง', steps: '1. ส่ง POST /holiday-calendars/{id}/employees/ ด้วย employee_id ที่มีอยู่แล้ว\n2. ดู response', expected: 'API ส่งกลับ { added: 0, skipped_duplicate: 1 } ไม่เกิด error 400, ข้อมูลไม่ซ้ำซ้อน' }
+  ]},
+  { name: 'ส่วนที่ 4 — Bulk Add', tcs: [
+    { id: 'TC-008', name: 'เลือกพนักงานหลายคนพร้อมกัน → เพิ่มได้ทั้งหมดใน request เดียว', precondition: 'มีพนักงานใน \'รอเลือก\' ≥ 3 คน', steps: '1. เลือก checkbox พนักงาน 3 คน\n2. กด เพิ่มเข้าปฏิทิน\n3. ตรวจ Network tab', expected: 'POST เดียว body: { employee_ids: [id1, id2, id3] }, response: { added: 3, skipped_duplicate: 0 }' },
+    { id: 'TC-009', name: 'หลัง bulk add พนักงานทั้งหมดย้ายไป \'ในปฏิทินนี้\' ครบ ไม่มีตกหล่น', precondition: 'bulk add สำเร็จ', steps: '1. ตรวจ \'ในปฏิทินนี้\' หลัง bulk add\n2. นับจำนวน', expected: 'พนักงานทุกคนที่เลือกปรากฏใน \'ในปฏิทินนี้\' ตรงตามจำนวนที่เลือก' }
+  ]}
+],
+  'HR/Sprint-6/task-452.html': [
+  { name: 'ส่วนที่ 1 — UI แสดงรายการพนักงาน', tcs: [
+    { id: 'TC-001', name: 'tab \'ในปฏิทินนี้\' แสดงรายการพนักงาน ครบทุกคอลัมน์ (รหัส/ชื่อ/วันที่เพิ่ม)', precondition: 'มีพนักงานอยู่ใน \'ในปฏิทินนี้\' อย่างน้อย 1 คน', steps: '1. เลือกปฏิทินที่มีพนักงาน\n2. เปิด tab พนักงานในปฏิทิน\n3. ดู column ทางขวา \'ในปฏิทินนี้\'\n4. ตรวจสอบคอลัมน์', expected: 'แสดงคอลัมน์: รหัสพนักงาน (employee_code), ชื่อพนักงาน (name), วันที่เพิ่ม (added_at) ครบทุกแถว' },
+    { id: 'TC-002', name: 'มีปุ่มนำออก (remove) สำหรับแต่ละพนักงานใน \'ในปฏิทินนี้\'', precondition: 'มีพนักงานใน \'ในปฏิทินนี้\'', steps: '1. ดูรายการพนักงานใน \'ในปฏิทินนี้\'\n2. หาปุ่มนำออกหรือ checkbox ลบ', expected: 'แต่ละรายการมีตัวเลือกนำออก (checkbox หรือปุ่ม นำออก)' }
+  ]},
+  { name: 'ส่วนที่ 2 — API GET /api/v1/holiday-calendars/{id}/employees/', tcs: [
+    { id: 'TC-003', name: 'GET /holiday-calendars/{id}/employees/ → 200, fields ครบ (employee_code, name, added_at)', precondition: 'DevTools Network เปิดไว้', steps: '1. เปิด DevTools > Network\n2. เลือกปฏิทินที่มีพนักงาน\n3. ตรวจ API call\n4. ดู response body', expected: 'GET /api/v1/holiday-calendars/{id}/employees/ → 200, response มี fields: employee_id, employee_code, name, added_at ครบ' },
+    { id: 'TC-004', name: 'Pagination ทำงาน — default 10/page, page/page_size param ใช้ได้', precondition: 'มีพนักงานในปฏิทิน > 10 คน หรือทดสอบผ่าน API', steps: '1. ดู request URL ว่ามี ?page= และ page_size= หรือไม่\n2. ถ้ามี > 10 คน ตรวจว่ามี pagination controls\n3. กด next page ตรวจ API call', expected: 'API รองรับ ?page=N&page_size=M, default page_size=10, pagination controls แสดงถ้ามีมากกว่า 1 หน้า' }
+  ]},
+  { name: 'ส่วนที่ 3 — Edge Cases', tcs: [
+    { id: 'TC-005', name: 'ปฏิทินที่ไม่มีพนักงาน → \'ในปฏิทินนี้\' แสดง empty state (0 คน)', precondition: 'มีปฏิทินที่ยังไม่มีพนักงานผูกอยู่', steps: '1. เลือกปฏิทินที่ไม่มีพนักงาน\n2. ดู column \'ในปฏิทินนี้\'', expected: 'แสดง empty state หรือข้อความว่าไม่มีพนักงาน (0 คน)' },
+    { id: 'TC-006', name: 'เปลี่ยนปฏิทิน → รายการพนักงาน \'ในปฏิทินนี้\' อัปเดตตาม calendar_id ใหม่', precondition: 'มีปฏิทิน 2 อัน ที่มีพนักงานต่างกัน', steps: '1. เลือกปฏิทิน A → จดจำรายการพนักงาน\n2. เปลี่ยนเป็นปฏิทิน B\n3. ดูรายการพนักงาน', expected: 'รายการพนักงานอัปเดตตาม calendar ใหม่ทันที ไม่แสดงข้อมูลปฏิทินเก่า' },
+    { id: 'TC-007', name: 'ข้อมูลพนักงาน (รหัส/ชื่อ) ถูกต้องตรงกับข้อมูลจาก Employees table', precondition: 'ทราบรหัสและชื่อของพนักงานที่อยู่ในปฏิทิน', steps: '1. ดูรายการพนักงานใน \'ในปฏิทินนี้\'\n2. เปรียบเทียบกับข้อมูลพนักงานในระบบ', expected: 'employee_code และ name ตรงกับข้อมูลในตาราง Employees ไม่มีข้อมูลผิดพลาด' }
+  ]}
+],
 }
 
 async function loadSections(t) {
