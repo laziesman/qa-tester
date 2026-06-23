@@ -3476,7 +3476,13 @@ function applyTaskStateToUI() {
     }
     if (s.note) {
       const ed = document.getElementById('actual-'+id)
-      if (ed) ed.innerHTML = s.note
+      if (ed) {
+        const _imgStyle = 'max-width:100%;border-radius:7px;display:block;margin:6px 0;cursor:zoom-in;border:1px solid var(--line2)'
+        let _html = s.note
+        _html = _html.replace(/\[รูป\]\s*(https?:\/\/[^\s<"'\n]+)/g, `<img src="$1" style="${_imgStyle}" onclick="openLightbox(this.src)">`)
+        _html = _html.replace(/(?<!['"=>])(https?:\/\/i\.ibb\.co\/[^\s<"'\n]+)/g, `<img src="$1" style="${_imgStyle}" onclick="openLightbox(this.src)">`)
+        ed.innerHTML = _html
+      }
     }
   })
 }
