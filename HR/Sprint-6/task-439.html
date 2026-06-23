@@ -676,9 +676,13 @@ function buildPayload() {
       const editor = document.getElementById('actual-' + tc.id)
       const images = []
       if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+      const noteText = state[tc.id]?.note || ''
+      ;(noteText.match(/https?:\/\/i\.ibb\.co\/[^\s<"'\n]+/g) || []).forEach(url => { if (!images.includes(url)) images.push(url) })
+      let actualText = editor ? editor.innerText.trim() : ''
+      if (!actualText) actualText = noteText.replace(/\[รูป\]\s*https?:\/\/[^\n]+/g, '').trim() || 'ยังไม่ได้ระบุ'
       fails.push({ tc_id: tc.id, name: tc.name, section: sectionName,
         precondition: tc.precondition || '', steps: tc.steps || '', expected: tc.expected || '',
-        actual: editor ? editor.innerText.trim() : 'ยังไม่ได้ระบุ', images })
+        actual: actualText, images })
     }
   })
   SECTIONS.forEach(sec => gather(sec.tcs, sec.name))
