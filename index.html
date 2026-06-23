@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'441', title:'5.1.4 ลบสถานที่ทำงาน', file:'HR/Sprint-6/task-441.html', storageKey:'qa_task_441' },
       { id:'440', title:'5.1.3 แก้ไขสถานที่ทำงาน', file:'HR/Sprint-6/task-440.html', storageKey:'qa_task_440' },
       { id:'439', title:'เพิ่มสถานที่ทำงาน', file:'HR/Sprint-6/task-439.html', storageKey:'qa_task_439' },
       { id:'438', title:'5.1.1 ค้นหาสถานที่ทำงาน', file:'HR/Sprint-6/task-438.html', storageKey:'qa_task_438' },
@@ -2921,6 +2922,25 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-441.html': [
+  { name: 'ส่วนที่ 1 — Dialog ยืนยันก่อนลบ', tcs: [
+    { id: 'TC-001', name: 'กด "ลบ" → dialog ยืนยันปรากฏ (มีปุ่ม ยืนยัน + ยกเลิก)', precondition: 'มีสถานที่ทำงานอย่างน้อย 1 รายการ', steps: '1. เปิดหน้า สถานที่ทำงาน\n2. กดปุ่ม "ลบ" ที่รายการใดก็ได้\n3. ตรวจสอบ dialog ที่ปรากฏ', expected: 'dialog ยืนยันปรากฏ มีปุ่ม ยืนยัน (หรือ OK/ตกลง) และ ยกเลิก' },
+    { id: 'TC-002', name: 'กด "ยกเลิก" ใน dialog → ไม่มีการลบ สถานที่ยังอยู่ในรายการ', precondition: 'dialog ยืนยันการลบแสดงอยู่', steps: '1. กดปุ่ม "ลบ" เพื่อเปิด dialog\n2. กดปุ่ม "ยกเลิก" ใน dialog\n3. ตรวจสอบรายการสถานที่', expected: 'dialog ปิด สถานที่ยังคงอยู่ในรายการ ไม่มีการเปลี่ยนแปลงใดๆ' }
+  ]},
+  { name: 'ส่วนที่ 2 — Soft Delete สำเร็จ', tcs: [
+    { id: 'TC-003', name: 'ยืนยันลบสถานที่ที่ไม่ถูกใช้งาน → ลบสำเร็จ', precondition: 'มีสถานที่ที่ไม่ถูกผูกกับ Timesheet/พนักงาน', steps: '1. กดปุ่ม "ลบ" ที่สถานที่ที่ไม่ได้ถูกใช้งาน\n2. ยืนยันใน dialog\n3. ตรวจสอบ feedback จากระบบ', expected: 'ระบบลบสำเร็จ (แสดง toast/success message หรือ UI อัปเดตทันที)' },
+    { id: 'TC-004', name: 'หลังลบ → รายการ refresh สถานที่หายออกจาก UI', precondition: 'TC-003 ผ่านแล้ว', steps: '1. หลังยืนยันลบใน TC-003\n2. ตรวจสอบรายการสถานที่ทั้งหมด', expected: 'สถานที่ที่ลบไปไม่ปรากฏในรายการอีกต่อไป (soft delete: ไม่แสดงใน UI)' },
+    { id: 'TC-005', name: 'Network response ลบ = 200 OK + { message: "success" }', precondition: 'เปิด DevTools Network tab', steps: '1. เปิด DevTools > Network\n2. กด "ลบ" และยืนยัน\n3. ตรวจสอบ API call ที่ถูกส่ง', expected: 'DELETE /api/v1/work-locations/{id}/delete/ → response 200 OK, body: { "message": "success", "data": null }' }
+  ]},
+  { name: 'ส่วนที่ 3 — Guard: สถานที่ถูกใช้งานอยู่', tcs: [
+    { id: 'TC-006', name: 'ลบสถานที่ที่ถูกผูกกับ Timesheet/พนักงาน → แจ้ง error ไม่ให้ลบ', precondition: 'มีสถานที่ที่ถูกผูกกับ Timesheet หรือพนักงาน (Resource is in use)', steps: '1. กดปุ่ม "ลบ" ที่สถานที่ที่ถูกใช้งาน\n2. ยืนยันใน dialog\n3. ตรวจสอบ feedback', expected: 'ระบบแจ้งเตือนว่าสถานที่ถูกใช้งานอยู่ ไม่สามารถลบได้ (error 400 / 4000 "Resource is in use")' },
+    { id: 'TC-007', name: 'หลัง error "Resource is in use" → สถานที่ยังอยู่ในรายการ', precondition: 'TC-006 ผ่านแล้ว (error แสดงแล้ว)', steps: '1. หลังเห็น error ใน TC-006\n2. ตรวจสอบรายการสถานที่', expected: 'สถานที่ที่ถูกใช้งานยังคงอยู่ในรายการ ไม่ถูกลบ' }
+  ]},
+  { name: 'ส่วนที่ 4 — ประเภทสถานที่อื่นๆ', tcs: [
+    { id: 'TC-008', name: 'ลบสถานที่ประเภท Scanner → ลบสำเร็จ', precondition: 'มีสถานที่ประเภท Scanner ที่ไม่ถูกใช้งาน', steps: '1. ค้นหาสถานที่ประเภท Scanner\n2. กดลบและยืนยัน\n3. ตรวจสอบรายการ', expected: 'ลบสำเร็จ สถานที่ Scanner หายออกจากรายการ' },
+    { id: 'TC-009', name: 'ลบสถานที่ประเภท WiFi → ลบสำเร็จ', precondition: 'มีสถานที่ประเภท WiFi ที่ไม่ถูกใช้งาน', steps: '1. ค้นหาสถานที่ประเภท WiFi\n2. กดลบและยืนยัน\n3. ตรวจสอบรายการ', expected: 'ลบสำเร็จ สถานที่ WiFi หายออกจากรายการ' }
   ]}
 ],
   'HR/Sprint-6/task-440.html': [
