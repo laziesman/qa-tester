@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'446', title:'5.2.4 ลบปฏิทิน', file:'HR/Sprint-6/task-446.html', storageKey:'qa_task_446' },
       { id:'445', title:'5.2.3 คัดลอกปฏิทิน', file:'HR/Sprint-6/task-445.html', storageKey:'qa_task_445' },
       { id:'444', title:'5.2.2 แก้ไขปฏิทิน', file:'HR/Sprint-6/task-444.html', storageKey:'qa_task_444' },
       { id:'443', title:'5.2.1 เพิ่มปฏิทิน', file:'HR/Sprint-6/task-443.html', storageKey:'qa_task_443' },
@@ -2925,6 +2926,24 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-446.html': [
+  { name: 'ส่วนที่ 1 — Modal ยืนยันก่อนลบ', tcs: [
+    { id: 'TC-001', name: 'กด "จัดการปฏิทิน" → เลือก "ลบ" → Modal ยืนยันปรากฏ', precondition: 'มีปฏิทินที่เลือกอยู่ใน dropdown', steps: '1. เปิดหน้าปฏิทินวันหยุด\n2. เลือกปฏิทินจาก dropdown\n3. กด "จัดการปฏิทิน" → เลือก "ลบ"\n4. สังเกต UI', expected: 'Modal ยืนยันการลบปรากฏขึ้น (ไม่ลบทันที)' },
+    { id: 'TC-002', name: 'Modal แสดงข้อความเตือน + ปุ่มยืนยัน / ยกเลิก', precondition: 'Modal ยืนยันการลบเปิดอยู่', steps: '1. เปิด Modal ยืนยันการลบ\n2. ตรวจสอบเนื้อหาใน Modal', expected: 'Modal มีข้อความเตือนว่าจะลบปฏิทิน + ปุ่มยืนยันลบ + ปุ่มยกเลิก' }
+  ]},
+  { name: 'ส่วนที่ 2 — ลบสำเร็จ (Happy Path)', tcs: [
+    { id: 'TC-003', name: 'ยืนยันลบ → สำเร็จ (toast/success) Modal ปิด', precondition: 'Modal ยืนยันการลบเปิดอยู่ กับปฏิทินที่ไม่มีพนักงานผูก', steps: '1. เปิด Modal ยืนยันการลบ\n2. กดปุ่มยืนยันลบ\n3. ตรวจสอบ UI', expected: 'Modal ปิด แสดง toast/success message ปฏิทินถูกลบสำเร็จ' },
+    { id: 'TC-004', name: 'Network DELETE /api/v1/holiday-calendars/{id}/delete/ → 200 OK, {message:"success",data:null}', precondition: 'เปิด DevTools Network ก่อนยืนยันลบ', steps: '1. เปิด DevTools > Network\n2. ยืนยันลบปฏิทิน\n3. ตรวจสอบ API call', expected: 'DELETE /api/v1/holiday-calendars/{id}/delete/ → 200 OK, body: {"message":"success","data":null}' },
+    { id: 'TC-005', name: 'หลังลบ → ปฏิทินที่ลบหายไปจาก dropdown รายการ', precondition: 'TC-003 ผ่านแล้ว', steps: '1. หลังลบปฏิทินสำเร็จ\n2. ตรวจสอบ dropdown ปฏิทิน', expected: 'ปฏิทินที่ถูกลบไม่ปรากฏใน dropdown อีกต่อไป (soft delete: is_deleted=true)' }
+  ]},
+  { name: 'ส่วนที่ 3 — ยกเลิกการลบ', tcs: [
+    { id: 'TC-006', name: 'กดยกเลิกใน Modal → ปฏิทินยังอยู่ ไม่มี DELETE API call', precondition: 'Modal ยืนยันการลบเปิดอยู่', steps: '1. เปิด Modal ยืนยันการลบ\n2. กดปุ่มยกเลิก\n3. ตรวจสอบ dropdown และ Network', expected: 'Modal ปิด ปฏิทินยังอยู่ใน dropdown ครบ ไม่มี DELETE API call ถูกส่งออกไป' }
+  ]},
+  { name: 'ส่วนที่ 4 — Guard: มีพนักงานผูกอยู่', tcs: [
+    { id: 'TC-007', name: 'ลบปฏิทินที่มีพนักงานผูกอยู่ → API 400, error แสดงใน UI', precondition: 'มีปฏิทินที่มีพนักงานใน HolidayCalendarEmployees (tab พนักงานในปฏิทิน มีข้อมูล)', steps: '1. เลือกปฏิทินที่มีพนักงานผูกอยู่\n2. กด "จัดการปฏิทิน" → "ลบ"\n3. ยืนยันลบ\n4. ตรวจสอบ response และ UI', expected: 'DELETE → 400 {errorCode:4000, message:[{calendar_id:"มีพนักงานผูกอยู่ในปฏิทินนี้"}]} + UI แสดงข้อความแจ้งเตือน ปฏิทินไม่ถูกลบ' },
+    { id: 'TC-008', name: 'หลัง error 400 (มีพนักงาน) → ปฏิทินยังคงอยู่ใน dropdown ไม่หายไป', precondition: 'TC-007 ผ่าน (ได้รับ error)', steps: '1. หลังได้รับ error 400 จากการลบปฏิทินที่มีพนักงาน\n2. ตรวจสอบ dropdown ปฏิทิน', expected: 'ปฏิทินยังคงอยู่ใน dropdown รายการ ไม่ถูกลบ' }
   ]}
 ],
   'HR/Sprint-6/task-445.html': [
