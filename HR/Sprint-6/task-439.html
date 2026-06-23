@@ -640,7 +640,17 @@ function applyStateToUI() {
     }
     if (s.note) {
       const editor = document.getElementById('actual-' + tc.id)
-      if (editor) editor.innerHTML = s.note
+      if (editor) {
+        const imgStyle = 'max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in'
+        let html = s.note
+        // Convert [รูป] URL patterns saved by agent as plain text
+        html = html.replace(/\[รูป\]\s*(https?:\/\/[^\s<"'\n]+)/g,
+          `<img src="$1" style="${imgStyle}" onclick="openLightbox(this.src)">`)
+        // Convert any bare imgbb direct URLs not already in an img tag
+        html = html.replace(/(?<!['"=>])(https?:\/\/i\.ibb\.co\/[^\s<"'\n]+)/g,
+          `<img src="$1" style="${imgStyle}" onclick="openLightbox(this.src)">`)
+        editor.innerHTML = html
+      }
     }
   }
   SECTIONS.forEach(sec => sec.tcs.forEach(applyOne))
