@@ -424,6 +424,7 @@ const PROJECTS = [
       { id:'417', title:'อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)',             file:'HR/Sprint-5/task-417.html', storageKey:'qa_task_417' },
     ]},
     { id:'s6', name:'Sprint 6', tasks: [
+      { id:'440', title:'5.1.3 แก้ไขสถานที่ทำงาน', file:'HR/Sprint-6/task-440.html', storageKey:'qa_task_440' },
       { id:'439', title:'เพิ่มสถานที่ทำงาน', file:'HR/Sprint-6/task-439.html', storageKey:'qa_task_439' },
       { id:'438', title:'5.1.1 ค้นหาสถานที่ทำงาน', file:'HR/Sprint-6/task-438.html', storageKey:'qa_task_438' },
       { id:'430', title:'4.2.1 ปรับกะ (Shift Change)', file:'HR/Sprint-6/task-430.html', storageKey:'qa_task_430' },
@@ -2920,6 +2921,33 @@ const SECTIONS_DB = {
   ]},
   { name: 'Permission', tcs: [
     { id: 'TC-023', name: 'User ที่ไม่มีสิทธิ์ U → ไม่สามารถดำเนินการสลับกะได้', precondition: 'Login ด้วย user ที่ไม่มีสิทธิ์ U', steps: '1. Login ด้วย user ไม่มีสิทธิ์ U\n2. พยายามเปิดหรือใช้ฟีเจอร์สลับกะ', expected: 'ปุ่มสลับกะไม่แสดง หรือ disabled หรือแสดง error permission' }
+  ]}
+],
+  'HR/Sprint-6/task-440.html': [
+  { name: 'ส่วนที่ 1 — Prefill ข้อมูลเดิม (GET)', tcs: [
+    { id: 'TC-001', name: 'กด แก้ไข สถานที่ GPS → form prefill ชื่อ/lat/lng/radius ถูกต้อง', precondition: 'มีสถานที่ประเภท GPS ในระบบ', steps: '1. เปิดหน้า Workplace\n2. กดปุ่ม \'แก้ไข\' บนสถานที่ GPS\n3. ตรวจสอบ form ที่เปิดขึ้น', expected: 'form แสดงข้อมูลเดิมครบ: ชื่อสถานที่, latitude, longitude, radius_meters' },
+    { id: 'TC-002', name: 'ค่า radius แสดงตัวเลข ไม่ใช่ null หรือว่าง', precondition: 'มีสถานที่ GPS ที่มี radius_meters กำหนดไว้', steps: '1. กดปุ่ม \'แก้ไข\' บนสถานที่ GPS\n2. ดูค่าใน field radius', expected: 'field radius แสดงตัวเลขที่บันทึกไว้ ไม่ว่างหรือ null' }
+  ]},
+  { name: 'ส่วนที่ 2 — แก้ไขชื่อสถานที่', tcs: [
+    { id: 'TC-003', name: 'แก้ชื่อสถานที่ → บันทึก → ชื่อใหม่ปรากฏในรายการ', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\'\n2. เปลี่ยนชื่อสถานที่\n3. กดบันทึก\n4. ดูรายการหลัง save', expected: 'ชื่อใหม่ปรากฏในรายการ · toast แจ้ง success' },
+    { id: 'TC-004', name: 'แก้ชื่อเป็นค่าว่าง → ควร error (required field)', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\'\n2. ลบชื่อสถานที่ออกจนว่าง\n3. กดบันทึก', expected: 'ระบบ block save — แสดง error ว่า \'ชื่อสถานที่\' เป็น required field' }
+  ]},
+  { name: 'ส่วนที่ 3 — Validate รัศมี ≤500 เมตร (GPS)', tcs: [
+    { id: 'TC-005', name: 'แก้ radius_meters = 200 → บันทึกสำเร็จ', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. เปลี่ยน radius เป็น 200\n3. กดบันทึก', expected: 'บันทึกสำเร็จ · toast แจ้ง success' },
+    { id: 'TC-006', name: 'แก้ radius_meters = 500 → บันทึกสำเร็จ (boundary)', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. เปลี่ยน radius เป็น 500\n3. กดบันทึก', expected: 'บันทึกสำเร็จ (500 ≤ 500) · toast success' },
+    { id: 'TC-007', name: "แก้ radius_meters = 501 → error 'รัศมีไม่เกิน 500 เมตร'", precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. เปลี่ยน radius เป็น 501\n3. กดบันทึก', expected: 'ระบบ block save — แสดง error \'กำหนดระยะรัศมีได้ไม่เกิน 500 เมตร\'' },
+    { id: 'TC-008', name: 'แก้ radius_meters = 0 → ตรวจสอบ behavior', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. เปลี่ยน radius เป็น 0\n3. กดบันทึก', expected: 'ระบบแสดงผล: ถ้า 0 ไม่อนุญาต → error · ถ้าอนุญาต → save สำเร็จ (บันทึกผลตาม actual)' }
+  ]},
+  { name: 'ส่วนที่ 4 — Required fields GPS (lat/lng/radius)', tcs: [
+    { id: 'TC-009', name: 'ลบ latitude ออก → ควร error (GPS ต้องมี lat)', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. ลบค่า latitude ออก\n3. กดบันทึก', expected: 'ระบบ block save — แสดง error ว่า latitude จำเป็น' },
+    { id: 'TC-010', name: 'ลบ longitude ออก → ควร error (GPS ต้องมี lng)', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. ลบค่า longitude ออก\n3. กดบันทึก', expected: 'ระบบ block save — แสดง error ว่า longitude จำเป็น' },
+    { id: 'TC-011', name: 'ลบ radius ออก → ควร error (GPS ต้องมี radius)', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' สถานที่ GPS\n2. ลบค่า radius ออก\n3. กดบันทึก', expected: 'ระบบ block save — แสดง error ว่า radius จำเป็น' }
+  ]},
+  { name: 'ส่วนที่ 5 — Backward Compat (GPS/Scanner/WiFi เก่า)', tcs: [
+    { id: 'TC-012', name: 'กด แก้ไข สถานที่ GPS เก่า → form แสดง field ครบ', precondition: 'มีสถานที่ GPS ในระบบ (ข้อมูลเก่า)', steps: '1. กดปุ่ม \'แก้ไข\' บนสถานที่ GPS\n2. ดู field ทั้งหมดใน form', expected: 'form แสดง field ครบ: ชื่อ, lat, lng, radius (ไม่หาย / ไม่ error)' },
+    { id: 'TC-013', name: 'บันทึก GPS เก่าโดยไม่แก้อะไร → บันทึกได้ปกติ', precondition: 'มีสถานที่ GPS ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\'\n2. ไม่แก้ค่าใดๆ\n3. กดบันทึก', expected: 'บันทึกสำเร็จ · toast แจ้ง success · ข้อมูลไม่เปลี่ยน' },
+    { id: 'TC-014', name: 'แก้ไขสถานที่ Scanner เก่า → form แสดงได้ / บันทึกได้', precondition: 'มีสถานที่ประเภท Scanner ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' บนสถานที่ Scanner\n2. ดู form\n3. กดบันทึก', expected: 'form แสดง field Scanner ครบ · บันทึกได้ปกติ' },
+    { id: 'TC-015', name: 'แก้ไขสถานที่ WiFi เก่า → form แสดงได้ / บันทึกได้', precondition: 'มีสถานที่ประเภท WiFi ในระบบ', steps: '1. กดปุ่ม \'แก้ไข\' บนสถานที่ WiFi\n2. ดู form\n3. กดบันทึก', expected: 'form แสดง field WiFi ครบ · บันทึกได้ปกติ' }
   ]}
 ],
   'HR/Sprint-6/task-439.html': [
