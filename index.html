@@ -461,6 +461,14 @@ async function loadSections(t) {
     const html = await res.text()
     const declIdx = html.search(/const SECTIONS\s*=\s*\[/)
     if (declIdx !== -1) {
+      // Extract simple string const declarations before SECTIONS (e.g. UI_URL, TASK_URL)
+      // so template literals like `${UI_URL}` inside SECTIONS resolve correctly
+      const before = html.slice(0, declIdx)
+      const varLines = []
+      const varRe = /const\s+(\w+)\s*=\s*('[^']*'|"[^"]*")/g
+      let vm
+      while ((vm = varRe.exec(before)) !== null) varLines.push(`const ${vm[1]} = ${vm[2]}`)
+
       const arrStart = html.indexOf('[', declIdx)
       let depth = 0, i = arrStart
       while (i < html.length) {
@@ -469,7 +477,7 @@ async function loadSections(t) {
         i++
       }
       const arrStr = html.slice(arrStart, i + 1)
-      const sections = new Function('return ' + arrStr)()
+      const sections = new Function(varLines.join('\n') + '\nreturn ' + arrStr)()
       return withExtra(sections)
     }
   } catch(e) {}
