@@ -1,0 +1,122 @@
+[
+  {
+    "id": "browser",
+    "name": "Browser App",
+    "boardSlug": "browser-app",
+    "sprints": [
+      {
+        "id": "s3",
+        "name": "Sprint 3",
+        "tasks": [
+          { "id": "826", "title": "กลับมาจากหน้าดู map (ดูบน browser ไม่ได้ออกไป google map) เจอหน้านี้", "file": "Browser/Sprint-3/task-826.html", "storageKey": "qa_task_826" },
+          { "id": "861", "title": "เว็บเดียวกันแสดงรูปไม่เหมือนกัน", "file": "Browser/Sprint-3/task-861.html", "storageKey": "qa_task_861" },
+          { "id": "843", "title": "เปิด streaming นานๆแล้วเจอหน้าขาว", "file": "Browser/Sprint-3/task-843.html", "storageKey": "qa_task_843", "url": "https://boards.intelligent-bytes.com/project/browser-app/us/843" },
+          { "id": "842", "title": "ผู้ใช้งานแจ้งปัญหา 2026-05-30", "file": "Browser/Sprint-3/task-842.html", "storageKey": "qa_task_842", "url": "https://boards.intelligent-bytes.com/project/browser-app/us/842" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "testerWL",
+    "name": "Tester WL",
+    "boardSlug": "tester-workload-board",
+    "sprints": [
+      {
+        "id": "s1",
+        "name": "Sprint 1",
+        "tasks": [
+          { "id": "38", "title": "AICC : ตรวจ review ฟุตบอลทุกเช้า 15-19/06/2026", "file": "TesterWL/Sprint-1/task-38.html", "storageKey": "qa_task_38", "url": "https://boards.intelligent-bytes.com/project/tester-workload-board/us/38" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "boost",
+    "name": "Boost",
+    "boardSlug": "boostfitness",
+    "sprints": [
+      {
+        "id": "s1",
+        "name": "Sprint 1",
+        "tasks": [
+          { "id": "817", "title": "สร้าง model stock retail", "file": "Boost/Sprint-1/task-817.html", "storageKey": "qa_task_817" },
+          { "id": "818", "title": "แก้ไขการแสดงผล ส่วนการขาย Retail", "file": "Boost/Sprint-1/task-818.html", "storageKey": "qa_task_818" },
+          { "id": "820", "title": "เพิ่ม Logic การตัด quantity_on_hand (ตัด Stock)", "file": "Boost/Sprint-1/task-820.html", "storageKey": "qa_task_820" },
+          { "id": "821", "title": "เพิ่ม Feature นำเข้าสินค้า ประเภท Retail", "file": "Boost/Sprint-1/task-821.html", "storageKey": "qa_task_821" },
+          { "id": "822", "title": "แก้ไข UI Tab Retail", "file": "Boost/Sprint-1/task-822.html", "storageKey": "qa_task_822" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "telegram",
+    "name": "Telegram Broadcast",
+    "boardSlug": "telegram-broadcast",
+    "sprints": [
+      {
+        "id": "s1",
+        "name": "Sprint 1",
+        "tasks": [
+          { "id": "91", "title": "ระบบสร้าง Post", "file": "TelegramBroadcast/Sprint-1/task-91.html", "storageKey": "qa_task_91", "url": "https://boards.intelligent-bytes.com/project/telegram-broadcast/us/91" },
+          { "id": "100", "title": "เพิ่มตัวอย่างการแจ้งเตือน และตัวอย่างบทวิเคราะห์บอล", "file": "TelegramBroadcast/Sprint-1/task-100.html", "storageKey": "qa_task_100", "url": "https://boards.intelligent-bytes.com/project/telegram-broadcast/us/100" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hrfi",
+    "name": "HR&FI",
+    "boardSlug": "hrfi",
+    "sprints": [
+      {
+        "id": "s5",
+        "name": "Sprint 5",
+        "tasks": [
+          { "id": "395", "title": "บันทึกใบลาออก", "file": "HR/Sprint-5/task-395.html", "storageKey": "qa_task_395" },
+          { "id": "403", "title": "ฟอร์มบันทึกประวัติการเปลี่ยนแปลงข้อมูลการทำงานของพนักงาน", "file": "HR/Sprint-5/task-403.html", "storageKey": "qa_task_403" },
+          { "id": "404", "title": "ฟอร์มแก้ไขรายการประวัติการเปลี่ยนแปลงที่บันทึกไว้แล้ว", "file": "HR/Sprint-5/task-404.html", "storageKey": "qa_task_404" },
+          { "id": "405", "title": "ลบรายการประวัติการเปลี่ยนแปลงที่ไม่ถูกต้อง", "file": "HR/Sprint-5/task-405.html", "storageKey": "qa_task_405" },
+          { "id": "406", "title": "หน้าแสดงรายละเอียดของรายการประวัติการทำงานแบบ read-only", "file": "HR/Sprint-5/task-406.html", "storageKey": "qa_task_406" },
+          { "id": "407", "title": "หน้าแสดงรายการเอกสารสัญญาทั้งหมดของพนักงาน", "file": "HR/Sprint-5/task-407.html", "storageKey": "qa_task_407" },
+          { "id": "408", "title": "ฟอร์มสร้างเอกสารสัญญาใหม่ให้พนักงาน", "file": "HR/Sprint-5/task-408.html", "storageKey": "qa_task_408" },
+          { "id": "409", "title": "ฟอร์มแก้ไขเอกสารสัญญาที่บันทึกไว้", "file": "HR/Sprint-5/task-409.html", "storageKey": "qa_task_409" },
+          { "id": "410", "title": "ลบเอกสารสัญญาออกจากระบบ", "file": "HR/Sprint-5/task-410.html", "storageKey": "qa_task_410" },
+          { "id": "411", "title": "หน้าแสดงรายละเอียดเอกสารสัญญาแบบ read-only", "file": "HR/Sprint-5/task-411.html", "storageKey": "qa_task_411" },
+          { "id": "412", "title": "ตรวจสอบใบลาออกและเปลี่ยนสถานะพนักงาน (Cronjob 00:01)", "file": "HR/Sprint-5/task-412.html", "storageKey": "qa_task_412" },
+          { "id": "416", "title": "อัปเดตข้อมูลปัจจุบันพนักงานเมื่อถึงวันที่มีผล (Cronjob 00:01)", "file": "HR/Sprint-5/task-416.html", "storageKey": "qa_task_416" },
+          { "id": "417", "title": "อัปเดตสถานะเอกสารสัญญาอัตโนมัติ (Cronjob 01:00)", "file": "HR/Sprint-5/task-417.html", "storageKey": "qa_task_417" }
+        ]
+      },
+      {
+        "id": "s6",
+        "name": "Sprint 6",
+        "tasks": [
+          { "id": "460", "title": "4.1.7.7 Publish — draft/publish ระดับวัน (หลายกะ)", "file": "HR/Sprint-6/task-460.html", "storageKey": "qa_task_460" },
+          { "id": "458", "title": "4.1.7.5 แสดงตารางกะ — หลาย badge ต่อวัน", "file": "HR/Sprint-6/task-458.html", "storageKey": "qa_task_458" },
+          { "id": "457", "title": "4.1.7.4 API employee-shift-assignments รองรับหลายกะ/วัน", "file": "HR/Sprint-6/task-457.html", "storageKey": "qa_task_457" },
+          { "id": "454", "title": "4.1.7.1 UI ตั้งหลายกะใน 1 วัน", "file": "HR/Sprint-6/task-454.html", "storageKey": "qa_task_454" },
+          { "id": "455", "title": "4.1.7.2 ตั้งค่าจำนวนกะสูงสุดต่อวัน", "file": "HR/Sprint-6/task-455.html", "storageKey": "qa_task_455" },
+          { "id": "452", "title": "5.2.10 แสดงรายการพนักงานในปฏิทิน", "file": "HR/Sprint-6/task-452.html", "storageKey": "qa_task_452" },
+          { "id": "451", "title": "5.2.9 เพิ่มพนักงานในปฏิทิน", "file": "HR/Sprint-6/task-451.html", "storageKey": "qa_task_451" },
+          { "id": "450", "title": "5.2.8 เพิ่มปฏิทินปีใหม่ (Clone Year)", "file": "HR/Sprint-6/task-450.html", "storageKey": "qa_task_450" },
+          { "id": "449", "title": "5.2.7 ดูประวัติการแก้ไข", "file": "HR/Sprint-6/task-449.html", "storageKey": "qa_task_449" },
+          { "id": "448", "title": "5.2.6 เพิ่มวันหยุด", "file": "HR/Sprint-6/task-448.html", "storageKey": "qa_task_448" },
+          { "id": "447", "title": "5.2.5 แสดงรายการวันหยุด", "file": "HR/Sprint-6/task-447.html", "storageKey": "qa_task_447" },
+          { "id": "446", "title": "5.2.4 ลบปฏิทิน", "file": "HR/Sprint-6/task-446.html", "storageKey": "qa_task_446" },
+          { "id": "445", "title": "5.2.3 คัดลอกปฏิทิน", "file": "HR/Sprint-6/task-445.html", "storageKey": "qa_task_445" },
+          { "id": "444", "title": "5.2.2 แก้ไขปฏิทิน", "file": "HR/Sprint-6/task-444.html", "storageKey": "qa_task_444" },
+          { "id": "443", "title": "5.2.1 เพิ่มปฏิทิน", "file": "HR/Sprint-6/task-443.html", "storageKey": "qa_task_443" },
+          { "id": "441", "title": "5.1.4 ลบสถานที่ทำงาน", "file": "HR/Sprint-6/task-441.html", "storageKey": "qa_task_441" },
+          { "id": "440", "title": "5.1.3 แก้ไขสถานที่ทำงาน", "file": "HR/Sprint-6/task-440.html", "storageKey": "qa_task_440" },
+          { "id": "439", "title": "เพิ่มสถานที่ทำงาน", "file": "HR/Sprint-6/task-439.html", "storageKey": "qa_task_439" },
+          { "id": "438", "title": "5.1.1 ค้นหาสถานที่ทำงาน", "file": "HR/Sprint-6/task-438.html", "storageKey": "qa_task_438" },
+          { "id": "430", "title": "4.2.1 ปรับกะ (Shift Change)", "file": "HR/Sprint-6/task-430.html", "storageKey": "qa_task_430" },
+          { "id": "431", "title": "4.2.2 สลับกะ (Shift Swap) — พนักงาน 2 คนสลับกะกัน", "file": "HR/Sprint-6/task-431.html", "storageKey": "qa_task_431" },
+          { "id": "433", "title": "4.4.1 หน้า Publish ตารางกะ", "file": "HR/Sprint-6/task-433.html", "storageKey": "qa_task_433" },
+          { "id": "434", "title": "4.4.2 สถานะการ Publish (Publish Status)", "file": "HR/Sprint-6/task-434.html", "storageKey": "qa_task_434" },
+          { "id": "435", "title": "4.4.3 Unpublish ตาราง", "file": "HR/Sprint-6/task-435.html", "storageKey": "qa_task_435" }
+        ]
+      }
+    ]
+  }
+]

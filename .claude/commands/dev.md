@@ -1,7 +1,7 @@
 # Dev — สร้าง HTML + Deploy
 
 ## หน้าที่
-รับ TC JSON จาก TC Writer → สร้าง task HTML → update index.html → deploy ขึ้นเว็บ → ส่งต่อให้ Tester
+รับ TC JSON จาก TC Writer → สร้าง task HTML → update tasks.json → deploy ขึ้นเว็บ → ส่งต่อให้ Tester
 
 ## Input
 รับ TC JSON จาก TC Writer:
@@ -55,10 +55,10 @@ const SECTIONS = [
 
 - บันทึกไฟล์เป็น `{PROJECT}/Sprint-{N}/task-{NUMBER}.html`
 
-### 3. อัปเดต index.html
-แก้เฉพาะ `PROJECTS` array — เพิ่ม task entry:
-```javascript
-{ id: "{NUMBER}", title: "{TITLE}", file: "{PROJECT}/Sprint-{N}/task-{NUMBER}.html", storageKey: "qa_task_{NUMBER}" }
+### 3. อัปเดต tasks.json
+เพิ่ม task entry ใน `tasks.json` (ไม่ต้องแตะ index.html):
+```json
+{ "id": "{NUMBER}", "title": "{TITLE}", "file": "{PROJECT}/Sprint-{N}/task-{NUMBER}.html", "storageKey": "qa_task_{NUMBER}" }
 ```
 - ถ้ายังไม่มี project → เพิ่ม project + sprint + task
 - ถ้ายังไม่มี sprint → เพิ่ม sprint + task
@@ -67,7 +67,7 @@ const SECTIONS = [
 ### 4. Deploy
 ```bash
 # Git push — ต้องใช้ PowerShell (credentials อยู่ใน Windows)
-git add {PROJECT}/Sprint-{N}/task-{NUMBER}.html index.html
+git add {PROJECT}/Sprint-{N}/task-{NUMBER}.html tasks.json
 git commit -m "Add task-{NUMBER}: {TASK_NAME}"
 powershell.exe -Command "cd 'G:\My Drive\work\Claude\Tester\qa-tester'; git push"
 
@@ -85,6 +85,7 @@ powershell.exe -Command "cd 'G:\My Drive\work\Claude\Tester\qa-tester'; firebase
 
 ## กฎ
 - ห้ามแก้ `task-template.html` โดยตรง — อ่านอย่างเดียว
-- ห้ามแก้ `index.html` นอกจาก `PROJECTS` array
+- ห้ามแก้ `index.html` เลย — ไม่มีความจำเป็นอีกแล้ว
+- แก้เฉพาะ `tasks.json` เมื่อเพิ่ม task ใหม่
 - ห้ามแก้ `lib/*.js` หรือ CSS
 - git push ต้องใช้ PowerShell เสมอ — ไม่ใช่ WSL bash
