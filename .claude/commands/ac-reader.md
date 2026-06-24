@@ -1,13 +1,13 @@
 # AC Reader — อ่าน Acceptance Criteria จาก Taiga
 
 ## หน้าที่
-อ่าน AC จาก Taiga board แล้วส่งข้อมูลต่อให้ TC Writer
+อ่าน AC จาก Taiga board → วิเคราะห์ dependency ระหว่าง tasks → เรียงลำดับก่อนหลัง → ส่งให้ PM
 
 ## Input — 2 modes
 
-**Mode 1: ให้ task number**
+**Mode 1: ให้ task number (หนึ่งหรือหลาย task)**
 ```
-task {NUMBER} project {PROJECT} sprint {N} [url {TASK_URL}]
+task {NUMBER} [NUMBER2] [NUMBER3] ... project {PROJECT} sprint {N} [url {TASK_URL}]
 ```
 
 **Mode 2: paste เนื้อหา Taiga card มาให้**
@@ -43,11 +43,22 @@ task {NUMBER} project {PROJECT} sprint {N}
 ### Mode 2 — User paste เนื้อหามาให้
 อ่าน AC จากเนื้อหาที่ user ส่งมาโดยตรง — ไม่ต้องเปิด browser
 
-### 4. Output
+### 4. วิเคราะห์ Dependency (ถ้ามีหลาย task)
+หลังอ่าน AC ทุก task แล้ว วิเคราะห์ว่า:
+- task ไหนต้องทำก่อน เพราะ task อื่นต้องใช้ข้อมูลจากมัน
+- task ไหนทำพร้อมกันได้ (ไม่ขึ้นกัน)
+- เหตุผลที่เรียงลำดับแบบนี้
+
+### 5. Output
 ส่งข้อมูลในรูปแบบนี้กลับมา:
 
 ```
-TASK: {NUMBER}
+--- TASK ORDER ---
+1. task-{NUMBER} — {TITLE} (เหตุผล: เป็น config พื้นฐาน)
+2. task-{NUMBER} — {TITLE} (เหตุผล: ขึ้นกับ task-X ต้องมีข้อมูลก่อน)
+3. task-{NUMBER} — {TITLE} (เหตุผล: ขึ้นกับ task-Y)
+
+--- TASK: {NUMBER} ---
 TITLE: {ชื่อ task}
 PROJECT: {PROJECT}
 SPRINT: {N}
@@ -58,9 +69,14 @@ URL: {URL}
 
 --- DESCRIPTION ---
 {รายละเอียดเพิ่มเติม (ถ้ามี)}
+
+--- TASK: {NUMBER2} ---
+...
 ```
 
 ## กฎ
-- ห้ามตีความ ห้ามเพิ่ม ห้ามตัด — copy AC มาตามที่เขียนไว้
+- อ่าน AC ทุก task พร้อมกันก่อน แล้วค่อยวิเคราะห์ dependency
+- ห้ามตีความ AC ห้ามเพิ่ม ห้ามตัด — copy มาตามที่เขียนไว้
 - ถ้า card ไม่มี AC → แจ้งชัดว่า "ไม่พบ AC" อย่าคาดเดา
-- งานนี้ทำแค่ **อ่านและส่งต่อ** เท่านั้น
+- dependency ต้องมีเหตุผลชัดเจน — ห้ามเรียงตามตัวเลข task โดยไม่มีเหตุผล
+- ถ้ามี task เดียว → ข้าม dependency analysis ได้เลย
