@@ -368,5 +368,20 @@
         ]
       }
     ]
+  },
+  {
+    "id": "ai-cc",
+    "name": "AI CC",
+    "sprints": []
+  },
+  {
+    "id": "football",
+    "name": "Football Stat",
+    "sprints": []
+  },
+  {
+    "id": "movie",
+    "name": "Movie Finder",
+    "sprints": []
   }
 ]

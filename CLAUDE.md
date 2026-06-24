@@ -165,8 +165,21 @@ This is auto-generated — no manual change needed. Just make sure `id` fields i
 - Folder and file names: English only
 
 ## Task Board
-- Base URL: `https://boards.intelligent-bytes.com/project/hrfi/task/`
-- When I give task number → fetch: `https://boards.intelligent-bytes.com/project/hrfi/task/{NUMBER}`
+
+### Project Registry (QA id → Taiga slug)
+| QA id | Name | Taiga slug | Base URL |
+|---|---|---|---|
+| hrfi | HR&FI | hrfi | `https://boards.intelligent-bytes.com/project/hrfi/task/` |
+| browser | Browser App | browser-app | `https://boards.intelligent-bytes.com/project/browser-app/task/` |
+| boost | Boost | boostfitness | `https://boards.intelligent-bytes.com/project/boostfitness/task/` |
+| telegram | Telegram Broadcast | telegram-broadcast | `https://boards.intelligent-bytes.com/project/telegram-broadcast/task/` |
+| testerWL | Tester WL | tester-workload-board | `https://boards.intelligent-bytes.com/project/tester-workload-board/task/` |
+| ai-cc | AI CC | ai-cc | `https://boards.intelligent-bytes.com/project/ai-cc/task/` |
+| football | Football Stat | football-stat | `https://boards.intelligent-bytes.com/project/football-stat/task/` |
+| movie | Movie Finder | movie-search | `https://boards.intelligent-bytes.com/project/movie-search/task/` |
+
+- When I give task number → look up project id in registry above → fetch `{Base URL}{NUMBER}`
+- If project id ไม่อยู่ใน registry และไม่มี `url` → ถามก่อนเสมอ
 - If login required → ask me to paste the content instead
 
 ## When I Finish Testing
