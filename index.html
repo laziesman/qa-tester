@@ -1138,7 +1138,7 @@ document.getElementById('toggle-all').addEventListener('click', e => {
 ;(async function() {
   // โหลด PROJECTS จาก tasks.json
   try {
-    const res = await fetch('/tasks.json')
+    const res = await fetch('/tasks.json', { cache: 'no-store' })
     const data = await res.json()
     if (!Array.isArray(data)) throw new Error('invalid tasks.json')
     PROJECTS = data
