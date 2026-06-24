@@ -475,8 +475,8 @@ async function loadSections(t) {
 }
 
 // ── State ──
-let curProject = PROJECTS[0].id
-let curSprint  = PROJECTS[0].sprints[0].id
+let curProject = ''
+let curSprint  = ''
 let currentView = 'home', activeTask = null
 let currentSections = []
 let tcFilter = 'all', allOpen = false
@@ -1138,14 +1138,18 @@ document.getElementById('toggle-all').addEventListener('click', e => {
 ;(async function() {
   // โหลด PROJECTS จาก tasks.json
   try {
-    const res = await fetch('tasks.json')
-    if (res.ok) PROJECTS = await res.json()
-    else throw new Error('tasks.json not found')
+    const res = await fetch('/tasks.json')
+    const data = await res.json()
+    if (!Array.isArray(data)) throw new Error('invalid tasks.json')
+    PROJECTS = data
   } catch(e) {
     document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;color:#b91c1c">❌ โหลด tasks.json ไม่ได้ — ตรวจสอบไฟล์และ deploy ใหม่</div>'
     console.error('[init] failed to load tasks.json', e)
     return
   }
+  // set default project/sprint หลัง PROJECTS โหลดแล้ว
+  curProject = PROJECTS[0].id
+  curSprint  = PROJECTS[0].sprints[0].id
   if (window.AUTH) await window.AUTH.waitForAuth()
   if (window.FS) await window.FS.pullAll()
   const params = new URLSearchParams(location.search)
