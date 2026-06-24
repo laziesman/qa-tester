@@ -455,13 +455,21 @@ async function loadSections(t) {
   }
 
 
-  // fetch task file and parse SECTIONS
+  // fetch task file and parse SECTIONS (bracket-counting to handle nested arrays)
   try {
     const res = await fetch(t.file)
     const html = await res.text()
-    const match = html.match(/const SECTIONS\s*=\s*(\[[\s\S]*?\])/)
-    if (match) {
-      const sections = new Function('return ' + match[1])()
+    const declIdx = html.search(/const SECTIONS\s*=\s*\[/)
+    if (declIdx !== -1) {
+      const arrStart = html.indexOf('[', declIdx)
+      let depth = 0, i = arrStart
+      while (i < html.length) {
+        if (html[i] === '[') depth++
+        else if (html[i] === ']') { depth--; if (depth === 0) break }
+        i++
+      }
+      const arrStr = html.slice(arrStart, i + 1)
+      const sections = new Function('return ' + arrStr)()
       return withExtra(sections)
     }
   } catch(e) {}
