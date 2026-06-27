@@ -196,6 +196,29 @@ BUG-002 — ...
 
 3. Summary: ✅ Pass: X  ❌ Fail: X  ⏭ Skip: X · Fail: TC-001, TC-005...
 
+## Retest Flow (Round 2 — เฉพาะ TC ที่ FAIL)
+
+Trigger: `retest task {NUMBER} project {NAME} sprint {N}`
+
+### ขั้นตอน
+```
+1. Dev    → อ่าน FAIL TCs จาก {PROJECT}/Sprint-{N}/bug-reports.md
+2. Dev    → อ่าน snapshot YAML: screenshots/task-{NUMBER}-TC{ID}-fail-snapshot.yml
+            + TC steps จาก SECTIONS ใน task-{NUMBER}.html
+3. Dev    → เขียน tests/retest_task_{NUMBER}.py (1 test function ต่อ FAIL TC)
+4. Tester → รัน: pytest tests/retest_task_{NUMBER}.py -v
+5. ผล Pass → อัปเดต localStorage ใน QA page (TC status = Pass)
+   ผล Fail → ยังเป็น Fail → ส่ง Taiga รอบ 2
+```
+
+### Input ที่ Dev ต้องการ
+- `{PROJECT}/Sprint-{N}/bug-reports.md` — รายการ FAIL + Actual result
+- `screenshots/task-{NUMBER}-TC{ID}-fail-snapshot.yml` — element tree ณ ตอน fail
+- SECTIONS ใน `task-{NUMBER}.html` — TC steps/expected
+
+### Output
+- `tests/retest_task_{NUMBER}.py` — pytest script ทดสอบเฉพาะ FAIL TCs
+
 ## Regenerate Task (อัปเดต UI จาก template ใหม่)
 
 When I say `regenerate task {NUMBER} project {NAME} sprint {N}`:
