@@ -36,10 +36,7 @@ qa-tester/
 ```
 
 ## When I Give a Task
-Command format: `task {NUMBER} project {NAME} sprint {N} [url {TASK_URL}] [playwright]`
-
-- ไม่ระบุ `playwright` → สร้าง HTML + deploy เท่านั้น
-- ระบุ `playwright` → สร้าง HTML + เขียน `tests/test_task_{NUMBER}.py` + รัน + deploy
+Command format: `task {NUMBER} project {NAME} sprint {N} [url {TASK_URL}]`
 
 ### ถ้าไม่มี AC หรือ Test Cases
 ถ้าฉันส่งแค่ task number + project + sprint โดยไม่มี AC ให้สร้าง task file แบบ **dynamic TC** โดย:
@@ -177,6 +174,7 @@ This is auto-generated — no manual change needed. Just make sure `id` fields i
 | ai-cc | AI CC | ai-cc | `https://boards.intelligent-bytes.com/project/ai-cc/task/` |
 | football | Football Stat | football-stat | `https://boards.intelligent-bytes.com/project/football-stat/task/` |
 | movie | Movie Finder | movie-search | `https://boards.intelligent-bytes.com/project/movie-search/task/` |
+| movie-bo | Movie Finder (Backoffice) | movie-search | `https://backoffice-movie-finder-dev.server-18.com` |
 
 - When I give task number → look up project id in registry above → fetch `{Base URL}{NUMBER}`
 - If project id ไม่อยู่ใน registry และไม่มี `url` → ถามก่อนเสมอ
@@ -240,18 +238,54 @@ When I say `send bugs task {NUMBER}`:
 - **ส่ง comment**: `PATCH /api/v1/tasks/{TASK_ID}` with `{ version, comment }` → แสดงใน Comments tab ของ board
 - **History endpoint**: ใช้ singular (`/history/task/`, `/history/userstory/`) ไม่ใช่ plural
 
-### .env required (วางไว้ใน qa-tester/)
+### Credentials
+
+**`.env`** — เก็บเฉพาะ Taiga + Firebase credentials
 ```
 TAIGA_URL=https://boards.intelligent-bytes.com
 TAIGA_USERNAME=your_username
 TAIGA_PASSWORD=your_password
 ```
 
+**`apps.json`** — เก็บ credentials ของทุก app ที่ทดสอบ (ห้าม commit — อยู่ใน .gitignore)
+```json
+{
+  "apps": {
+    "hrfi": {
+      "name": "HR & Finance",
+      "base_url": "https://hr-stg.intelligent-bytes.com",
+      "login_url": "https://hr-stg.intelligent-bytes.com",
+      "username": "...",
+      "password": "...",
+      "otp_via": "django_admin",
+      "admin_url": "https://api-stg.intelligent-bytes.com/admin/",
+      "admin_username": "...",
+      "admin_password": "...",
+      "taiga_slug": "hrfi"
+    },
+    "boost": { "name": "Boost Fitness", "base_url": "...", "taiga_slug": "boostfitness" },
+    "movie": { "name": "Movie Finder", "base_url": "...", "backoffice_url": "...", "taiga_slug": "movie-search" }
+  }
+}
+```
+เมื่อต้องการ login app ใด → อ่าน `apps.json` แล้ว lookup ด้วย project key (เช่น `hrfi`, `boost`, `movie`)
+
 ### Flow ทั้งหมด
 ```
-1. task 403 project HR sprint 5        → สร้าง task-403.html
-2. ตรวจใน browser                       → คลิก Pass/Fail/Skip
-3. กด "สรุป Bug Report"                 → เห็น Fail ทั้งหมด (Precondition/Steps/Expected/Actual + รูป)
-4. กด "📤 ส่งไป Taiga"                 → browser ส่งตรง (หรือดาวน์โหลด JSON ถ้า CORS block)
-5. [ถ้า CORS] send bugs task 403        → Claude Code รัน script ส่ง comment เข้า Taiga
+1. AC Reader  → อ่าน AC จาก Taiga board
+2. TC Writer  → สร้าง TC JSON จาก AC
+3. Dev        → สร้าง task-{NUMBER}.html + อัปเดต tasks.json + deploy Firebase
+4. Tester     → เปิด 2 tabs ด้วย playwright-cli:
+               Tab 1: App staging (hr-stg / app ที่ทดสอบ)
+               Tab 2: QA standalone URL
+                 https://qa-tester-f005d.web.app/index.html?p={projectId}&s={sprintId}&standalone=1#task={taskId}
+                 login: admin@qa-tester.test / Admin@1234
+5. Tester     → รัน TC ทีละข้อ:
+               PASS  → screenshot → กด Pass ใน Tab 2
+               FAIL  → zoom element → screenshot
+                        → curl upload imgbb → ได้ URL
+                        → playwright-cli eval set localStorage note + รูป
+                        → reload ตรวจรูปยังอยู่ → กด Fail ใน Tab 2
+               SKIP  → ระบุเหตุผล → กด Skip
+6-7. (TBD)
 ```
