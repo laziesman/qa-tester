@@ -364,6 +364,12 @@
             "title": "4.1.7.7 Publish — draft/publish ระดับวัน (หลายกะ)",
             "file": "HR/Sprint-6/task-460.html",
             "storageKey": "qa_task_460"
+          },
+          {
+            "id": "455-poc",
+            "title": "[POC] 4.1.7.2 ตั้งค่าจำนวนกะสูงสุดต่อวัน",
+            "file": "HR/Sprint-6/task-455-poc.html",
+            "storageKey": "qa_task_455_poc"
           }
         ]
       }
