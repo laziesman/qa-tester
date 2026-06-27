@@ -78,7 +78,7 @@
 #### ถ้า SKIP
 - ระบุเหตุผลใน Actual result ก่อนกด Skip
 
-### 3. กฎการใช้ agent-browser
+### 3. กฎการใช้ playwright-cli
 - **snapshot ก่อนคลิกเสมอ** — ได้ ref ล่าสุดก่อน interact
 - **scroll into view** ก่อนคลิก element ที่อาจอยู่นอกหน้าจอ
 - **ถ่ายรูปก่อน FAIL เสมอ** — zoom เข้า element ที่มีปัญหาก่อน
