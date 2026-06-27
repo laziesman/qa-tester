@@ -40,9 +40,14 @@
 - สลับไป Tab 2 → กด **Pass**
 
 #### ถ้า FAIL
-1. **Zoom เข้า element ที่มีปัญหาก่อน** แล้วถ่ายรูป → บันทึกไว้ที่ `screenshots/task-{NUMBER}-TC{ID}-fail-{desc}.png`
-2. สลับไป Tab 2 → กด **Fail**
-3. **บันทึก Actual result + รูป ด้วย 3 ขั้นตอนนี้เสมอ:**
+1. **Save snapshot ก่อนออกจาก step ที่ fail** — เพื่อให้ dev เขียน retest .py ได้:
+   ```bash
+   cp .playwright-cli/$(ls -t .playwright-cli/*.yml | head -1 | xargs basename) \
+      screenshots/task-{NUMBER}-TC{ID}-fail-snapshot.yml
+   ```
+2. **Zoom เข้า element ที่มีปัญหาก่อน** แล้วถ่ายรูป → บันทึกไว้ที่ `screenshots/task-{NUMBER}-TC{ID}-fail-{desc}.png`
+3. สลับไป Tab 2 → กด **Fail**
+4. **บันทึก Actual result + รูป ด้วย 3 ขั้นตอนนี้เสมอ:**
 
    **ขั้น A — Upload รูปไป imgbb ผ่าน bash:**
    ```bash
