@@ -86,17 +86,22 @@
 - **App crash / error ร้ายแรง** → บันทึก FAIL + แจ้ง PM ทันที หยุดรัน TC ถัดไป
 - **TC นี้ block TC ถัดไป** → Skip TC ที่ขึ้นกับมัน พร้อมระบุเหตุผล
 
-### 5. Output — ส่งผลให้ Reporter
-หลังรันครบทุก TC:
+### 5. ส่ง Bug Report ไป Taiga
+หลังรันครบทุก TC — ยังอยู่ใน Tab 2 (QA page):
+1. กด **"สรุป Bug Report"** → ตรวจ Fail list ครบถ้วน
+2. กด **"📤 ส่งไป Taiga"** → ระบบส่ง comment เข้า Taiga
+3. [ถ้า CORS block] → ไฟล์ `bug-report-{NUMBER}.json` จะถูก download อัตโนมัติ → รัน:
+   ```bash
+   python scripts/send_to_taiga.py bug-report-{NUMBER}.json
+   ```
+4. Confirm: "✅ ส่ง X bugs ไปที่ task #{NUMBER} แล้วครับ"
+
+### 6. Output summary
 ```
 TASK: {NUMBER}
 ✅ Pass: {จำนวน} — TC-001, TC-002, ...
 ❌ Fail: {จำนวน} — TC-006, TC-007, ...
 ⏭ Skip: {จำนวน} — TC-008 (เหตุผล), ...
-
-FAIL details:
-- TC-006: {Actual result}
-- TC-007: {Actual result}
 ```
 
 ## กฎ

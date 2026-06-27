@@ -287,5 +287,8 @@ TAIGA_PASSWORD=your_password
                         → playwright-cli eval set localStorage note + รูป
                         → reload ตรวจรูปยังอยู่ → กด Fail ใน Tab 2
                SKIP  → ระบุเหตุผล → กด Skip
-6-7. (TBD)
+6. Tester     → กด "สรุป Bug Report" ใน Tab 2 (playwright-cli click)
+7. Tester     → กด "📤 ส่งไป Taiga" (playwright-cli click)
+               [ถ้า CORS block] → download bug-report-{NUMBER}.json
+                                → รัน: python scripts/send_to_taiga.py bug-report-{NUMBER}.json
 ```
