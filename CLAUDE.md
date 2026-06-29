@@ -202,22 +202,40 @@ Trigger: `retest task {NUMBER} project {NAME} sprint {N}`
 
 ### ขั้นตอน
 ```
-1. Dev    → อ่าน FAIL TCs จาก {PROJECT}/Sprint-{N}/bug-reports.md
-2. Dev    → อ่าน snapshot YAML: screenshots/task-{NUMBER}-TC{ID}-fail-snapshot.yml
-            + TC steps จาก SECTIONS ใน task-{NUMBER}.html
-3. Dev    → เขียน tests/retest_task_{NUMBER}.py (1 test function ต่อ FAIL TC)
-4. Tester → รัน: pytest tests/retest_task_{NUMBER}.py -v
-5. ผล Pass → อัปเดต localStorage ใน QA page (TC status = Pass)
-   ผล Fail → ยังเป็น Fail → ส่ง Taiga รอบ 2
+1. Dev    → เขียน retest/task-{NUMBER}-TC{ID}.yaml สำหรับแต่ละ FAIL TC
+            จาก: snapshot YAML + TC steps + Actual result
+2. Tester → อ่าน YAML → รัน steps ผ่าน playwright-cli
+3. ผล PASS → append Actual result ใน QA page:
+             "[Round 1] ... (เดิม)
+              [Retest {DATE}] ผ่านแล้ว ✅"
+             → กด Pass (status เปลี่ยน)
+   ผล FAIL → append "[Retest {DATE}] ยังไม่ผ่าน — {Actual}"
+             → กด Fail
+4. Tester → กด "สรุป Bug Report" → "📤 ส่งไป Taiga"
+            → Taiga comment ใหม่มี history ทั้ง Round 1 + Retest
+```
+
+### YAML story format (Dev เขียน)
+```yaml
+name: "TC-{ID} {ชื่อ TC}"
+url: {URL หน้าที่ทดสอบ}
+credentials: {project key เช่น hrfi}
+steps:
+  - {ขั้นตอน 1}
+  - {ขั้นตอน 2}
+  - ตรวจว่า {expected result}
+expected: {ผลที่ควรได้}
+qa_task: qa_task_{NUMBER}
+tc_id: TC-{ID}
 ```
 
 ### Input ที่ Dev ต้องการ
-- `{PROJECT}/Sprint-{N}/bug-reports.md` — รายการ FAIL + Actual result
 - `screenshots/task-{NUMBER}-TC{ID}-fail-snapshot.yml` — element tree ณ ตอน fail
 - SECTIONS ใน `task-{NUMBER}.html` — TC steps/expected
+- Actual result จาก QA page — บริบทของ bug
 
 ### Output
-- `tests/retest_task_{NUMBER}.py` — pytest script ทดสอบเฉพาะ FAIL TCs
+- `retest/task-{NUMBER}-TC{ID}.yaml` — YAML story สำหรับ Tester รัน
 
 ## Regenerate Task (อัปเดต UI จาก template ใหม่)
 

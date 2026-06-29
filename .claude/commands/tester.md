@@ -62,10 +62,11 @@
    (() => {
      const raw = localStorage.getItem('qa_task_{NUMBER}');
      const data = JSON.parse(raw);
-     data['TC-{ID}'].note = 'ข้อความ Actual result<br><img src="{IMGBB_URL}">';
+     data['TC-{ID}'].note = '[Round 1] ข้อความ Actual result<br><img src="{IMGBB_URL}">';
      localStorage.setItem('qa_task_{NUMBER}', JSON.stringify(data));
    })()
    ```
+   > ใส่ `[Round 1]` นำหน้า Actual result เสมอ — เพื่อให้ retest append ต่อได้ชัดเจน
 
    **ขั้น C — Reload หน้า:**
    ```javascript
