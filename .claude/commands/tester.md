@@ -19,19 +19,34 @@
 ## ขั้นตอน
 
 ### 1. เตรียม browser
-เปิด 3 tabs:
-- **Tab 1** — App ที่ทดสอบ (hr-stg) → login username/password → **หยุดรอหน้า OTP**
-- **Tab 2** — Django admin (`admin_url` จาก apps.json) → login admin → ดึง OTP จาก TOTP device
-- **Tab 3** — QA page (standalone URL) สำหรับบันทึกผล
+เปิด 2 tabs:
+- **Tab 1** — App ที่ทดสอบ (hr-stg) → login username/password → **หยุดรอหน้า OTP (อย่า navigate ออก)**
+- **Tab 2** — QA page (standalone URL) สำหรับบันทึกผล
   ```
   https://qa-tester-f005d.web.app/index.html?p={projectId}&s={sprintId}&standalone=1#task={taskId}
   ```
   login ด้วย `admin@qa-tester.test / Admin@1234`
 
-**OTP flow:**
-1. Tab 1: กรอก username/password → submit → หน้า OTP ปรากฏ (อย่า navigate ออก)
-2. Tab 2 (ใหม่): เปิด Django admin → login → หา OTP/TOTP ของ user นั้น → copy OTP
-3. Tab 1: กลับมา → กรอก OTP → submit → login สำเร็จ
+**OTP flow (ใช้ curl — ไม่ต้องสลับ tab):**
+```bash
+# Step 1: Login Django admin แล้วเก็บ cookie (ทำครั้งเดียวต่อ session)
+CSRF=$(curl -s -c /tmp/hr-admin.txt "https://api-stg.intelligent-bytes.com/admin/login/" \
+  | grep -o 'csrfmiddlewaretoken" value="[^"]*"' | sed 's/.*value="//;s/"//')
+COOKIE=$(grep csrftoken /tmp/hr-admin.txt | awk '{print $NF}')
+curl -s -c /tmp/hr-admin.txt -b "csrftoken=$COOKIE" \
+  -X POST "https://api-stg.intelligent-bytes.com/admin/login/" \
+  -H "Referer: https://api-stg.intelligent-bytes.com/admin/login/" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "csrfmiddlewaretoken=${CSRF}&username=admin&password=Admin%401234&next=%2Fadmin%2F" \
+  -L -o /dev/null
+
+# Step 2: ดึง OTP ล่าสุด
+OTP=$(curl -s -b /tmp/hr-admin.txt \
+  "https://api-stg.intelligent-bytes.com/admin/accounts/userotp/?o=-5" \
+  | grep -o 'data-label="otp code">[^<]*' | head -1 | grep -o '[0-9]*')
+echo $OTP
+```
+→ ได้ OTP เป็นตัวเลข 6 หลัก → กรอกใน Tab 1 ทันที
 
 ### 2. รัน test ทีละ TC
 สำหรับแต่ละ TC:
