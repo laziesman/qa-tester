@@ -19,13 +19,19 @@
 ## ขั้นตอน
 
 ### 1. เตรียม browser
-เปิด 2 tabs ควบคู่กัน:
-- **Tab 1** — App ที่ทดสอบ (hr-stg)
-- **Tab 2** — QA page (standalone URL) สำหรับบันทึกผล
+เปิด 3 tabs:
+- **Tab 1** — App ที่ทดสอบ (hr-stg) → login username/password → **หยุดรอหน้า OTP**
+- **Tab 2** — Django admin (`admin_url` จาก apps.json) → login admin → ดึง OTP จาก TOTP device
+- **Tab 3** — QA page (standalone URL) สำหรับบันทึกผล
   ```
   https://qa-tester-f005d.web.app/index.html?p={projectId}&s={sprintId}&standalone=1#task={taskId}
   ```
-  login ด้วย `admin@qa-tester.test / Admin@1234` ถ้ายังไม่ได้ login
+  login ด้วย `admin@qa-tester.test / Admin@1234`
+
+**OTP flow:**
+1. Tab 1: กรอก username/password → submit → หน้า OTP ปรากฏ (อย่า navigate ออก)
+2. Tab 2 (ใหม่): เปิด Django admin → login → หา OTP/TOTP ของ user นั้น → copy OTP
+3. Tab 1: กลับมา → กรอก OTP → submit → login สำเร็จ
 
 ### 2. รัน test ทีละ TC
 สำหรับแต่ละ TC:
