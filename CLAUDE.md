@@ -235,7 +235,7 @@ tc_id: TC-{ID}
 - Actual result จาก QA page — บริบทของ bug
 
 ### Output
-- `retest/task-{NUMBER}-TC{ID}.yaml` — YAML story สำหรับ Tester รัน
+- `{PROJECT}/Sprint-{N}/retest/task-{NUMBER}-TC{ID}.yaml` — YAML story สำหรับ Tester รัน
 
 ## Regenerate Task (อัปเดต UI จาก template ใหม่)
 
