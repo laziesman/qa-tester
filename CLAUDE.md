@@ -209,8 +209,8 @@ Trigger: `retest task {NUMBER} project {NAME} sprint {N}`
              "[Round 1] ... (เดิม)
               [Retest {DATE}] ผ่านแล้ว ✅"
              → กด Pass (status เปลี่ยน)
-   ผล FAIL → append "[Retest {DATE}] ยังไม่ผ่าน — {Actual}"
-             → กด Fail
+   ผล FAIL → append "[Retest {DATE}] ยังไม่ผ่าน — {Actual}" ใน localStorage
+             → **ไม่ต้องกดปุ่ม Fail ซ้ำ** (TC เป็น Fail อยู่แล้ว กดซ้ำจะ toggle เป็น Pending)
 4. Tester → กด "สรุป Bug Report" → "📤 ส่งไป Taiga"
             → Taiga comment ใหม่มี history ทั้ง Round 1 + Retest
 ```

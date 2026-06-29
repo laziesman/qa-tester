@@ -97,6 +97,8 @@ echo $OTP
 
    > ⚠️ ห้ามใช้ `innerHTML =` หรือ `appendChild` + `dispatchEvent` กับ contenteditable โดยตรง — ไม่ save ครับ ใช้ localStorage write เท่านั้น
 
+   > **Retest (Round 2+):** ถ้า TC เป็น Fail อยู่แล้วและยัง Fail → แค่ append Actual result ใน localStorage แล้วจบ **ห้ามกดปุ่ม Fail ซ้ำ** — กดซ้ำจะ toggle เป็น Pending แทน
+
 #### ถ้า SKIP
 - ระบุเหตุผลใน Actual result ก่อนกด Skip
 
