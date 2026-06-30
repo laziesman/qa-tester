@@ -22,7 +22,7 @@ def load_admin_creds():
 def get_otp(username_filter=None):
     admin_url, admin_user, admin_pass = load_admin_creds()
     login_url = admin_url.rstrip("/") + "/login/"
-    otp_url   = admin_url.rstrip("/") + "/accounts/userotp/?o=-5"
+    otp_url   = admin_url.rstrip("/") + "/accounts/userotp/?o=-7"
 
     s = requests.Session()
     r = s.get(login_url)
