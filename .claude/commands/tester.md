@@ -19,28 +19,36 @@
 
 **ลอง load session ที่บันทึกไว้ก่อนเสมอ:**
 ```
-state_load hr-session
+state_load /home/work/.agent-browser/sessions/hr-session
+navigate → https://hr-stg.intelligent-bytes.com/dashboard
 ```
-→ navigate ไป hr-stg แล้วเช็คว่า logged in อยู่ไหม (มีชื่อ user / dashboard)
-- **ถ้า logged in** → ข้ามไป step เปิด Tab 2 เลย ไม่ต้องทำ OTP
-- **ถ้าไม่ได้ login / session หมด** → ทำ login flow ด้านล่าง
+→ ถ้า URL ยังอยู่ที่ /dashboard (ไม่ redirect ไป /login) → logged in อยู่ → ข้ามไป Tab 2 เลย
+
+- **ถ้า logged in** → เปิด Tab 2 เลย ไม่ต้อง OTP
+- **ถ้า redirect ไป /login** → ทำ login flow ด้านล่าง
 
 **Login flow (ทำเมื่อ session หมดเท่านั้น):**
 ```
-Tab 1 → เปิด hr-stg → กรอก username/password → submit
-       → หน้า OTP โผล่ → หยุดรอ (อย่า navigate ออก)
+1. navigate → https://hr-stg.intelligent-bytes.com/login
+2. fill username: admin, password: Admin@1234
+3. click เข้าสู่ระบบ → รอหน้า OTP โผล่ (อย่า navigate ออก)
+4. รัน bash ทันที:
 ```
-
-ดึง OTP ด้วย Python (bash คนละ process — ไม่กระทบ browser):
 ```bash
 python3 scripts/get_otp.py
 ```
-→ ได้ตัวเลข 6 หลัก → กรอกใน Tab 1 ทันที → login สำเร็จ
+```
+5. click box แรก (e14) → keyboard_type OTP 6 หลัก
+6. snapshot ตรวจปุ่ม ยืนยัน enabled → click ยืนยัน
+7. รอ redirect → /dashboard
+8. บันทึก session:
+```
+```
+state_save /home/work/.agent-browser/sessions/hr-session
+```
 
-บันทึก session ทันทีหลัง login ผ่าน:
-```
-state_save hr-session
-```
+> ⚠️ `get_otp.py` ต้องรัน **หลัง** submit login ทันที — OTP ใหม่สร้างตอน submit เท่านั้น
+> ⚠️ ใช้ `keyboard_type` ไม่ใช่ `fill` — OTP boxes ต้องการ real key events ถึงจะ enable ปุ่ม ยืนยัน
 
 เปิด Tab 2 — QA page:
 ```
