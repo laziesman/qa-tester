@@ -11,42 +11,42 @@
 - TC ทั้งหมดจาก JSON (รู้ว่าต้องทดสอบอะไรบ้าง)
 
 ## Credentials
-อ่านจาก `.env` อัตโนมัติ:
-- `HR_APP_URL` — URL ของ app ที่ทดสอบ
-- `HR_USERNAME` / `HR_PASSWORD` — login credentials
-- ถ้า session หมด → login ใหม่เองจาก credentials ใน `.env` ห้ามถาม PM
+อ่านจาก `apps.json` key `hrfi` อัตโนมัติ — ห้ามถาม PM
 
 ## ขั้นตอน
 
 ### 1. เตรียม browser
-เปิด 2 tabs:
-- **Tab 1** — App ที่ทดสอบ (hr-stg) → login username/password → **หยุดรอหน้า OTP (อย่า navigate ออก)**
-- **Tab 2** — QA page (standalone URL) สำหรับบันทึกผล
-  ```
-  https://qa-tester-f005d.web.app/index.html?p={projectId}&s={sprintId}&standalone=1#task={taskId}
-  ```
-  login ด้วย `admin@qa-tester.test / Admin@1234`
 
-**OTP flow (ใช้ curl — ไม่ต้องสลับ tab):**
-```bash
-# Step 1: Login Django admin แล้วเก็บ cookie (ทำครั้งเดียวต่อ session)
-CSRF=$(curl -s -c /tmp/hr-admin.txt "https://api-stg.intelligent-bytes.com/admin/login/" \
-  | grep -o 'csrfmiddlewaretoken" value="[^"]*"' | sed 's/.*value="//;s/"//')
-COOKIE=$(grep csrftoken /tmp/hr-admin.txt | awk '{print $NF}')
-curl -s -c /tmp/hr-admin.txt -b "csrftoken=$COOKIE" \
-  -X POST "https://api-stg.intelligent-bytes.com/admin/login/" \
-  -H "Referer: https://api-stg.intelligent-bytes.com/admin/login/" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "csrfmiddlewaretoken=${CSRF}&username=admin&password=Admin%401234&next=%2Fadmin%2F" \
-  -L -o /dev/null
-
-# Step 2: ดึง OTP ล่าสุด
-OTP=$(curl -s -b /tmp/hr-admin.txt \
-  "https://api-stg.intelligent-bytes.com/admin/accounts/userotp/?o=-5" \
-  | grep -o 'data-label="otp code">[^<]*' | head -1 | grep -o '[0-9]*')
-echo $OTP
+**ลอง load session ที่บันทึกไว้ก่อนเสมอ:**
 ```
-→ ได้ OTP เป็นตัวเลข 6 หลัก → กรอกใน Tab 1 ทันที
+state_load hr-session
+```
+→ navigate ไป hr-stg แล้วเช็คว่า logged in อยู่ไหม (มีชื่อ user / dashboard)
+- **ถ้า logged in** → ข้ามไป step เปิด Tab 2 เลย ไม่ต้องทำ OTP
+- **ถ้าไม่ได้ login / session หมด** → ทำ login flow ด้านล่าง
+
+**Login flow (ทำเมื่อ session หมดเท่านั้น):**
+```
+Tab 1 → เปิด hr-stg → กรอก username/password → submit
+       → หน้า OTP โผล่ → หยุดรอ (อย่า navigate ออก)
+```
+
+ดึง OTP ด้วย Python (bash คนละ process — ไม่กระทบ browser):
+```bash
+python3 scripts/get_otp.py
+```
+→ ได้ตัวเลข 6 หลัก → กรอกใน Tab 1 ทันที → login สำเร็จ
+
+บันทึก session ทันทีหลัง login ผ่าน:
+```
+state_save hr-session
+```
+
+เปิด Tab 2 — QA page:
+```
+https://qa-tester-f005d.web.app/index.html?p={projectId}&s={sprintId}&standalone=1#task={taskId}
+```
+login ด้วย `admin@qa-tester.test / Admin@1234`
 
 ### 2. รัน test ทีละ TC
 สำหรับแต่ละ TC:
