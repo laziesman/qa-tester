@@ -252,6 +252,12 @@
             "storageKey": "qa_task_435"
           },
           {
+            "id": "436",
+            "title": "4.4.4 ประวัติการ Publish (Publish History)",
+            "file": "HR/Sprint-6/task-436.html",
+            "storageKey": "qa_task_436"
+          },
+          {
             "id": "438",
             "title": "5.1.1 ค้นหาสถานที่ทำงาน",
             "file": "HR/Sprint-6/task-438.html",

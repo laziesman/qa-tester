@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 436 — 4.4.4 ประวัติการ Publish (Publish History)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pass:#22c55e;--fail:#ef5350;--skip:#eab308;--pending:#cbd5e1;
+  --pass-soft:#dcfce7;--fail-soft:#fee2e2;--skip-soft:#fef9c3;
+  --bg:#ffffff;--canvas:#f7f8fa;--panel:#fbfbfc;--panel2:#f1f3f7;
+  --line:#ececf0;--line2:#e2e4ea;
+  --text:#16181d;--dim:#5a606b;--faint:#9499a3;
+  --accent:#4f6ef7;--accent-soft:#eef2ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun','Inter',system-ui,sans-serif;background:var(--canvas);color:var(--text);font-size:14.5px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+.num{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+.shell{width:100%;max-width:1040px;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px var(--line)}
+
+.topbar{background:var(--bg);padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line)}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:12px;color:var(--faint);white-space:nowrap}
+.task-link{font-size:12px;color:var(--dim);text-decoration:none;border:1px solid var(--line2);border-radius:5px;padding:4px 10px;background:var(--panel2);white-space:nowrap;transition:color 0.12s,border-color 0.12s}
+.task-link:hover{color:var(--accent);border-color:var(--accent)}
+
+.stats-bar{background:var(--panel);border-bottom:1px solid var(--line);padding:8px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600}
+.pl-pass{background:var(--pass-soft);color:#15803d}
+.pl-fail{background:var(--fail-soft);color:#b91c1c}
+.pl-skip{background:var(--skip-soft);color:#854d0e}
+.pl-pend{background:var(--panel2);color:var(--faint)}
+.pl-retest{background:#fef3c7;color:#92400e}
+
+.body{background:var(--canvas);padding:14px 18px 20px}
+.section-hd{font-size:10px;font-weight:700;color:var(--faint);letter-spacing:0.08em;padding:14px 0 6px;text-transform:uppercase}
+.section-hd:first-child{padding-top:4px}
+
+.tc-row{background:var(--bg);border:1px solid var(--line);border-left:3px solid transparent;border-radius:8px;padding:9px 11px;margin-bottom:5px;transition:border-color 0.1s,background 0.1s}
+.tc-row.s-pass{border-left-color:var(--pass);background:var(--pass-soft)}
+.tc-row.s-fail{border-left-color:var(--fail);background:var(--fail-soft)}
+.tc-row.s-skip{border-left-color:var(--skip);background:var(--skip-soft)}
+.tc-row.s-retest{border-left-color:#f59e0b;background:#fef3c7}
+.tc-top{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center}
+.tc-id{font-size:12px;color:var(--faint);font-family:'IBM Plex Mono',monospace}
+.tc-name{font-size:14px;color:var(--text);font-weight:500;line-height:1.4}
+.tc-btns{display:flex;gap:3px;flex-shrink:0}
+.tbtn{font-size:12px;padding:3px 8px;border-radius:4px;border:1px solid var(--line2);background:var(--bg);color:var(--dim);cursor:pointer;transition:all 0.1s;font-family:inherit}
+.tbtn:hover{background:var(--panel2);border-color:var(--line2)}
+.tbtn.ap{background:var(--pass-soft);color:#15803d;border-color:#86efac}
+.tbtn.af{background:var(--fail-soft);color:#b91c1c;border-color:#fca5a5}
+.tbtn.as{background:var(--skip-soft);color:#854d0e;border-color:#fde047}
+.tc-toggle{font-size:12px;color:var(--faint);cursor:pointer;margin-top:5px;display:inline-flex;align-items:center;gap:3px;user-select:none}
+.tc-toggle:hover{color:var(--dim)}
+
+.tc-detail{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);display:none}
+.tc-detail.open{display:block}
+.detail-label{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:3px;margin-top:8px}
+.detail-label:first-child{margin-top:0}
+.detail-val{font-size:13px;color:var(--dim);line-height:1.6}
+
+.actual-editor{min-height:72px;border:1px solid var(--line2);border-radius:6px;padding:7px 9px;font-size:13px;color:var(--text);background:var(--bg);outline:none;line-height:1.6;font-family:inherit}
+.actual-editor:focus{border-color:var(--accent)}
+.actual-editor img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+.actual-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:var(--faint);pointer-events:none}
+.save-row{display:flex;justify-content:flex-end;margin-top:5px}
+.save-btn{font-size:12px;padding:4px 12px;border-radius:5px;border:1px solid var(--line2);background:var(--accent);color:#fff;cursor:pointer;font-family:inherit}
+.save-btn:hover{background:#3d5ce5}
+
+.bottom-bar{display:flex;gap:8px;padding:11px 18px;background:var(--bg);border-top:1px solid var(--line)}
+.abtn{font-size:13px;padding:7px 14px;border-radius:6px;border:1px solid var(--line2);background:var(--panel2);color:var(--dim);cursor:pointer;transition:background 0.1s;font-family:inherit}
+.abtn:hover{background:var(--line2)}
+.abtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.abtn.primary:hover{background:#3d5ce5}
+.abtn.send{background:#0369a1;color:#fff;border-color:#0369a1}
+.abtn.send:hover{background:#0284c7}
+
+.bug-out{display:none;padding:0 18px 20px;background:var(--canvas)}
+.bug-out.open{display:block}
+.bug-section-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;padding-top:4px}
+.bug-item{border:1px solid #fca5a5;background:var(--fail-soft);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.bug-item:last-child{margin-bottom:0}
+.bug-id{font-size:12px;color:#b91c1c;font-weight:600;margin-bottom:5px}
+.bug-line{font-size:13px;color:var(--dim);line-height:1.7}
+.bug-line b{color:var(--faint);font-weight:600}
+.no-fail{font-size:14px;color:#15803d;background:var(--pass-soft);border-radius:8px;padding:10px 14px;display:inline-block;border:1px solid #86efac}
+.bug-actual-content{font-size:13px;color:var(--dim);line-height:1.6;margin-top:2px;padding-left:16px}
+.bug-actual-content img{max-width:100%;border-radius:4px;display:block;margin:4px 0;cursor:zoom-in}
+
+.lb-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(255,255,255,0.25)}
+
+.send-progress{position:fixed;bottom:24px;right:24px;z-index:9998;background:var(--text);color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;min-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.15);line-height:1.6}
+.send-progress-title{font-weight:600;margin-bottom:6px}
+.send-step{color:rgba(255,255,255,0.4);font-size:12px}
+.send-step.done{color:#4ade80}
+.send-step.active{color:#fff}
+.send-step.err{color:#fca5a5}
+.del-btn{color:#b91c1c;border-color:#fca5a5;background:var(--fail-soft)}
+.del-btn:hover{background:#fecaca;border-color:#f87171}
+.add-tc-btn{display:block;width:100%;padding:10px;border:1px dashed var(--line2);border-radius:8px;background:transparent;color:var(--faint);cursor:pointer;font-size:13px;margin-top:6px;transition:all 0.15s;font-family:inherit}
+.add-tc-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.extra-hd{font-size:10px;font-weight:700;color:var(--faint);letter-spacing:0.08em;padding:18px 0 6px;text-transform:uppercase;border-top:1px solid var(--line);margin-top:12px}
+.note-box{background:var(--accent-soft);border:1px solid #c7d2fe;border-radius:6px;padding:8px 11px;font-size:12px;color:var(--accent);margin-bottom:10px;line-height:1.6}
+.bug-item-retest{border:1px solid #fde68a;background:#fef3c7;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.retest-badge{font-size:11px;background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 8px;margin-left:6px;border:1px solid #fde68a}
+.bug-retest-btn{font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid #fde68a;background:transparent;color:#92400e;cursor:pointer;margin-top:8px;font-family:inherit}
+.bug-retest-btn:hover{background:#fde68a}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+	<div class="topbar-title">#436 — 4.4.4 ประวัติการ Publish (Publish History)</div>
+    <div class="topbar-meta">HR · Sprint 6</div>
+    <a class="task-link" id="task-link" href="https://boards.intelligent-bytes.com/project/hrfi/task/436" target="_blank">เปิด Board ↗</a>
+  </div>
+
+  <div class="stats-bar">
+    <span class="pill pl-pass" id="sp">Pass 0</span>
+    <span class="pill pl-fail" id="sf">Fail 0</span>
+    <span class="pill pl-retest" id="sr" style="display:none">Retest 0</span>
+    <span class="pill pl-skip" id="ss">Skip 0</span>
+    <span class="pill pl-pend" id="sn">Pending 0</span>
+    <span class="pill" style="background:rgba(255,255,255,0.05);color:rgba(248,250,252,0.4);margin-left:auto" id="st">Total 0 TC</span>
+  </div>
+
+  <div class="body">
+    <div id="tc-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="abtn" onclick="resetAll()">Reset</button>
+    <button class="abtn primary" onclick="showBugReport()">สรุป Bug Report</button>
+    <button class="abtn" id="export-btn" onclick="exportBugJSON()" style="display:none">📥 Export JSON</button>
+    <button class="abtn send" id="send-btn" onclick="sendToBoard()" style="display:none">📤 ส่งไป Taiga</button>
+  </div>
+
+  <div class="bug-out" id="bug-out">
+    <div class="bug-section-title" id="bug-title"></div>
+    <div id="bug-list"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../../lib/firebase-sync.js"></script>
+<script>
+const STORAGE_KEY = 'qa_task_436'
+const TCS_KEY = STORAGE_KEY + '_tcs'
+const TASK_URL = 'https://boards.intelligent-bytes.com/project/hrfi/task/436'
+const TASK_NUMBER = '436'
+const TASK_NAME = '4.4.4 ประวัติการ Publish (Publish History)'
+
+const SECTIONS = [
+  {
+    name: "Section 1 — Load &amp; Display History List (AC-001, AC-002)",
+    tcs: [
+      {
+        id: "TC-001",
+        name: "เปิดหน้า Publish History สำเร็จ",
+        precondition: "ผู้ใช้ login แล้ว, มี shift_publish Read permission",
+        steps: "1. Navigate ไป /shifts/publish/history\n2. รอให้ page โหลดเสร็จ\n3. ตรวจสอบการแสดงผลตาราง",
+        expected: "หน้า Publish History โหลดสำเร็จ, ตาราง history list แสดงค่า default 10 รายการต่อหน้า"
+      },
+      {
+        id: "TC-002",
+        name: "ตารางแสดง 10 รายการต่อหน้า (default)",
+        precondition: "หน้า Publish History โหลดเสร็จ, มีข้อมูลประวัติมากกว่า 10 รายการ",
+        steps: "1. เปิดหน้า Publish History\n2. นับจำนวนแถวในตาราง\n3. ตรวจสอบเลขหน้า",
+        expected: "ตาราง default แสดง 10 รายการต่อหน้า, pagination controls แสดง page 1 ของ N pages"
+      },
+      {
+        id: "TC-003",
+        name: "ประวัติเรียงจากล่าสุดก่อน (action_at descending)",
+        precondition: "หน้า Publish History โหลดเสร็จ, มีประวัติมากกว่า 1 รายการ",
+        steps: "1. เปิดหน้า Publish History\n2. ตรวจสอบคอลัมน์ action_at row แรก vs row ที่ 2 ของตาราง",
+        expected: "row แรกมี action_at = ล่าสุด (timestamp ใหญ่สุด), row ที่ 2 เก่ากว่า, เรียง descending ลงมา"
+      },
+      {
+        id: "TC-004",
+        name: "ตาราง column ครบตามต้องการ",
+        precondition: "หน้า Publish History แสดงข้อมูล",
+        steps: "1. เปิดหน้า Publish History\n2. ตรวจสอบ column headers\n3. ตรวจสอบข้อมูลในแต่ละ column",
+        expected: "ตาราง columns: ชื่อ (name/title), action (Publish/Unpublish), date (action_at), action_by (ชื่อ user), scope (COMPANY/BRANCH/DEPARTMENT/INDIVIDUAL)"
+      }
+    ]
+  },
+  {
+    name: "Section 2 — View Publish Batch History (AC-004)",
+    tcs: [
+      {
+        id: "TC-005",
+        name: "แสดงประวัติ Publish batch COMPANY scope",
+        precondition: "มีประวัติ Publish batch ที่ scope=COMPANY",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบแถวที่มี scope='COMPANY'\n3. ดูข้อมูล action, date, action_by",
+        expected: "แสดงประวัติ Publish batch COMPANY scope ด้วย action='Publish', scope='COMPANY', action_at timestamp"
+      },
+      {
+        id: "TC-006",
+        name: "แสดงประวัติ Publish batch BRANCH scope",
+        precondition: "มีประวัติ Publish batch ที่ scope=BRANCH",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบแถวที่มี scope='BRANCH'\n3. ดูข้อมูล action, date, action_by",
+        expected: "แสดงประวัติ Publish batch BRANCH scope ด้วย action='Publish', scope='BRANCH', action_at timestamp"
+      },
+      {
+        id: "TC-007",
+        name: "แสดงประวัติ Publish batch DEPARTMENT scope",
+        precondition: "มีประวัติ Publish batch ที่ scope=DEPARTMENT",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบแถวที่มี scope='DEPARTMENT'\n3. ดูข้อมูล action, date, action_by",
+        expected: "แสดงประวัติ Publish batch DEPARTMENT scope ด้วย action='Publish', scope='DEPARTMENT', action_at timestamp"
+      }
+    ]
+  },
+  {
+    name: "Section 3 — View Individual Publish/Unpublish History (AC-005, AC-006)",
+    tcs: [
+      {
+        id: "TC-008",
+        name: "แสดงประวัติ Quick Publish รายบุคคล (scope=INDIVIDUAL)",
+        precondition: "มีประวัติ Quick Publish รายบุคคล ที่ scope=INDIVIDUAL",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบแถวที่มี scope='INDIVIDUAL' และ action='Publish'\n3. ดูข้อมูล date, action_by",
+        expected: "แสดงประวัติ Quick Publish รายบุคคล ด้วย action='Publish', scope='INDIVIDUAL', action_at timestamp, ชื่อพนักงาน"
+      },
+      {
+        id: "TC-009",
+        name: "แสดงประวัติ Unpublish รายบุคคล (scope=INDIVIDUAL)",
+        precondition: "มีประวัติ Unpublish รายบุคคล ที่ scope=INDIVIDUAL",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบแถวที่มี scope='INDIVIDUAL' และ action='Unpublish'\n3. ดูข้อมูล date, action_by",
+        expected: "แสดงประวัติ Unpublish รายบุคคล ด้วย action='Unpublish', scope='INDIVIDUAL', action_at timestamp, ชื่อพนักงาน"
+      }
+    ]
+  },
+  {
+    name: "Section 4 — Exclude Draft Status (AC-007)",
+    tcs: [
+      {
+        id: "TC-010",
+        name: "History entry ที่มี status=DRAFT ไม่แสดง",
+        precondition: "มีประวัติ Publish ที่ status=DRAFT",
+        steps: "1. เปิด Publish History\n2. ตรวจสอบทั้งหมด row ในตาราง\n3. หาแถวที่ status='DRAFT'",
+        expected: "ไม่มีแถว status=DRAFT ใน Publish History table"
+      },
+      {
+        id: "TC-011",
+        name: "Filter action เลือก DRAFT ไม่มี option หรือ no result",
+        precondition: "เปิด Publish History, filter panel แสดง",
+        steps: "1. เปิด filter action dropdown\n2. ตรวจสอบ option ใน action dropdown\n3. พยายามค้นหา 'DRAFT' option",
+        expected: "DRAFT option ไม่แสดงใน action filter dropdown หรือเลือก DRAFT แล้ว no result"
+      }
+    ]
+  },
+  {
+    name: "Section 5 — Filtering (AC-003)",
+    tcs: [
+      {
+        id: "TC-012",
+        name: "Filter ด้วย action = 'Publish' สำเร็จ",
+        precondition: "Publish History แสดง, มีทั้ง Publish และ Unpublish records",
+        steps: "1. เปิด filter panel\n2. เลือก action='Publish'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ Publish records, Unpublish records ไม่แสดง"
+      },
+      {
+        id: "TC-013",
+        name: "Filter ด้วย action = 'Unpublish' สำเร็จ",
+        precondition: "Publish History แสดง, มีทั้ง Publish และ Unpublish records",
+        steps: "1. เปิด filter panel\n2. เลือก action='Unpublish'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ Unpublish records, Publish records ไม่แสดง"
+      },
+      {
+        id: "TC-014",
+        name: "Filter ด้วย date_from สำเร็จ",
+        precondition: "Publish History แสดง, มีประวัติหลายวัน",
+        steps: "1. เปิด filter panel\n2. เลือก date_from = '2026-06-15'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ action_at >= 2026-06-15"
+      },
+      {
+        id: "TC-015",
+        name: "Filter ด้วย date_to สำเร็จ",
+        precondition: "Publish History แสดง, มีประวัติหลายวัน",
+        steps: "1. เปิด filter panel\n2. เลือก date_to = '2026-06-30'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ action_at <= 2026-06-30"
+      },
+      {
+        id: "TC-016",
+        name: "Filter ด้วย action_by (ชื่อ user) สำเร็จ",
+        precondition: "Publish History แสดง, มีประวัติจาก user หลายคน",
+        steps: "1. เปิด filter panel\n2. เลือก action_by = 'John Doe'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ action ที่ action_by='John Doe'"
+      },
+      {
+        id: "TC-017",
+        name: "Filter หลายเงื่อนไขพร้อมกัน (action + date_from + date_to + action_by)",
+        precondition: "Publish History แสดง",
+        steps: "1. เปิด filter panel\n2. เลือก action='Publish', date_from='2026-06-15', date_to='2026-06-30', action_by='John Doe'\n3. กด Apply/Search\n4. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงเฉพาะ record ที่ตรงทั้ง 4 เงื่อนไข (AND logic)"
+      },
+      {
+        id: "TC-018",
+        name: "Clear filter กลับเป็น default",
+        precondition: "Filter ถูกใช้แล้ว, ตารางแสดงเฉพาะบางส่วน",
+        steps: "1. เปิด filter panel\n2. กด Clear/Reset button\n3. ตรวจสอบผลการแสดง",
+        expected: "ตารางแสดงกลับเป็น default (ทั้งหมด, เรียงจากล่าสุดก่อน)"
+      }
+    ]
+  },
+  {
+    name: "Section 6 — Sorting (Column Headers)",
+    tcs: [
+      {
+        id: "TC-019",
+        name: "Click column header action_at เรียงจากเก่าไปใหม่ (ascending)",
+        precondition: "Publish History แสดง, default เรียง descending",
+        steps: "1. คลิก action_at column header\n2. ตรวจสอบ action_at row แรก vs row สุดท้าย",
+        expected: "row แรก action_at = เก่าสุด, row สุดท้าย = ใหม่สุด (ascending)"
+      },
+      {
+        id: "TC-020",
+        name: "Click action_at header ซ้ำเรียงจากใหม่ไปเก่า (toggle descending)",
+        precondition: "Publish History เรียง ascending ตาม action_at",
+        steps: "1. คลิก action_at column header อีกครั้ง\n2. ตรวจสอบ action_at row แรก vs row สุดท้าย",
+        expected: "เปลี่ยนกลับเป็น descending, row แรก = ใหม่สุด"
+      },
+      {
+        id: "TC-021",
+        name: "Sort ด้วย action column",
+        precondition: "Publish History แสดง, มีทั้ง Publish และ Unpublish",
+        steps: "1. คลิก action column header\n2. ตรวจสอบลำดับของ Publish vs Unpublish",
+        expected: "ตารางเรียง action alphabetically (Publish ก่อน Unpublish หรือ vice versa ตามที่ระบบกำหนด)"
+      },
+      {
+        id: "TC-022",
+        name: "Sort ด้วย action_by column",
+        precondition: "Publish History แสดง, มี action_by หลายชื่อ",
+        steps: "1. คลิก action_by column header\n2. ตรวจสอบลำดับของชื่อ user",
+        expected: "ตารางเรียง action_by alphabetically (ชื่อ A-Z หรือ Z-A)"
+      }
+    ]
+  },
+  {
+    name: "Section 7 — Pagination (AC-011)",
+    tcs: [
+      {
+        id: "TC-023",
+        name: "Default 10 รายการต่อหน้า",
+        precondition: "Publish History โหลดเสร็จ, มีข้อมูลมากกว่า 10 record",
+        steps: "1. เปิดหน้า Publish History\n2. นับจำนวนแถวในตาราง",
+        expected: "ตาราง default แสดง 10 รายการต่อหน้า"
+      },
+      {
+        id: "TC-024",
+        name: "เปลี่ยนเป็น 25 รายการต่อหน้า",
+        precondition: "Pagination controls แสดง",
+        steps: "1. คลิก dropdown 'items per page'\n2. เลือก '25'\n3. นับจำนวนแถวในตาราง",
+        expected: "ตาราง update เป็น 25 รายการต่อหน้า"
+      },
+      {
+        id: "TC-025",
+        name: "เปลี่ยนเป็น 50 รายการต่อหน้า",
+        precondition: "Pagination controls แสดง",
+        steps: "1. คลิก dropdown 'items per page'\n2. เลือก '50'\n3. นับจำนวนแถวในตาราง",
+        expected: "ตาราง update เป็น 50 รายการต่อหน้า"
+      },
+      {
+        id: "TC-026",
+        name: "เปลี่ยนเป็น 100 รายการต่อหน้า (max)",
+        precondition: "Pagination controls แสดง",
+        steps: "1. คลิก dropdown 'items per page'\n2. เลือก '100'\n3. นับจำนวนแถวในตาราง",
+        expected: "ตาราง update เป็น 100 รายการต่อหน้า"
+      },
+      {
+        id: "TC-027",
+        name: "ป้อน value 150 ต้องล้มเหลว (exceed max)",
+        precondition: "Pagination dropdown อนุญาต manual input",
+        steps: "1. คลิก 'items per page' input\n2. พิมพ์ '150'\n3. ตรวจสอบ error หรือ auto-cap",
+        expected: "ระบบ reject 150 หรือ auto-cap เป็น 100 (max)"
+      },
+      {
+        id: "TC-028",
+        name: "Navigate ไปหน้า 2 ด้วย pagination controls",
+        precondition: "Publish History มีข้อมูลเกิน 10 record, page 1 แสดง",
+        steps: "1. คลิก 'Next' หรือ page '2' button\n2. ตรวจสอบข้อมูลตาราง",
+        expected: "แสดง page 2 (record 11-20), ต่างจาก page 1, pagination indicator อัปเดต"
+      },
+      {
+        id: "TC-029",
+        name: "Navigate ไปหน้าสุดท้าย (Last page)",
+        precondition: "Publish History มีข้อมูลหลายหน้า",
+        steps: "1. คลิก 'Last' button หรือ page number สุดท้าย\n2. ตรวจสอบข้อมูลตาราง",
+        expected: "แสดง last page, record count น้อยกว่า 10, 'Next' button disabled"
+      },
+      {
+        id: "TC-030",
+        name: "Navigate กลับ page 1 ด้วย 'Previous' button",
+        precondition: "ตำแหน่ง page 2 หรือ page หลัง",
+        steps: "1. คลิก 'Previous' หรือ page '1' button\n2. ตรวจสอบข้อมูลตาราง",
+        expected: "กลับเป็น page 1, record หรือ pagination indicator อัปเดต"
+      }
+    ]
+  },
+  {
+    name: "Section 8 — Export Excel (AC-008)",
+    tcs: [
+      {
+        id: "TC-031",
+        name: "Click ปุ่ม Export Excel สำเร็จ",
+        precondition: "Publish History แสดง, มีข้อมูลประวัติ",
+        steps: "1. คลิก 'Export Excel' button\n2. รอให้ไฟล์ download เสร็จ\n3. ตรวจสอบ file ใน download folder",
+        expected: "ไฟล์ Excel download สำเร็จ, ไม่มี error"
+      },
+      {
+        id: "TC-032",
+        name: "ชื่อไฟล์ Excel = 'ประวัติ Publish-YYYYMMDD.xlsx'",
+        precondition: "ไฟล์ Excel download เสร็จ",
+        steps: "1. ตรวจสอบชื่อไฟล์ใน download folder\n2. ตรวจสอบ date format (e.g., 20260701)",
+        expected: "ชื่อไฟล์ = 'ประวัติ Publish-YYYYMMDD.xlsx' (e.g., ประวัติ Publish-20260701.xlsx)"
+      },
+      {
+        id: "TC-033",
+        name: "Excel content ตรงกับข้อมูลตาราง (filter/sort เดียวกัน)",
+        precondition: "Publish History apply filter (e.g., action='Publish'), ไฟล์ Excel download เสร็จ",
+        steps: "1. เปิด Excel file\n2. นับจำนวนแถว vs ตารางใน browser\n3. ตรวจสอบ content ของแต่ละ column",
+        expected: "Excel content = ข้อมูลตาราง (รวม filter/sort ที่ apply), column headers = action, action_at, action_by, scope, ชื่อ"
+      },
+      {
+        id: "TC-034",
+        name: "Export ตารางทั้งหน้าปัจจุบัน (default = 10 records)",
+        precondition: "Publish History page 1, items per page=10, ไม่มี filter",
+        steps: "1. คลิก 'Export Excel'\n2. เปิด Excel file\n3. นับจำนวนแถว",
+        expected: "Excel export 10 records (หรือจาก items per page ปัจจุบัน) หรือทั้งหมด 10 pages?"
+      },
+      {
+        id: "TC-035",
+        name: "Export เมื่อ no data (ไม่มี history ใดเลย)",
+        precondition: "Publish History empty (no record), apply filter ที่ no result",
+        steps: "1. คลิก 'Export Excel'\n2. ตรวจสอบ error message หรือ file ที่ export",
+        expected: "ระบบแสดง warning 'ไม่มีข้อมูลให้ export' หรือ export file ว่างเปล่า"
+      }
+    ]
+  },
+  {
+    name: "Section 9 — Permission Check (AC-009)",
+    tcs: [
+      {
+        id: "TC-036",
+        name: "User มี shift_publish Read permission → เข้าดู Publish History สำเร็จ",
+        precondition: "User login ด้วย account ที่มี shift_publish Read permission",
+        steps: "1. Navigate ไป /shifts/publish/history\n2. ตรวจสอบ page โหลด",
+        expected: "Publish History page โหลดสำเร็จ, ตาราง history list แสดง"
+      },
+      {
+        id: "TC-037",
+        name: "User ไม่มี shift_publish Read permission → access denied",
+        precondition: "User login ด้วย account ที่ไม่มี shift_publish Read permission",
+        steps: "1. Navigate ไป /shifts/publish/history\n2. ตรวจสอบ page response",
+        expected: "ระบบ redirect หรือแสดง 403 Forbidden / 'ไม่มี permission' message"
+      }
+    ]
+  },
+  {
+    name: "Section 10 — Data Isolation / Scope Validation (AC-010)",
+    tcs: [
+      {
+        id: "TC-038",
+        name: "User จาก company A เห็นเฉพาะ history ของ company A",
+        precondition: "User A login ด้วย company A, มี history publish จาก company A และ B",
+        steps: "1. Navigate ไป Publish History\n2. ตรวจสอบ X-Company-ID header เทียบกับข้อมูลตารางแต่ละแถว",
+        expected: "ตารางแสดงเฉพาะ history ของ company A, company B history ไม่แสดง"
+      },
+      {
+        id: "TC-039",
+        name: "User สลับ company → history update เป็นของ company ใหม่",
+        precondition: "User login, สามารถสลับ company",
+        steps: "1. เปิด Publish History company A\n2. สลับเป็น company B\n3. ตรวจสอบข้อมูลตารางเปลี่ยน",
+        expected: "Publish History update เป็นของ company B, history company A ไม่แสดง"
+      }
+    ]
+  },
+  {
+    name: "Section 11 — Edge Cases &amp; No Data Scenarios",
+    tcs: [
+      {
+        id: "TC-040",
+        name: "ไม่มี history ใดเลย → pagination/export ต้องจัดการ",
+        precondition: "ระบบ initialize ใหม่, ไม่มี publish action ใดเลย",
+        steps: "1. Navigate ไป Publish History\n2. ตรวจสอบ pagination controls\n3. ลอง click Export Excel",
+        expected: "ตาราง empty, pagination ว่าง (page 1 of 0 หรือ disabled), export เป็น error หรือ empty file"
+      },
+      {
+        id: "TC-041",
+        name: "Filter no result → ขึ้น 'ไม่พบข้อมูล' message",
+        precondition: "Publish History มีข้อมูล, apply filter ที่ no match",
+        steps: "1. Apply filter action='Publish', date_from='2099-01-01'\n2. ตรวจสอบ page response",
+        expected: "ตารางว่าง, ขึ้น 'ไม่พบข้อมูล' หรือ 'No records found' message"
+      },
+      {
+        id: "TC-042",
+        name: "Pagination page out of range (e.g., page 999)",
+        precondition: "Publish History มีข้อมูล 2 หน้า, user เข้า URL ด้วย page=999",
+        steps: "1. Open URL /shifts/publish/history?page=999\n2. ตรวจสอบ page response",
+        expected: "ระบบ redirect ไป last page หรือ page 1, ไม่ error"
+      },
+      {
+        id: "TC-043",
+        name: "ปิด page และ re-open → filter/pagination state ถูก reset",
+        precondition: "Publish History apply filter, pagination page 2",
+        steps: "1. Apply filter, navigate ไป page 2\n2. ปิด tab/page\n3. เปิด Publish History URL ใหม่",
+        expected: "Page 1, filter reset เป็น default (หรือ keep state ขึ้นอยู่ design)"
+      },
+      {
+        id: "TC-044",
+        name: "Concurrent export requests → ระบบ handle ได้",
+        precondition: "Publish History แสดง",
+        steps: "1. Click Export Excel button\n2. ขณะที่ download ยังไม่เสร็จ, click Export Excel อีกครั้ง\n3. ตรวจสอบ file ที่ download",
+        expected: "ระบบ handle concurrent requests, ไม่มี file corruption หรือ error, สามารถ download แต่ละ file สำเร็จ"
+      }
+    ]
+  },
+  {
+    name: "Test Cases เพิ่มเติม (นอกเหนือ AC)",
+    tcs: [
+      {
+        id: "EX-001",
+        name: "ตรวจสอบ response time โหลด Publish History ≤ 3 วินาที",
+        precondition: "Network normal",
+        steps: "1. เปิด browser dev tools (Network tab)\n2. Navigate ไป Publish History\n3. ตรวจสอบ page load time",
+        expected: "page load time ≤ 3 วินาที"
+      },
+      {
+        id: "EX-002",
+        name: "Responsive design — mobile view (320px width)",
+        precondition: "Browser mobile emulation",
+        steps: "1. Set viewport 320x568 (iPhone SE)\n2. เปิด Publish History\n3. ตรวจสอบการแสดงผล, scroll, pagination",
+        expected: "ตาราง responsive, scroll horizontal ได้, pagination buttons accessible"
+      },
+      {
+        id: "EX-003",
+        name: "Search box (if available) → ค้นหา action_by ด้วย partial name",
+        precondition: "Publish History มี search box",
+        steps: "1. พิมพ์ 'John' ใน search box\n2. ตรวจสอบผล",
+        expected: "ตารางแสดง record ที่ action_by มี 'John' (e.g., 'John Doe', 'Johnny')"
+      },
+      {
+        id: "EX-004",
+        name: "Copy to clipboard action (if available) → copy row data",
+        precondition: "Publish History มี copy icon/button",
+        steps: "1. click copy button บนแถว\n2. paste ไปใน notepad/textarea\n3. ตรวจสอบ data",
+        expected: "data ถูก copy ไปยัง clipboard แบบ formatted (tab-separated หรือ JSON)"
+      }
+    ]
+  }
+]
+
+const state = {}
+SECTIONS.forEach(sec => sec.tcs.forEach(tc => {
+  state[tc.id] = { status: null, note: '' }
+}))
+
+let customTcs = []
+
+function loadCustomTcs() {
+  try {
+    const saved = localStorage.getItem(TCS_KEY)
+    if (saved) customTcs = JSON.parse(saved)
+  } catch(e) {}
+  customTcs.forEach(tc => {
+    if (!state[tc.id]) state[tc.id] = { status: null, note: '' }
+  })
+}
+
+function saveCustomTcs() {
+  localStorage.setItem(TCS_KEY, JSON.stringify(customTcs))
+}
+
+function nextExId() {
+  const nums = customTcs.map(tc => parseInt(tc.id.replace('EX-',''), 10)).filter(n => !isNaN(n))
+  const next = nums.length ? Math.max(...nums) + 1 : 1
+  return 'EX-' + String(next).padStart(3, '0')
+}
+
+function addExtraTc() {
+  const id = nextExId()
+  customTcs.push({ id, name: id, precondition: '', steps: '', expected: '' })
+  state[id] = { status: null, note: '' }
+  saveCustomTcs()
+  render()
+  applyStateToUI()
+  updateStats()
+}
+
+function deleteExtraTc(id) {
+  if (!confirm('ลบ ' + id + '?')) return
+  customTcs = customTcs.filter(tc => tc.id !== id)
+  delete state[id]
+  saveCustomTcs()
+  saveState()
+  render()
+  applyStateToUI()
+  updateStats()
+}
+
+function saveState() {
+  const data = {}
+  Object.keys(state).forEach(id => { data[id] = { status: state[id].status, note: state[id].note } })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    const data = JSON.parse(saved)
+    Object.keys(data).forEach(id => {
+      if (state[id]) {
+        state[id].status = data[id].status
+        state[id].note = data[id].note || ''
+      }
+    })
+  } catch(e) {}
+}
+
+function updateStats() {
+  let p=0,f=0,r=0,s=0,n=0
+  Object.values(state).forEach(v => {
+    if(v.status==='pass') p++
+    else if(v.status==='fail') f++
+    else if(v.status==='retest') r++
+    else if(v.status==='skip') s++
+    else n++
+  })
+  document.getElementById('sp').textContent = 'Pass ' + p
+  document.getElementById('sf').textContent = 'Fail ' + f
+  const retestPill = document.getElementById('sr')
+  if (r > 0) { retestPill.style.display = ''; retestPill.textContent = 'Retest ' + r }
+  else retestPill.style.display = 'none'
+  document.getElementById('ss').textContent = 'Skip ' + s
+  document.getElementById('sn').textContent = 'Pending ' + n
+  document.getElementById('st').textContent = 'Total ' + Object.keys(state).length + ' TC'
+}
+
+function setStatus(id, st) {
+  state[id].status = state[id].status === st ? null : st
+  const row = document.getElementById('row-' + id)
+  row.className = 'tc-row' + (state[id].status ? ' s-' + state[id].status : '')
+  ;['p','f','s'].forEach(k => {
+    const map = {p:'pass',f:'fail',s:'skip'}
+    const btn = document.getElementById(k + '-' + id)
+    btn.className = 'tbtn' + (state[id].status === map[k] ? ' a' + k : '')
+  })
+  updateStats()
+  saveState()
+}
+
+let activeEditor = null
+function toggleDetail(id, el) {
+  const d = document.getElementById('detail-' + id)
+  const open = d.classList.toggle('open')
+  el.textContent = open ? '▾ ซ่อน' : '▸ ดูรายละเอียด'
+  if (open) activeEditor = id
+}
+
+function setupEditor(id) {
+  const editor = document.getElementById('actual-' + id)
+  if (!editor) return
+  editor.addEventListener('focus', () => { activeEditor = id })
+  editor.addEventListener('paste', (e) => {
+    const items = Array.from(e.clipboardData?.items || [])
+    const imgItem = items.find(i => i.type.startsWith('image/'))
+    if (!imgItem) return
+    e.preventDefault()
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = document.createElement('img')
+      img.src = ev.target.result
+      img.onclick = () => openLightbox(img.src)
+      insertAtCursor(img)
+      showToast('📋 วางรูปแล้ว')
+    }
+    reader.readAsDataURL(imgItem.getAsFile())
+  })
+  editor.addEventListener('dragover', (e) => { e.preventDefault() })
+  editor.addEventListener('drop', (e) => {
+    e.preventDefault()
+    const _ins = (src) => { const _a = (s) => { const img = document.createElement('img'); img.src = s; img.onclick = () => openLightbox(img.src); editor.appendChild(img); showToast('📎 วางรูปแล้ว') }; if (!src.startsWith('data:') || src.startsWith('data:image/gif')) { _a(src); return }; const tmp = new Image(); tmp.onload = () => { const MAX = 600, cv = document.createElement('canvas'); let w = tmp.width, h = tmp.height; if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } cv.width = w; cv.height = h; cv.getContext('2d').drawImage(tmp, 0, 0, w, h); _a(cv.toDataURL('image/jpeg', 0.4)) }; tmp.src = src }
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'))
+    if (file) { const r = new FileReader(); r.onload = ev => _ins(ev.target.result); r.readAsDataURL(file); return }
+    const item = Array.from(e.dataTransfer.items || []).find(i => i.kind === 'file' && i.type.startsWith('image/'))
+    if (item) { const r = new FileReader(); r.onload = ev => _ins(ev.target.result); r.readAsDataURL(item.getAsFile()); return }
+    const html = e.dataTransfer.getData('text/html')
+    if (html) { const tmp = document.createElement('div'); tmp.innerHTML = html; const s = tmp.querySelector('img')?.src; if (s) { _ins(s); return } }
+    const uri = (e.dataTransfer.getData('text/uri-list') || '').split('\n')[0].trim()
+    if (uri && /\.(png|jpe?g|gif|webp|svg)/i.test(uri)) _ins(uri)
+  })
+}
+
+function insertAtCursor(node) {
+  const sel = window.getSelection()
+  if (!sel || !sel.rangeCount) return
+  const range = sel.getRangeAt(0)
+  range.deleteContents()
+  range.insertNode(node)
+  range.setStartAfter(node)
+  range.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(range)
+}
+
+function saveActual(id) {
+  const editor = document.getElementById('actual-' + id)
+  state[id].note = editor ? editor.innerHTML : ''
+  saveState()
+  showToast('💾 บันทึกแล้ว')
+}
+
+function openLightbox(src) {
+  const overlay = document.createElement('div')
+  overlay.className = 'lb-overlay'
+  const img = document.createElement('img')
+  img.src = src
+  const close = document.createElement('button')
+  close.className = 'lb-close'
+  close.textContent = '✕'
+  overlay.appendChild(img)
+  overlay.appendChild(close)
+  document.body.appendChild(overlay)
+  const rm = () => overlay.remove()
+  close.onclick = (e) => { e.stopPropagation(); rm() }
+  overlay.onclick = rm
+  img.onclick = (e) => e.stopPropagation()
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { rm(); document.removeEventListener('keydown', esc) }
+  })
+}
+
+function showToast(msg) {
+  const t = document.createElement('div')
+  t.textContent = msg
+  t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;background:#1a1a1a;color:#fff;border-radius:6px;padding:8px 14px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;'
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2000)
+}
+
+function resetAll() {
+  if (!confirm('รีเซ็ตทั้งหมด? (TC เพิ่มเติมที่สร้างไว้จะยังอยู่)')) return
+  localStorage.removeItem(STORAGE_KEY)
+  Object.keys(state).forEach(id => { state[id] = { status: null, note: '' } })
+  document.getElementById('bug-out').classList.remove('open')
+  render()
+  applyStateToUI()
+  updateStats()
+}
+
+function collectFails(tcs, sectionName, fails, num) {
+  tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'fail') {
+      const editor = document.getElementById('actual-' + tc.id)
+      fails.push({ ...tc, section: sectionName,
+        actual: editor ? editor.innerText.trim() : '',
+        actualHtml: editor ? editor.innerHTML.trim() : '',
+        num: num++ })
+    }
+  })
+  return num
+}
+
+function collectRetests(tcs, sectionName, retests) {
+  tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'retest') retests.push({ ...tc, section: sectionName })
+  })
+}
+
+function markRetest(id) {
+  state[id].status = 'retest'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-retest'; ['p','f','s'].forEach(k => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn' }) }
+  updateStats(); saveState(); showBugReport()
+}
+
+function unmarkRetest(id) {
+  state[id].status = 'fail'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-fail'; const b = document.getElementById('f-'+id); if(b) b.className='tbtn af' }
+  updateStats(); saveState(); showBugReport()
+}
+
+function retestPass(id) {
+  state[id].status = 'pass'
+  const row = document.getElementById('row-' + id)
+  if (row) { row.className = 'tc-row s-pass'; ['p','f','s'].forEach((k,i) => { const b = document.getElementById(k+'-'+id); if(b) b.className='tbtn'+(i===0?' ap':'') }) }
+  updateStats(); saveState(); showBugReport()
+}
+
+function showBugReport() {
+  const fails = []
+  let num = 1
+  SECTIONS.forEach(sec => { num = collectFails(sec.tcs, sec.name, fails, num) })
+  num = collectFails(customTcs, 'เพิ่มเติม', fails, num)
+  const retests = []
+  SECTIONS.forEach(sec => collectRetests(sec.tcs, sec.name, retests))
+  collectRetests(customTcs, 'เพิ่มเติม', retests)
+  const out = document.getElementById('bug-out')
+  const list = document.getElementById('bug-list')
+  const title = document.getElementById('bug-title')
+  out.classList.add('open')
+  document.getElementById('export-btn').style.display = fails.length ? 'block' : 'none'
+  document.getElementById('send-btn').style.display = fails.length ? 'block' : 'none'
+  if (!fails.length && !retests.length) {
+    title.textContent = ''
+    list.innerHTML = '<div class="no-fail">ไม่มี Test Case ที่ Fail ✅</div>'
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+  const parts = []
+  if (fails.length) parts.push(fails.length + ' รายการที่ Fail')
+  if (retests.length) parts.push(retests.length + ' รายการรอ Retest')
+  title.textContent = 'พบ ' + parts.join(' · ')
+  const failsHtml = fails.map(f => `
+    <div class="bug-item">
+      <div class="bug-id">BUG-${String(f.num).padStart(3,'0')} · ${f.id}</div>
+      <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:6px">${f.name}</div>
+      ${f.precondition ? `<div class="bug-line"><b>Precondition:</b> ${f.precondition}</div>` : ''}
+      <div class="bug-line"><b>Steps:</b> ${f.steps ? f.steps.replace(/\n/g,'<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') : '—'}</div>
+      <div class="bug-line"><b>Expected:</b> ${f.expected || '—'}</div>
+      <div class="bug-line"><b>Actual result:</b></div>
+      <div class="bug-actual-content">${f.actualHtml || '<span style="color:rgba(248,250,252,0.4)">ยังไม่ได้ระบุ</span>'}</div>
+      <button class="bug-retest-btn" onclick="markRetest('${f.id}')">🔁 Dev แก้แล้ว — Mark Retest</button>
+    </div>
+  `).join('')
+  const retestsHtml = retests.length ? `
+    <div class="bug-section-title" style="margin-top:14px;color:#fbbf24">รอ Retest (${retests.length})</div>
+    ${retests.map(f => `
+      <div class="bug-item-retest">
+        <div class="bug-id" style="color:#fbbf24">${f.id}<span class="retest-badge">⏳ รอ Retest</span></div>
+        <div class="bug-line" style="font-weight:500;color:#F8FAFC;margin-bottom:4px">${f.name}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="bug-retest-btn" style="color:#7ec87e;border-color:rgba(82,168,105,0.3)" onclick="retestPass('${f.id}')">✅ Retest ผ่าน</button>
+          <button class="bug-retest-btn" style="color:#f09595;border-color:rgba(226,75,74,0.3)" onclick="unmarkRetest('${f.id}')">❌ Retest ไม่ผ่าน</button>
+        </div>
+      </div>
+    `).join('')}
+  ` : ''
+  list.innerHTML = failsHtml + retestsHtml
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+document.getElementById('bug-list').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target.src)
+})
+
+function tcRowHTML(tc, isDynamic) {
+  return `
+    <div class="tc-row" id="row-${tc.id}">
+      <div class="tc-top">
+        <div class="tc-id">${tc.id}</div>
+        <div class="tc-name">${tc.name}</div>
+        <div class="tc-btns">
+          <button class="tbtn" id="p-${tc.id}" onclick="setStatus('${tc.id}','pass')">Pass</button>
+          <button class="tbtn" id="f-${tc.id}" onclick="setStatus('${tc.id}','fail')">Fail</button>
+          <button class="tbtn" id="s-${tc.id}" onclick="setStatus('${tc.id}','skip')">Skip</button>
+          ${isDynamic ? `<button class="tbtn del-btn" onclick="deleteExtraTc('${tc.id}')" title="ลบ TC นี้">✕</button>` : ''}
+        </div>
+      </div>
+      <span class="tc-toggle" onclick="toggleDetail('${tc.id}',this)">▸ ดูรายละเอียด</span>
+      <div class="tc-detail" id="detail-${tc.id}">
+        ${tc.precondition ? `<div class="detail-label">Precondition</div><div class="detail-val">${tc.precondition}</div>` : ''}
+        <div class="detail-label">Steps</div>
+        <div class="detail-val">${tc.steps ? tc.steps.replace(/\n/g,'<br>') : '<span style="color:rgba(248,250,252,0.25)">—</span>'}</div>
+        <div class="detail-label">Expected</div>
+        <div class="detail-val">${tc.expected || '<span style="color:rgba(248,250,252,0.25)">—</span>'}</div>
+        <div class="detail-label" style="margin-top:10px">Actual result</div>
+        <div class="actual-editor" id="actual-${tc.id}" contenteditable="true"
+          data-placeholder="พิมพ์หรือ Ctrl+V วางรูปได้เลย..."></div>
+        <div class="save-row">
+          <button class="save-btn" onclick="saveActual('${tc.id}')">💾 Save</button>
+        </div>
+      </div>
+    </div>`
+}
+
+function render() {
+  const container = document.getElementById('tc-list')
+  container.innerHTML =
+    SECTIONS.map(sec => `
+      <div>
+        ${sec.name ? `<div class="section-hd">${sec.name}</div>` : ''}
+        ${sec.tcs.map(tc => tcRowHTML(tc, false)).join('')}
+      </div>`
+    ).join('') +
+    `<div>
+      <div class="extra-hd">Test Cases เพิ่มเติม <span style="font-weight:400;font-size:10px">(นอกเหนือ AC)</span></div>
+      ${customTcs.map(tc => tcRowHTML(tc, true)).join('')}
+      <button class="add-tc-btn" onclick="addExtraTc()">+ เพิ่ม Test Case</button>
+    </div>`
+  SECTIONS.forEach(sec => sec.tcs.forEach(tc => setupEditor(tc.id)))
+  customTcs.forEach(tc => setupEditor(tc.id))
+}
+
+function applyStateToUI() {
+  const applyOne = (tc) => {
+    const s = state[tc.id]
+    if (!s) return
+    if (s.status) {
+      const row = document.getElementById('row-' + tc.id)
+      if (row) row.className = 'tc-row s-' + s.status
+      const map = { pass:'p', fail:'f', skip:'s' }
+      const btn = document.getElementById(map[s.status] + '-' + tc.id)
+      if (btn) btn.className = 'tbtn a' + map[s.status][0]
+    }
+    if (s.note) {
+      const editor = document.getElementById('actual-' + tc.id)
+      if (editor) editor.innerHTML = s.note
+    }
+  }
+  SECTIONS.forEach(sec => sec.tcs.forEach(applyOne))
+  customTcs.forEach(applyOne)
+}
+
+loadCustomTcs()
+render()
+;(async () => {
+  if (window.FS) await window.FS.pullDoc(STORAGE_KEY)
+  loadState()
+  applyStateToUI()
+  updateStats()
+})()
+
+const PROXY_URL = 'https://web-production-3a704.up.railway.app'
+
+function exportBugJSON() {
+  const payload = buildPayload()
+  if (!payload) return
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'bug-report-' + TASK_NUMBER + '.json'
+  a.click()
+  showToast('📥 ดาวน์โหลด bug-report-' + TASK_NUMBER + '.json แล้วครับ')
+}
+
+function buildPayload() {
+  const fails = []
+  const gather = (tcs, sectionName) => tcs.forEach(tc => {
+    if (state[tc.id]?.status === 'fail') {
+      const editor = document.getElementById('actual-' + tc.id)
+      const images = []
+      if (editor) editor.querySelectorAll('img').forEach(img => images.push(img.src))
+      const noteText = state[tc.id]?.note || ''
+      ;(noteText.match(/https?:\/\/i\.ibb\.co\/[^\s<"'\n]+/g) || []).forEach(url => { if (!images.includes(url)) images.push(url) })
+      let actualText = editor ? editor.innerText.trim() : ''
+      if (!actualText) actualText = noteText.replace(/\[รูป\]\s*https?:\/\/[^\n]+/g, '').trim() || 'ยังไม่ได้ระบุ'
+      fails.push({ tc_id: tc.id, name: tc.name, section: sectionName,
+        precondition: tc.precondition || '', steps: tc.steps || '', expected: tc.expected || '',
+        actual: actualText, images })
+    }
+  })
+  SECTIONS.forEach(sec => gather(sec.tcs, sec.name))
+  gather(customTcs, 'เพิ่มเติม')
+  if (!fails.length) { showToast('ไม่มี Fail ที่จะส่ง'); return null }
+  return {
+    task_url: TASK_URL, task_number: TASK_NUMBER, task_name: TASK_NAME,
+    total_pass: Object.values(state).filter(v => v.status === 'pass').length,
+    total_fail: fails.length,
+    total_skip: Object.values(state).filter(v => v.status === 'skip').length,
+    total_tc: Object.keys(state).length,
+    bugs: fails
+  }
+}
+
+let progressEl = null
+function showSending() {
+  if (progressEl) progressEl.remove()
+  progressEl = document.createElement('div')
+  progressEl.className = 'send-progress'
+  progressEl.innerHTML = `<div class="send-progress-title">📤 กำลังส่ง Bug Report...</div>
+    <div class="send-step active" id="sp-0">→ ส่งไป proxy...</div>`
+  document.body.appendChild(progressEl)
+}
+function showSendDone(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step done'
+  progressEl.querySelector('#sp-0').textContent = '✓ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 3000)
+}
+function showSendErr(msg) {
+  if (!progressEl) return
+  progressEl.querySelector('#sp-0').className = 'send-step err'
+  progressEl.querySelector('#sp-0').textContent = '✗ ' + msg
+  setTimeout(() => { progressEl?.remove(); progressEl = null }, 5000)
+}
+
+async function sendToBoard() {
+  const payload = buildPayload()
+  if (!payload) return
+  showSending()
+  try {
+    const r = await fetch(`${PROXY_URL}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await r.json()
+    if (data.ok) {
+      showSendDone(`ส่ง ${payload.total_fail} bugs สำเร็จ!`)
+      showToast(`✅ ส่ง ${payload.total_fail} bugs เข้า Task #${TASK_NUMBER} แล้วครับ`)
+    } else {
+      showSendErr(data.error || 'ส่งไม่สำเร็จ')
+      showToast('❌ ' + (data.error || 'ส่งไม่สำเร็จ'))
+    }
+  } catch (err) {
+    showSendErr('เปิด proxy ก่อน')
+    showToast('❌ ไม่พบ proxy — รัน: python proxy.py')
+    console.error(err)
+  }
+}
+</script>
+</body>
+</html>
